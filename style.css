@@ -17,7 +17,7 @@ body {
   padding: 20px;
 }
 
-/* ── Widget principal ───────────────────────────────────────────────────────── */
+/* ── Widget principal ──────────────────────────────────────────────────────────── */
 .alert {
   display: none;
   width: var(--widget-width, 660px);
@@ -41,14 +41,13 @@ body {
   display: block;
 }
 
-/* ── Variables de durée ───────────────────────────────────────────────────────── */
+/* ── Variables de durée ───────────────────────────────────────────────────── */
 :root {
   --anim-duration-in:  600ms;
   --anim-duration-out: 500ms;
   --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
   --ease-in-expo:  cubic-bezier(0.7, 0, 0.84, 0);
   --ease-bounce:   cubic-bezier(0.34, 1.56, 0.64, 1);
-  /* Couleurs barre de progression (fallback = couleurs principales) */
   --progress-color-1: #00f5ff;
   --progress-color-2: #ff2ec4;
 }
@@ -200,7 +199,7 @@ body {
   100% { transform: translate(0, 0)    skewX(0deg);  opacity: 0;   clip-path: inset(50% 0 50% 0); }
 }
 
-/* ── Pseudo-éléments glass ──────────────────────────────────────────────────────── */
+/* ── Pseudo-éléments glass ───────────────────────────────────────────────────────────── */
 .alert::before,
 .alert::after {
   content: '';
@@ -236,7 +235,7 @@ body {
   50%       { opacity: 0.75; }
 }
 
-/* ── Barre de progression ────────────────────────────────────────────────────── */
+/* ── Barre de progression ────────────────────────────────────────────────── */
 .progress-bar {
   display: none;
   position: absolute;
@@ -249,7 +248,6 @@ body {
   z-index: 10;
 }
 
-/* Le gradient utilise les variables dédiées — indépendantes des couleurs du widget */
 .progress-bar::after {
   content: '';
   display: block;
@@ -274,8 +272,11 @@ body {
 /* ── Layout header ───────────────────────────────────────────────────────────── */
 .alert-header {
   display: flex;
+  flex-direction: column;
   align-items: center;
-  gap: 26px;
+  justify-content: center;
+  gap: 10px;
+  text-align: center;
 }
 
 .icon {
@@ -291,11 +292,11 @@ body {
 }
 
 .info {
-  flex: 1;
+  width: 100%;
   min-width: 0;
 }
 
-/* ── Textes ───────────────────────────────────────────────────────────────────────── */
+/* ── Textes ─────────────────────────────────────────────────────────────────────────────────── */
 .type {
   font-size: var(--type-size, 15.5px);
   font-weight: 600;
@@ -310,9 +311,9 @@ body {
   font-size: var(--username-size, 49px);
   font-weight: 700;
   line-height: 1.05;
-  white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  white-space: nowrap;
   background: linear-gradient(90deg, #ffffff, var(--primary-color, #7cfcff), #ffffff);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
@@ -324,9 +325,9 @@ body {
   margin-top: 8px;
   opacity: 0.92;
   font-weight: 500;
-  white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  white-space: nowrap;
   color: rgba(255,255,255,0.9);
 }
 
@@ -338,7 +339,7 @@ body {
   text-shadow: 0 0 12px rgba(255, 46, 196, 0.5);
 }
 
-/* ── Particules ───────────────────────────────────────────────────────────────────── */
+/* ── Particules ────────────────────────────────────────────────────────────────────────────────────── */
 .particles {
   position: absolute;
   top: 0; left: 0; right: 0; bottom: 0;
@@ -354,7 +355,7 @@ body {
   }
 }
 
-/* ── Fallback backdrop-filter ───────────────────────────────────────────────────── */
+/* ── Fallback backdrop-filter ────────────────────────────────────────────────────── */
 @supports not (backdrop-filter: blur(1px)) {
   .alert {
     background: rgba(10, 10, 20, 0.88);
