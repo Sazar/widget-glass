@@ -1,4 +1,4 @@
-// ─── State ───────────────────────────────────────────────────────────────────
+// ─── State ────────────────────────────────────────────────────────────────────
 let fieldData = {};
 let alertQueue = [];
 let isPlaying = false;
@@ -6,7 +6,7 @@ let hideTimer = null;
 let isLoading = true;
 const seenEventIds = new Set();
 
-// ─── DOM refs ────────────────────────────────────────────────────────────────
+// ─── DOM refs ──────────────────────────────────────────────────────────────────
 const alertEl    = document.getElementById('alert');
 const iconEl     = document.getElementById('icon');
 const typeEl     = document.getElementById('type');
@@ -15,14 +15,14 @@ const messageEl  = document.getElementById('message');
 const amountEl   = document.getElementById('amount');
 const progressEl = document.getElementById('progressBar');
 
-// ─── StreamElements load ─────────────────────────────────────────────────────
+// ─── StreamElements load ───────────────────────────────────────────────────────
 window.addEventListener('onWidgetLoad', function (obj) {
   fieldData = obj.detail.fieldData;
   applySettings();
   setTimeout(() => { isLoading = false; }, 500);
 });
 
-// ─── Apply CSS variables from fields ─────────────────────────────────────────
+// ─── Apply CSS variables from fields ──────────────────────────────────────────
 function applySettings() {
   const root = document.documentElement;
   root.style.setProperty('--widget-width',      (fieldData.widgetWidth   || 660)  + 'px');
@@ -47,10 +47,11 @@ function applySettings() {
   root.style.setProperty('--progress-color-1',   fieldData.progressBarColor1 || fieldData.primaryColor || '#00f5ff');
   root.style.setProperty('--progress-color-2',   fieldData.progressBarColor2 || fieldData.accentColor  || '#ff2ec4');
   applyPosition(fieldData.widgetPosition || 'center');
+  // applyThemePreset EN DERNIER : ses couleurs écrasent typeColor/usernameColor si preset actif
   applyThemePreset(fieldData.themePreset || 'custom');
 }
 
-// ─── hexToRgba robuste ────────────────────────────────────────────────────────
+// ─── hexToRgba robuste ─────────────────────────────────────────────────────────
 function hexToRgba(hex, alpha) {
   if (!hex || typeof hex !== 'string') return `rgba(0,245,255,${alpha})`;
   hex = hex.trim();
@@ -63,7 +64,7 @@ function hexToRgba(hex, alpha) {
   return `rgba(${r},${g},${b},${alpha})`;
 }
 
-// ─── Position du widget ───────────────────────────────────────────────────────
+// ─── Position du widget ────────────────────────────────────────────────────────
 function applyPosition(pos) {
   const map = {
     'top-left':      ['flex-start', 'flex-start'],
@@ -79,24 +80,31 @@ function applyPosition(pos) {
   document.body.style.justifyContent = justify;
 }
 
-// ─── Presets de thème ─────────────────────────────────────────────────────────
+// ─── Presets de thème ──────────────────────────────────────────────────────────
+// Chaque preset définit primary, accent, typeColor ET usernameColor.
+// Quand un preset est actif, ces 4 valeurs écrasent les colorpickers manuels.
+// En mode 'custom', rien n'est écrasé : les colorpickers s'appliquent librement.
 const THEME_PRESETS = {
-  'neon-cyan':     { primary: '#00f5ff', accent: '#ff2ec4' },
-  'gold':          { primary: '#ffd700', accent: '#ff8c00' },
-  'purple-storm':  { primary: '#b44fff', accent: '#ff4fa3' },
-  'minimal-white': { primary: '#ffffff', accent: '#cccccc' },
-  'green-matrix':  { primary: '#00ff88', accent: '#00ccff' },
+  'neon-cyan':     { primary: '#00f5ff', accent: '#ff2ec4', typeColor: '#00f5ff', usernameColor: '#ffffff' },
+  'gold':          { primary: '#ffd700', accent: '#ff8c00', typeColor: '#ffd700', usernameColor: '#fff8dc' },
+  'purple-storm':  { primary: '#b44fff', accent: '#ff4fa3', typeColor: '#b44fff', usernameColor: '#f0e0ff' },
+  'minimal-white': { primary: '#ffffff', accent: '#cccccc', typeColor: '#cccccc', usernameColor: '#ffffff' },
+  'green-matrix':  { primary: '#00ff88', accent: '#00ccff', typeColor: '#00ff88', usernameColor: '#ccffe8' },
   'custom': null
 };
 
 function applyThemePreset(preset) {
   const theme = THEME_PRESETS[preset];
+  // 'custom' ou preset inconnu → on ne touche à rien, les colorpickers restent actifs
   if (!theme) return;
   const root = document.documentElement;
   root.style.setProperty('--primary-color',      theme.primary);
   root.style.setProperty('--accent-color',       theme.accent);
   root.style.setProperty('--primary-color-soft', hexToRgba(theme.primary, 0.25));
   root.style.setProperty('--accent-color-soft',  hexToRgba(theme.accent,  0.18));
+  // Écrase typeColor et usernameColor des colorpickers manuels
+  root.style.setProperty('--type-color',     theme.typeColor);
+  root.style.setProperty('--username-color', theme.usernameColor);
 }
 
 // ─── Animations entrée / sortie ───────────────────────────────────────────────
@@ -127,7 +135,7 @@ function createParticles() {
   }
 }
 
-// ─── Sons ─────────────────────────────────────────────────────────────────────
+// ─── Sons ──────────────────────────────────────────────────────────────────────
 function playSound(type) {
   const key = 'sound' + type.charAt(0).toUpperCase() + type.slice(1);
   const url = fieldData[key];
@@ -137,7 +145,7 @@ function playSound(type) {
   audio.play().catch(() => {});
 }
 
-// ─── Barre de progression ─────────────────────────────────────────────────────
+// ─── Barre de progression ──────────────────────────────────────────────────────
 function startProgressBar(duration) {
   if (!progressEl) return;
   if (!fieldData.showProgressBar) { progressEl.classList.remove('active'); return; }
@@ -147,7 +155,7 @@ function startProgressBar(duration) {
   progressEl.classList.add('active');
 }
 
-// ─── Emotes Twitch dans le message ───────────────────────────────────────────────
+// ─── Emotes Twitch dans le message ────────────────────────────────────────────
 function renderEmotes(text, emotes) {
   if (!emotes || !emotes.length || !text) return null;
   const dict = {};
@@ -163,7 +171,7 @@ function renderEmotes(text, emotes) {
   );
 }
 
-// ─── Résolution des templates de messages ────────────────────────────────────
+// ─── Résolution des templates de messages ─────────────────────────────────────
 function resolveTemplate(template, vars) {
   if (!template) return '';
   return template
@@ -229,10 +237,8 @@ function _playAlert(type, username, message, amount, emotes) {
     vars.months = message.match(/(\d+)/)?.[1] || '';
   }
 
-  let finalMessage;
   if (template && template.trim() !== '') {
-    finalMessage = resolveTemplate(template, vars);
-    messageEl.textContent = finalMessage;
+    messageEl.textContent = resolveTemplate(template, vars);
   } else {
     const emoteHtml = renderEmotes(message, emotes);
     if (emoteHtml !== null) messageEl.innerHTML  = emoteHtml;
@@ -268,7 +274,7 @@ function _playAlert(type, username, message, amount, emotes) {
   }, duration);
 }
 
-// ─── API publique ─────────────────────────────────────────────────────────────
+// ─── API publique ──────────────────────────────────────────────────────────────
 function showAlert(type, username, message = '', amount = '', emotes = []) {
   enqueueAlert(type, username, message, amount, emotes);
 }
@@ -349,14 +355,14 @@ window.addEventListener('onEventReceived', function (obj) {
 // ─── Fonctions de test console ────────────────────────────────────────────────
 window.testAlert = function(type = 'follow', name = 'TestUser') {
   const testData = {
-    follow:    { msg: '',            amount: '' },
+    follow:    { msg: '',               amount: '' },
     sub:       { msg: 'Super stream !', amount: '' },
-    resub:     { msg: 'x3 mois',    amount: '3' },
-    giftsub:   { msg: 'DestUser',   amount: '5' },
-    donation:  { msg: 'Merci !',    amount: '10 €' },
-    raid:      { msg: '',           amount: '42' },
-    cheer:     { msg: 'Hype !',     amount: '500 bits' },
-    hypetrain: { msg: 'Niveau 2',   amount: '2' }
+    resub:     { msg: 'x3 mois',        amount: '3' },
+    giftsub:   { msg: 'DestUser',       amount: '5' },
+    donation:  { msg: 'Merci !',        amount: '10 €' },
+    raid:      { msg: '',               amount: '42' },
+    cheer:     { msg: 'Hype !',         amount: '500 bits' },
+    hypetrain: { msg: 'Niveau 2',       amount: '2' }
   };
   const d = testData[type] || testData.follow;
   showAlert(type, name, d.msg, d.amount);
