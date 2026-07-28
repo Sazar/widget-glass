@@ -35,6 +35,11 @@ body {
   border: 1px solid var(--primary-color, rgba(0, 245, 255, 0.35));
 }
 
+/* AMÉLIORATION: aria-live pour accessibilité lecteurs d'écran */
+.alert[aria-live] {
+  speak: normal;
+}
+
 [class*="anim-in-"],
 [class*="anim-out-"] {
   display: block;
@@ -305,7 +310,7 @@ body {
 
 /* Couleur pleine — aucun dégradé, uniquement --username-color */
 .username {
-  font-family: 'Space Grotesk', sans-serif;
+  font-family: 'Space Grotesk', 'Inter', sans-serif;
   font-size: var(--username-size, 49px);
   font-weight: 700;
   line-height: 1.05;
@@ -317,6 +322,8 @@ body {
   -webkit-background-clip: unset;
   -webkit-text-fill-color: unset;
   background-clip: unset;
+  /* AMÉLIORATION: curseur pointer pour indiquer que le title est lisible */
+  cursor: default;
 }
 
 .message {
@@ -347,9 +354,10 @@ body {
   border-radius: var(--border-radius, 28px);
 }
 
+/* AMÉLIORATION: translateY variable via custom property --travel-y injectée par JS */
 @keyframes floatParticle {
   to {
-    transform: translateY(-280px);
+    transform: translateY(var(--travel-y, -280px));
     opacity: 0;
   }
 }
