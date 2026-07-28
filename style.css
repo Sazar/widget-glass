@@ -21,7 +21,6 @@ body {
 .alert {
   display: none;
   width: var(--widget-width, 660px);
-  /* FIX #1: --glass-bg est calculé entièrement en JS (rgba() n'accepte pas var() comme alpha) */
   background: var(--glass-bg, rgba(20, 20, 35, 0.45));
   backdrop-filter: blur(var(--blur-intensity, 28px));
   -webkit-backdrop-filter: blur(var(--blur-intensity, 28px));
@@ -316,8 +315,8 @@ body {
   font-size: var(--username-size, 49px);
   font-weight: 700;
   line-height: 1.1;
-  margin-top: 30px;  /* ⬆ 4px → 14px : pseudo descendu */
-  margin-bottom: 6px;
+  margin-top: 14px;
+  margin-bottom: 0;           /* le message gère sa propre distance */
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -331,14 +330,13 @@ body {
 
 .message {
   font-size: var(--message-size, 23px);
-  margin-top: 14px;
+  margin-top: 2px;            /* ⬆ 14px → 2px : collé au pseudo */
   opacity: 0.92;
   font-weight: 500;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
   color: rgba(255,255,255,0.9);
-  /* Transition douce pour le show/hide conditionnel */
   transition: opacity 0.2s ease, max-height 0.2s ease;
 }
 
