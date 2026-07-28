@@ -232,14 +232,12 @@ function showAlert(type, username, message = '', amount = '', emotes = []) {
 }
 
 // ─── Détection gift sub ───────────────────────────────────────────────────────
-// SE envoie subscriber-latest EN PLUS de subscriber-gifted-latest pour chaque
-// gift sub reçu. On l'ignore si le champ isCommunityGift, gifted ou isGift est vrai.
 function isGiftSub(data) {
   return !!(
     data.isCommunityGift ||
     data.gifted          ||
     data.isGift          ||
-    data.sender          ||  // champ présent quand quelqu'un a offert la sub
+    data.sender          ||
     data.gifter
   );
 }
@@ -253,6 +251,9 @@ window.addEventListener('onEventReceived', function (obj) {
   const data     = obj.detail.event;
   const emotes   = data.emotes || [];
 
+  // ── DEBUG : colle ce log dans la console SE pour voir le vrai nom du listener ──
+  console.log('[widget-glass] event =>', listener, JSON.stringify(data).slice(0, 300));
+
   const eventId = `${listener}_${data.name}_${data._id || data.createdAt || Date.now()}`;
   if (seenEventIds.has(eventId)) return;
   seenEventIds.add(eventId);
@@ -263,9 +264,7 @@ window.addEventListener('onEventReceived', function (obj) {
     showAlert('follow', data.name, data.message || '', '', emotes);
   }
 
-  // ── Sub / Resub ───────────────────────────────────────────────────────────
-  // IMPORTANT : on ignore si c'est un gift sub — SE envoie subscriber-latest
-  // pour le destinataire même quand c'est un gift. On le filtre ici.
+  // ── Sub / Resub (ignorer si c'est un gift sub) ────────────────────────────
   if (listener === 'subscriber-latest' && !isGiftSub(data)) {
     if (data.amount > 1 && fieldData.showResub) {
       showAlert('resub', data.name, `x${data.amount} mois`, '', emotes);
@@ -274,15 +273,22 @@ window.addEventListener('onEventReceived', function (obj) {
     }
   }
 
-  // ── Gift Sub ──────────────────────────────────────────────────────────────
-  // subscriber-gifted-latest = l'offreur (ex: StreamerXYZ offre 5 subs)
-  if (listener === 'subscriber-gifted-latest' && fieldData.showGiftSub) {
-    const qty    = data.amount || data.quantity || 1;
-    const gifted = data.recipientDisplayName || data.recipient || '';
+  // ── Gift Sub — listener officiel SE ──────────────────────────────────────────
+  // SE peut envoyer 'subscriber-gifted-latest' ou 'community-gift-purchase-latest'
+  // selon la version. On couvre les deux + le cas subscriber-latest avec champs gift.
+  if (
+    (listener === 'subscriber-gifted-latest' ||
+     listener === 'community-gift-purchase-latest' ||
+     (listener === 'subscriber-latest' && isGiftSub(data)))
+    && fieldData.showGiftSub
+  ) {
+    const qty    = data.amount || data.quantity || data.count || 1;
+    const gifted = data.recipientDisplayName || data.recipient || data.gifted || '';
+    const gifter = data.name || data.sender   || data.gifter  || 'Anonyme';
     const msg    = qty > 1
       ? `offre ${qty} subs !`
       : gifted ? `offre 1 sub à ${gifted} !` : 'offre un sub !';
-    showAlert('giftsub', data.name, msg, '', []);
+    showAlert('giftsub', gifter, msg, '', []);
   }
 
   // ── Donation ──────────────────────────────────────────────────────────────
@@ -290,7 +296,7 @@ window.addEventListener('onEventReceived', function (obj) {
     showAlert('donation', data.name, data.message || '', data.amount + ' €', emotes);
   }
 
-  // ── Raid ──────────────────────────────────────────────────────────────────
+  // ── Raid ──────────────────────────────────────────────────────────────
   if (listener === 'raid-latest' && fieldData.showRaid) {
     showAlert('raid', data.name, `avec ${data.amount} viewers !`, '', []);
   }
