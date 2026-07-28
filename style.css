@@ -269,14 +269,11 @@ body {
   display: block;
 }
 
-/* ── Layout header ───────────────────────────────────────────────────────────── */
+/* ── Layout header : icône à gauche, textes centrés ────────────────────────── */
 .alert-header {
   display: flex;
-  flex-direction: column;
   align-items: center;
-  justify-content: center;
-  gap: 10px;
-  text-align: center;
+  gap: 26px;
 }
 
 .icon {
@@ -292,8 +289,9 @@ body {
 }
 
 .info {
-  width: 100%;
+  flex: 1;
   min-width: 0;
+  text-align: center;
 }
 
 /* ── Textes ─────────────────────────────────────────────────────────────────────────────────── */
@@ -311,9 +309,9 @@ body {
   font-size: var(--username-size, 49px);
   font-weight: 700;
   line-height: 1.05;
+  white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  white-space: nowrap;
   background: linear-gradient(90deg, #ffffff, var(--primary-color, #7cfcff), #ffffff);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
@@ -325,9 +323,9 @@ body {
   margin-top: 8px;
   opacity: 0.92;
   font-weight: 500;
+  white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  white-space: nowrap;
   color: rgba(255,255,255,0.9);
 }
 
