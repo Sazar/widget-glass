@@ -292,10 +292,14 @@ body {
   transform: scale(1.15);
 }
 
+/* FIX: flexbox colonne sur .info pour que margin-top/bottom sur les enfants soit effectif */
 .info {
   flex: 1;
   min-width: 0;
   text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
 }
 
 /* ── Textes ────────────────────────────────────────────────────────────────────── */
@@ -314,7 +318,7 @@ body {
   font-size: var(--username-size, 49px);
   font-weight: 700;
   line-height: 1.1;
-  margin-top: 4px;
+  margin-top: 4px;   /* ← ajuste cette valeur pour monter/descendre le pseudo */
   margin-bottom: 6px;
   white-space: nowrap;
   overflow: hidden;
