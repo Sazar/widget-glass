@@ -102,7 +102,7 @@
   "iconHypeTrain": { "type": "text", "label": "Icône Hype Train", "value": "🚂", "group": "🏷️ Icônes & Textes" },
   "textHypeTrain": { "type": "text", "label": "Texte Hype Train", "value": "HYPE TRAIN 🔥",  "group": "🏷️ Icônes & Textes" },
 
-  "_msgHint":     { "type": "text", "label": "Balises : {username} {amount} {message} {months} {count} {recipient}", "value": "", "group": "💬 Messages personnalisés" },
+  "_msgHint":     { "type": "text", "label": "Balises disponibles : {username} {amount} {message} {months} {count} {recipient}", "value": "", "group": "💬 Messages personnalisés" },
   "msgFollow":    { "type": "text", "label": "Message Follow",     "value": "{username} vient de follow ! ❤️",               "group": "💬 Messages personnalisés" },
   "msgSub":       { "type": "text", "label": "Message Sub",        "value": "{username} vient de s'abonner ! ⭐",             "group": "💬 Messages personnalisés" },
   "msgResub":     { "type": "text", "label": "Message Resub",      "value": "{username} se réabonne pour {months} mois ! 🔥", "group": "💬 Messages personnalisés" },

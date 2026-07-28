@@ -10,7 +10,6 @@ const seenEventIds = new Set();
 const alertEl    = document.getElementById('alert');
 const iconEl     = document.getElementById('icon');
 const typeEl     = document.getElementById('type');
-const usernameEl = document.getElementById('username');
 const messageEl  = document.getElementById('message');
 const amountEl   = document.getElementById('amount');
 const progressEl = document.getElementById('progressBar');
@@ -34,8 +33,6 @@ function applySettings() {
   root.style.setProperty('--icon-size',         (fieldData.iconSize      || 56)   + 'px');
   root.style.setProperty('--type-size',         (fieldData.typeSize      || 15.5) + 'px');
   root.style.setProperty('--type-color',         fieldData.typeColor     || fieldData.primaryColor || '#00f5ff');
-  root.style.setProperty('--username-size',     (fieldData.usernameSize  || 49)   + 'px');
-  root.style.setProperty('--username-color',     fieldData.usernameColor || '#ffffff');
   root.style.setProperty('--message-size',      (fieldData.messageSize   || 23)   + 'px');
   root.style.setProperty('--amount-size',       (fieldData.amountSize    || 35)   + 'px');
   root.style.setProperty('--glow-intensity',    (fieldData.glowIntensity || 20)   + 'px');
@@ -47,7 +44,7 @@ function applySettings() {
   root.style.setProperty('--progress-color-1',   fieldData.progressBarColor1 || fieldData.primaryColor || '#00f5ff');
   root.style.setProperty('--progress-color-2',   fieldData.progressBarColor2 || fieldData.accentColor  || '#ff2ec4');
   applyPosition(fieldData.widgetPosition || 'center');
-  // applyThemePreset EN DERNIER : ses couleurs écrasent typeColor/usernameColor si preset actif
+  // applyThemePreset EN DERNIER : ses couleurs écrasent typeColor si preset actif
   applyThemePreset(fieldData.themePreset || 'custom');
 }
 
@@ -81,30 +78,26 @@ function applyPosition(pos) {
 }
 
 // ─── Presets de thème ──────────────────────────────────────────────────────────
-// Chaque preset définit primary, accent, typeColor ET usernameColor.
-// Quand un preset est actif, ces 4 valeurs écrasent les colorpickers manuels.
+// Chaque preset définit primary, accent et typeColor.
 // En mode 'custom', rien n'est écrasé : les colorpickers s'appliquent librement.
 const THEME_PRESETS = {
-  'neon-cyan':     { primary: '#00f5ff', accent: '#ff2ec4', typeColor: '#00f5ff', usernameColor: '#ffffff' },
-  'gold':          { primary: '#ffd700', accent: '#ff8c00', typeColor: '#ffd700', usernameColor: '#fff8dc' },
-  'purple-storm':  { primary: '#b44fff', accent: '#ff4fa3', typeColor: '#b44fff', usernameColor: '#f0e0ff' },
-  'minimal-white': { primary: '#ffffff', accent: '#cccccc', typeColor: '#cccccc', usernameColor: '#ffffff' },
-  'green-matrix':  { primary: '#00ff88', accent: '#00ccff', typeColor: '#00ff88', usernameColor: '#ccffe8' },
+  'neon-cyan':     { primary: '#00f5ff', accent: '#ff2ec4', typeColor: '#00f5ff' },
+  'gold':          { primary: '#ffd700', accent: '#ff8c00', typeColor: '#ffd700' },
+  'purple-storm':  { primary: '#b44fff', accent: '#ff4fa3', typeColor: '#b44fff' },
+  'minimal-white': { primary: '#ffffff', accent: '#cccccc', typeColor: '#cccccc' },
+  'green-matrix':  { primary: '#00ff88', accent: '#00ccff', typeColor: '#00ff88' },
   'custom': null
 };
 
 function applyThemePreset(preset) {
   const theme = THEME_PRESETS[preset];
-  // 'custom' ou preset inconnu → on ne touche à rien, les colorpickers restent actifs
   if (!theme) return;
   const root = document.documentElement;
   root.style.setProperty('--primary-color',      theme.primary);
   root.style.setProperty('--accent-color',       theme.accent);
   root.style.setProperty('--primary-color-soft', hexToRgba(theme.primary, 0.25));
   root.style.setProperty('--accent-color-soft',  hexToRgba(theme.accent,  0.18));
-  // Écrase typeColor et usernameColor des colorpickers manuels
-  root.style.setProperty('--type-color',     theme.typeColor);
-  root.style.setProperty('--username-color', theme.usernameColor);
+  root.style.setProperty('--type-color',         theme.typeColor);
 }
 
 // ─── Animations entrée / sortie ───────────────────────────────────────────────
@@ -210,10 +203,9 @@ function _playAlert(type, username, message, amount, emotes) {
   };
 
   const t = types[type] || types.follow;
-  iconEl.textContent     = t.icon;
-  typeEl.textContent     = t.text;
-  usernameEl.textContent = username;
-  amountEl.textContent   = amount || '';
+  iconEl.textContent = t.icon;
+  typeEl.textContent = t.text;
+  amountEl.textContent = amount || '';
 
   const templateKey = 'msg' + type.charAt(0).toUpperCase() + type.slice(1);
   const template    = fieldData[templateKey];
