@@ -198,7 +198,7 @@ body {
   100% { transform: translate(0, 0)    skewX(0deg);  opacity: 0;   clip-path: inset(50% 0 50% 0); }
 }
 
-/* ── Pseudo-éléments glass ───────────────────────────────────────────────────────── */
+/* ── Pseudo-éléments glass ───────────────────────────────────────────────── */
 .alert::before,
 .alert::after {
   content: '';
@@ -234,7 +234,7 @@ body {
   50%       { opacity: 0.75; }
 }
 
-/* ── Barre de progression ──────────────────────────────────────────────────────── */
+/* ── Barre de progression ────────────────────────────────────────────────── */
 .progress-bar {
   display: none;
   position: absolute;
@@ -266,7 +266,7 @@ body {
 
 .progress-bar.active { display: block; }
 
-/* ── Layout header : icône à gauche, textes centrés ──────────────────────────────────── */
+/* ── Layout header : icône à gauche, textes centrés ─────────────────────── */
 .alert-header {
   display: flex;
   align-items: center;
@@ -292,7 +292,18 @@ body {
   align-items: center;
 }
 
-/* ── Textes ───────────────────────────────────────────────────────────────────────────── */
+/* ── Ligne pseudo + message côte à côte ─────────────────────────────────── */
+.username-row {
+  display: flex;
+  flex-direction: row;
+  align-items: baseline;      /* alignement sur la ligne de base du texte    */
+  justify-content: center;
+  gap: 10px;                  /* espace entre pseudo et message               */
+  min-width: 0;
+  max-width: 100%;
+}
+
+/* ── Textes ──────────────────────────────────────────────────────────────── */
 .type {
   font-size: var(--type-size, 15.5px);
   font-weight: 600;
@@ -306,7 +317,7 @@ body {
   font-family: 'Space Grotesk', 'Inter', sans-serif;
   font-size: var(--username-size, 49px);
   font-weight: 700;
-  line-height: 1;             /* réduit de 1.1 à 1 : supprime l'espace sous-gl. */
+  line-height: 1;
   margin-top: 14px;
   margin-bottom: 0;
   white-space: nowrap;
@@ -318,26 +329,30 @@ body {
   -webkit-text-fill-color: unset;
   background-clip: unset;
   cursor: default;
+  flex-shrink: 0;             /* le pseudo ne se réduit jamais                */
 }
 
 .message {
   font-size: var(--message-size, 23px);
-  margin-top: 0;              /* 0 : le line-height du pseudo suffit à l'espace */
+  margin-top: 14px;           /* aligne verticalement avec le pseudo          */
   opacity: 0.92;
   font-weight: 500;
-  line-height: 1.2;
+  line-height: 1;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
   color: rgba(255,255,255,0.9);
   transition: opacity 0.2s ease;
+  min-width: 0;
 }
 
-/* Masquage propre : pas de margin résiduel quand le message est caché */
+/* Quand le message est vide/caché, pas d'espace résiduel */
+.message:empty {
+  display: none;
+}
 .message[style*="display: none"],
 .message[style*="display:none"] {
-  margin-top: 0;
-  line-height: 0;
+  display: none !important;
 }
 
 .amount {
@@ -348,7 +363,7 @@ body {
   text-shadow: 0 0 12px rgba(255, 46, 196, 0.5);
 }
 
-/* ── Particules ───────────────────────────────────────────────────────────────────────────── */
+/* ── Particules ──────────────────────────────────────────────────────────── */
 .particles {
   position: absolute;
   top: 0; left: 0; right: 0; bottom: 0;
@@ -364,7 +379,7 @@ body {
   }
 }
 
-/* ── Fallback backdrop-filter ────────────────────────────────────────────────────────────── */
+/* ── Fallback backdrop-filter ────────────────────────────────────────────── */
 @supports not (backdrop-filter: blur(1px)) {
   .alert { background: rgba(10, 10, 20, 0.88); }
 }
