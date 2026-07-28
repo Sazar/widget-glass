@@ -3,11 +3,11 @@ let fieldData = {};
 let alertQueue = [];
 let isPlaying = false;
 let hideTimer = null;
-let _fallbackTimer = null; // FIX #2: timer secours si animationend ne se déclenche pas
+let _fallbackTimer = null;
 let isLoading = true;
 let _hideEndListener = null;
 
-// FIX: Set borné (max 200 entrées) pour éviter la fuite mémoire sur stream long
+// Set borné (max 200 entrées) pour éviter la fuite mémoire sur stream long
 const seenEventIds = new Set();
 const SEEN_MAX = 200;
 
@@ -33,7 +33,6 @@ function applySettings() {
   root.style.setProperty('--widget-width',      (fieldData.widgetWidth   || 660)  + 'px');
   root.style.setProperty('--border-radius',     (fieldData.borderRadius  || 28)   + 'px');
   root.style.setProperty('--blur-intensity',    (fieldData.blurIntensity || 28)   + 'px');
-  // FIX #1: rgba() n'accepte pas une CSS custom property comme alpha → calculer en JS
   const opacity = parseFloat(fieldData.glassOpacity) || 0.45;
   root.style.setProperty('--glass-bg', `rgba(20,20,35,${opacity})`);
   root.style.setProperty('--primary-color',      fieldData.primaryColor  || '#00f5ff');
@@ -55,7 +54,6 @@ function applySettings() {
   root.style.setProperty('--progress-color-1',   fieldData.progressBarColor1 || fieldData.primaryColor || '#00f5ff');
   root.style.setProperty('--progress-color-2',   fieldData.progressBarColor2 || fieldData.accentColor  || '#ff2ec4');
   applyPosition(fieldData.widgetPosition || 'center');
-  // applyThemePreset EN DERNIER : ses couleurs écrasent typeColor/usernameColor si preset actif
   applyThemePreset(fieldData.themePreset || 'custom');
 }
 
@@ -206,13 +204,11 @@ function resolveTemplate(template, vars) {
     .replace(/\{recipient\}/gi, vars.recipient || '');
 }
 
-// ─── Masquage conditionnel du message selon le type ───────────────────────────
-// Retourne true si le message doit être affiché pour ce type d'alerte.
+// ─── Masquage conditionnel du message viewer ──────────────────────────────────
 function shouldShowMessage(type) {
-  if (type === 'sub'      || type === 'resub')   return fieldData.showMessageSub      !== false;
-  if (type === 'donation')                       return fieldData.showMessageDonation !== false;
-  if (type === 'cheer')                          return fieldData.showMessageCheer    !== false;
-  // follow, giftsub, raid, hypetrain → toujours affichés (pas d'option dédiée)
+  if (type === 'sub'  || type === 'resub') return fieldData.showMessageSub      !== false;
+  if (type === 'donation')                 return fieldData.showMessageDonation !== false;
+  if (type === 'cheer')                    return fieldData.showMessageCheer    !== false;
   return true;
 }
 
@@ -231,9 +227,11 @@ function processQueue() {
 
 // ─── Lecture d'une alerte ─────────────────────────────────────────────────────
 function _playAlert(type, username, message, amount, emotes) {
-  // FIX #3: reset explicite pour éviter l'affichage résiduel entre alertes
-  messageEl.textContent = '';
-  amountEl.textContent  = '';
+  // Reset complet avant chaque alerte
+  messageEl.textContent   = '';
+  messageEl.innerHTML     = '';
+  messageEl.style.display = '';
+  amountEl.textContent    = '';
 
   const types = {
     follow:    { icon: fieldData.iconFollow    || '❤️',  text: fieldData.textFollow    || 'NOUVEAU FOLLOW'  },
@@ -269,8 +267,13 @@ function _playAlert(type, username, message, amount, emotes) {
     vars.months = amount;
   }
 
-  // ── Affichage conditionnel du message ──────────────────────────────────────
-  if (shouldShowMessage(type)) {
+  // ── Affichage conditionnel : la checkbox hideMessage masque TOUT le bloc
+  // message (template inclus). C'est un masquage complet, pas partiel.
+  if (!shouldShowMessage(type)) {
+    // Masquer immédiatement, avant tout remplissage
+    messageEl.style.display = 'none';
+  } else {
+    // Message autorisé : remplir via template ou texte brut
     if (template && template.trim() !== '') {
       messageEl.textContent = resolveTemplate(template, vars);
     } else {
@@ -278,19 +281,11 @@ function _playAlert(type, username, message, amount, emotes) {
       if (emoteHtml !== null) messageEl.innerHTML  = emoteHtml;
       else                    messageEl.textContent = message || '';
     }
-  } else {
-    // Message masqué : on affiche quand même le template sans la partie {message}
-    // pour garder le texte de résumé (ex: "{username} vient de s'abonner !")
-    if (template && template.trim() !== '') {
-      messageEl.textContent = resolveTemplate(template, { ...vars, message: '' });
+    // Masquer si finalement vide (viewer n'a rien écrit + pas de template)
+    if (!messageEl.textContent.trim() && !messageEl.querySelector('img')) {
+      messageEl.style.display = 'none';
     }
-    // Sinon : messageEl reste vide (reset fait en début de fonction)
   }
-
-  // Masquer visuellement le bloc .message si vide
-  messageEl.style.display = messageEl.textContent.trim() === '' && !messageEl.innerHTML.trim()
-    ? 'none'
-    : '';
 
   // Nettoyer les classes d'animation précédentes
   alertEl.className = alertEl.className
@@ -310,7 +305,7 @@ function _playAlert(type, username, message, amount, emotes) {
     alertEl.removeEventListener('animationend', _hideEndListener);
     _hideEndListener = null;
   }
-  if (hideTimer)    clearTimeout(hideTimer);
+  if (hideTimer)      clearTimeout(hideTimer);
   if (_fallbackTimer) clearTimeout(_fallbackTimer);
 
   hideTimer = setTimeout(() => {
@@ -321,7 +316,6 @@ function _playAlert(type, username, message, amount, emotes) {
 
     const animOutDur = parseInt(fieldData.animDurationOut, 10) || 500;
 
-    // FIX #2: secours si animationend ne se déclenche pas (ex: glitchOut steps() dans OBS Browser)
     _fallbackTimer = setTimeout(() => {
       if (_hideEndListener) {
         alertEl.removeEventListener('animationend', _hideEndListener);
@@ -425,14 +419,14 @@ window.addEventListener('onEventReceived', function (obj) {
 // ─── Fonctions de test console ────────────────────────────────────────────────
 window.testAlert = function(type = 'follow', name = 'TestUser') {
   const testData = {
-    follow:    { msg: '',          amount: '' },
-    sub:       { msg: 'Super stream !', amount: '' },
+    follow:    { msg: '',                        amount: '' },
+    sub:       { msg: 'Super stream !',          amount: '' },
     resub:     { msg: 'Fidèle depuis le début !', amount: '3' },
-    giftsub:   { msg: 'DestUser',  amount: '5' },
-    donation:  { msg: 'Merci !',   amount: '10 €' },
-    raid:      { msg: '',          amount: '42' },
-    cheer:     { msg: 'Hype !',    amount: '500 bits' },
-    hypetrain: { msg: 'Niveau 2',  amount: '2' }
+    giftsub:   { msg: 'DestUser',                amount: '5' },
+    donation:  { msg: 'Merci !',                 amount: '10 €' },
+    raid:      { msg: '',                        amount: '42' },
+    cheer:     { msg: 'Hype !',                  amount: '500 bits' },
+    hypetrain: { msg: 'Niveau 2',                amount: '2' }
   };
   const d = testData[type] || testData.follow;
   showAlert(type, name, d.msg, d.amount);
