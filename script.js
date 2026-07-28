@@ -42,11 +42,8 @@ function applySettings() {
   root.style.setProperty('--anim-duration-out', (parseInt(fieldData.animDurationOut, 10)   || 500)  + 'ms');
   root.style.setProperty('--primary-color-soft', hexToRgba(fieldData.primaryColor || '#00f5ff', 0.25));
   root.style.setProperty('--accent-color-soft',  hexToRgba(fieldData.accentColor  || '#ff2ec4', 0.18));
-
-  // Couleurs dédiées de la barre de progression
   root.style.setProperty('--progress-color-1',   fieldData.progressBarColor1 || fieldData.primaryColor || '#00f5ff');
   root.style.setProperty('--progress-color-2',   fieldData.progressBarColor2 || fieldData.accentColor  || '#ff2ec4');
-
   applyPosition(fieldData.widgetPosition || 'center');
   applyThemePreset(fieldData.themePreset || 'custom');
 }
@@ -98,7 +95,6 @@ function applyThemePreset(preset) {
   root.style.setProperty('--accent-color',       theme.accent);
   root.style.setProperty('--primary-color-soft', hexToRgba(theme.primary, 0.25));
   root.style.setProperty('--accent-color-soft',  hexToRgba(theme.accent,  0.18));
-  // Un preset ne touche PAS les couleurs de barre — elles restent indépendantes
 }
 
 // ─── Animations entrée / sortie ───────────────────────────────────────────────
@@ -144,12 +140,12 @@ function startProgressBar(duration) {
   if (!progressEl) return;
   if (!fieldData.showProgressBar) { progressEl.classList.remove('active'); return; }
   progressEl.classList.remove('active');
-  void progressEl.offsetWidth; // force reflow pour relancer l'animation
+  void progressEl.offsetWidth;
   document.documentElement.style.setProperty('--duration', duration + 'ms');
   progressEl.classList.add('active');
 }
 
-// ─── Emotes Twitch dans le message ───────────────────────────────────────────────
+// ─── Emotes Twitch dans le message ───────────────────────────────────────────
 function renderEmotes(text, emotes) {
   if (!emotes || !emotes.length || !text) return null;
   const dict = {};
@@ -201,7 +197,6 @@ function _playAlert(type, username, message, amount, emotes) {
   if (emoteHtml !== null) messageEl.innerHTML  = emoteHtml;
   else                    messageEl.textContent = message || '';
 
-  // Nettoyer les classes d'anim précédentes
   alertEl.className = alertEl.className
     .split(' ')
     .filter(c => !c.startsWith('anim-in-') && !c.startsWith('anim-out-'))
@@ -236,6 +231,19 @@ function showAlert(type, username, message = '', amount = '', emotes = []) {
   enqueueAlert(type, username, message, amount, emotes);
 }
 
+// ─── Détection gift sub ───────────────────────────────────────────────────────
+// SE envoie subscriber-latest EN PLUS de subscriber-gifted-latest pour chaque
+// gift sub reçu. On l'ignore si le champ isCommunityGift, gifted ou isGift est vrai.
+function isGiftSub(data) {
+  return !!(
+    data.isCommunityGift ||
+    data.gifted          ||
+    data.isGift          ||
+    data.sender          ||  // champ présent quand quelqu'un a offert la sub
+    data.gifter
+  );
+}
+
 // ─── StreamElements Events ────────────────────────────────────────────────────
 window.addEventListener('onEventReceived', function (obj) {
   if (!obj.detail || !obj.detail.event) return;
@@ -250,11 +258,15 @@ window.addEventListener('onEventReceived', function (obj) {
   seenEventIds.add(eventId);
   setTimeout(() => seenEventIds.delete(eventId), 10000);
 
+  // ── Follow ────────────────────────────────────────────────────────────────
   if (listener === 'follower-latest' && fieldData.showFollow) {
     showAlert('follow', data.name, data.message || '', '', emotes);
   }
 
-  if (listener === 'subscriber-latest') {
+  // ── Sub / Resub ───────────────────────────────────────────────────────────
+  // IMPORTANT : on ignore si c'est un gift sub — SE envoie subscriber-latest
+  // pour le destinataire même quand c'est un gift. On le filtre ici.
+  if (listener === 'subscriber-latest' && !isGiftSub(data)) {
     if (data.amount > 1 && fieldData.showResub) {
       showAlert('resub', data.name, `x${data.amount} mois`, '', emotes);
     } else if (fieldData.showSub) {
@@ -262,6 +274,8 @@ window.addEventListener('onEventReceived', function (obj) {
     }
   }
 
+  // ── Gift Sub ──────────────────────────────────────────────────────────────
+  // subscriber-gifted-latest = l'offreur (ex: StreamerXYZ offre 5 subs)
   if (listener === 'subscriber-gifted-latest' && fieldData.showGiftSub) {
     const qty    = data.amount || data.quantity || 1;
     const gifted = data.recipientDisplayName || data.recipient || '';
@@ -271,18 +285,22 @@ window.addEventListener('onEventReceived', function (obj) {
     showAlert('giftsub', data.name, msg, '', []);
   }
 
+  // ── Donation ──────────────────────────────────────────────────────────────
   if (listener === 'tip-latest' && fieldData.showDonation) {
     showAlert('donation', data.name, data.message || '', data.amount + ' €', emotes);
   }
 
+  // ── Raid ──────────────────────────────────────────────────────────────────
   if (listener === 'raid-latest' && fieldData.showRaid) {
     showAlert('raid', data.name, `avec ${data.amount} viewers !`, '', []);
   }
 
+  // ── Cheer / Bits ──────────────────────────────────────────────────────────
   if (listener === 'cheer-latest' && fieldData.showCheer) {
     showAlert('cheer', data.name, data.message || '', data.amount + ' bits', emotes);
   }
 
+  // ── Hype Train ────────────────────────────────────────────────────────────
   if ((listener === 'hype-train-start' || listener === 'hype-train-end') && fieldData.showHypeTrain) {
     const level  = data.level || data.current || '';
     const suffix = listener === 'hype-train-end' ? 'TERMINÉ !' : `Niveau ${level}`;
