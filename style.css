@@ -35,16 +35,16 @@ body {
   border: 1px solid var(--primary-color, rgba(0, 245, 255, 0.35));
 }
 
-/* FIX #3 — Animation d'entrée */
+/* ── Entrée ──────────────────────────────────────────────────────────── */
 .alert.show {
   display: block;
   animation: popIn 0.7s cubic-bezier(0.23, 1, 0.32, 1) forwards;
 }
 
-/* FIX #3 — Animation de sortie */
+/* ── Sortie — FIX : display:block obligatoire sinon l'animation ne joue pas */
 .alert.hide {
   display: block;
-  animation: popOut 0.5s cubic-bezier(0.23, 1, 0.32, 1) forwards;
+  animation: popOut 0.5s cubic-bezier(0.55, 0, 1, 0.45) forwards;
 }
 
 @keyframes popIn {
@@ -105,6 +105,40 @@ body {
   50%       { opacity: 0.75; }
 }
 
+/* ── Amélioration #3 — Barre de progression ──────────────────────────── */
+.progress-bar {
+  display: none;
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  height: 3px;
+  width: 100%;
+  border-radius: 0 0 var(--border-radius, 28px) var(--border-radius, 28px);
+  overflow: hidden;
+  z-index: 10;
+}
+
+.progress-bar::after {
+  content: '';
+  display: block;
+  height: 100%;
+  width: 100%;
+  background: linear-gradient(90deg,
+    var(--primary-color, #00f5ff),
+    var(--accent-color,  #ff2ec4));
+  transform-origin: left center;
+  animation: progressDrain var(--duration, 7000ms) linear forwards;
+}
+
+@keyframes progressDrain {
+  from { transform: scaleX(1); }
+  to   { transform: scaleX(0); }
+}
+
+.progress-bar.active {
+  display: block;
+}
+
 /* ── Layout header ───────────────────────────────────────────────────── */
 .alert-header {
   display: flex;
@@ -127,7 +161,6 @@ body {
 .icon {
   font-size: var(--icon-size, 56px);
   line-height: 1;
-  /* FIX — glow dynamique via variable */
   filter: drop-shadow(0 0 var(--glow-intensity, 20px) currentColor);
   transition: transform 0.4s ease;
   flex-shrink: 0;
@@ -198,5 +231,12 @@ body {
   to {
     transform: translateY(-280px);
     opacity: 0;
+  }
+}
+
+/* ── Fallback backdrop-filter ────────────────────────────────────────── */
+@supports not (backdrop-filter: blur(1px)) {
+  .alert {
+    background: rgba(10, 10, 20, 0.88);
   }
 }

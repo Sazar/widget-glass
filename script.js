@@ -16,14 +16,37 @@ const usernameEl = document.getElementById('username');
 const messageEl  = document.getElementById('message');
 const amountEl   = document.getElementById('amount');
 const avatarEl   = document.getElementById('avatar');
+const progressEl = document.getElementById('progressBar');
 
 // ─── StreamElements load ─────────────────────────────────────────────────────
 window.addEventListener('onWidgetLoad', function (obj) {
   fieldData = obj.detail.fieldData;
   applySettings();
-  // SE rejoue le dernier event juste après onWidgetLoad — on ignore tout
-  // ce qui arrive dans les 500ms suivant le chargement
   setTimeout(() => { isLoading = false; }, 500);
+});
+
+// ─── Amélioration #2 — Bouton test depuis SE ─────────────────────────────────
+// SE déclenche onFieldChange quand l'utilisateur modifie un champ.
+// On détecte le champ "testAlertType" comme déclencheur de test.
+window.addEventListener('onFieldChange', function (obj) {
+  const field = obj.detail;
+  if (field.fieldName === 'testAlertType' && field.value !== 'none') {
+    const type = field.value;
+    const names = {
+      follow: 'StreamerTest',
+      sub: 'SubTest',
+      resub: 'ResubTest',
+      donation: 'DonationTest',
+      raid: 'RaidTest',
+      cheer: 'CheerTest'
+    };
+    showAlert(
+      type,
+      names[type] || 'TestUser',
+      'Aperçu de l\'alerte 👀',
+      type === 'donation' ? '25 €' : type === 'cheer' ? '500 bits' : type === 'raid' ? '42 viewers' : ''
+    );
+  }
 });
 
 // ─── Apply CSS variables from fields ─────────────────────────────────────────
@@ -41,6 +64,7 @@ function applySettings() {
   root.style.setProperty('--message-size',   fieldData.messageSize   + 'px');
   root.style.setProperty('--amount-size',    fieldData.amountSize    + 'px');
   root.style.setProperty('--glow-intensity', (fieldData.glowIntensity || 20) + 'px');
+  root.style.setProperty('--duration',       (parseInt(fieldData.duration, 10) || 7000) + 'ms');
 
   root.style.setProperty('--primary-color-soft', hexToRgba(fieldData.primaryColor, 0.25));
   root.style.setProperty('--accent-color-soft',  hexToRgba(fieldData.accentColor,  0.18));
@@ -144,6 +168,20 @@ function loadAvatar(username) {
   avatarEl.onerror = () => { avatarEl.style.display = 'none'; };
 }
 
+// ─── Amélioration #3 — Barre de progression ──────────────────────────────────
+function startProgressBar(duration) {
+  if (!progressEl) return;
+  if (!fieldData.showProgressBar) {
+    progressEl.classList.remove('active');
+    return;
+  }
+  // Reset : enlève et remet .active pour relancer l'animation CSS
+  progressEl.classList.remove('active');
+  void progressEl.offsetWidth; // reflow
+  document.documentElement.style.setProperty('--duration', duration + 'ms');
+  progressEl.classList.add('active');
+}
+
 // ─── File d'attente ───────────────────────────────────────────────────────────
 function enqueueAlert(type, username, message, amount) {
   alertQueue.push({ type, username, message, amount });
@@ -177,21 +215,31 @@ function _playAlert(type, username, message, amount) {
 
   loadAvatar(username);
 
+  // Reset des classes + reflow pour forcer le restart de l'animation
   alertEl.classList.remove('show', 'hide');
   void alertEl.offsetWidth;
   alertEl.classList.add('show');
+
   createParticles();
   playSound(type);
 
   const duration = parseInt(fieldData.duration, 10) || 7000;
+  startProgressBar(duration);
+
   if (hideTimer) clearTimeout(hideTimer);
   hideTimer = setTimeout(() => {
+    // Amélioration #1 — animation de sortie : on écoute animationend
+    // pour retirer .hide uniquement quand popOut est terminé
+    progressEl && progressEl.classList.remove('active');
     alertEl.classList.remove('show');
     alertEl.classList.add('hide');
-    setTimeout(() => {
+
+    function onHideEnd() {
+      alertEl.removeEventListener('animationend', onHideEnd);
       alertEl.classList.remove('hide');
       processQueue();
-    }, 500);
+    }
+    alertEl.addEventListener('animationend', onHideEnd);
   }, duration);
 }
 
@@ -241,7 +289,7 @@ window.addEventListener('onEventReceived', function (obj) {
   }
 });
 
-// ─── Fonctions de test ────────────────────────────────────────────────────────
+// ─── Fonctions de test console ────────────────────────────────────────────────
 window.testAlert = function(type = 'follow', name = 'TestUser') {
   showAlert(type, name, 'Message de test', type === 'donation' ? '25 €' : type === 'cheer' ? '500 bits' : '');
 };

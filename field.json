@@ -1,4 +1,18 @@
 {
+  "testAlertType": {
+    "type": "dropdown",
+    "label": "🧪 Tester une alerte",
+    "value": "none",
+    "options": [
+      { "label": "— Choisir —",   "value": "none"     },
+      { "label": "Follow",        "value": "follow"   },
+      { "label": "Sub",           "value": "sub"      },
+      { "label": "Resub",         "value": "resub"    },
+      { "label": "Donation",      "value": "donation" },
+      { "label": "Raid",          "value": "raid"     },
+      { "label": "Cheer / Bits",  "value": "cheer"    }
+    ]
+  },
   "duration": {
     "type": "number",
     "label": "Durée d'affichage (ms)",
@@ -44,30 +58,12 @@
     "label": "Preset de thème",
     "value": "custom",
     "options": [
-      {
-        "label": "Personnalisé",
-        "value": "custom"
-      },
-      {
-        "label": "Neon Cyan (défaut)",
-        "value": "neon-cyan"
-      },
-      {
-        "label": "Gold",
-        "value": "gold"
-      },
-      {
-        "label": "Purple Storm",
-        "value": "purple-storm"
-      },
-      {
-        "label": "Minimal White",
-        "value": "minimal-white"
-      },
-      {
-        "label": "Green Matrix",
-        "value": "green-matrix"
-      }
+      { "label": "Personnalisé",      "value": "custom"       },
+      { "label": "Neon Cyan (défaut)","value": "neon-cyan"    },
+      { "label": "Gold",              "value": "gold"         },
+      { "label": "Purple Storm",      "value": "purple-storm" },
+      { "label": "Minimal White",     "value": "minimal-white"},
+      { "label": "Green Matrix",      "value": "green-matrix" }
     ]
   },
   "primaryColor": {
@@ -88,39 +84,23 @@
     "max": 60,
     "step": 2
   },
+  "showProgressBar": {
+    "type": "checkbox",
+    "label": "Afficher la barre de progression",
+    "value": true
+  },
   "widgetPosition": {
     "type": "dropdown",
     "label": "Position du widget",
     "value": "center",
     "options": [
-      {
-        "label": "Centre",
-        "value": "center"
-      },
-      {
-        "label": "Haut gauche",
-        "value": "top-left"
-      },
-      {
-        "label": "Haut centre",
-        "value": "top-center"
-      },
-      {
-        "label": "Haut droite",
-        "value": "top-right"
-      },
-      {
-        "label": "Bas gauche",
-        "value": "bottom-left"
-      },
-      {
-        "label": "Bas centre",
-        "value": "bottom-center"
-      },
-      {
-        "label": "Bas droite",
-        "value": "bottom-right"
-      }
+      { "label": "Centre",       "value": "center"        },
+      { "label": "Haut gauche",  "value": "top-left"      },
+      { "label": "Haut centre",  "value": "top-center"    },
+      { "label": "Haut droite",  "value": "top-right"     },
+      { "label": "Bas gauche",   "value": "bottom-left"   },
+      { "label": "Bas centre",   "value": "bottom-center" },
+      { "label": "Bas droite",   "value": "bottom-right"  }
     ]
   },
   "iconSize": {
@@ -189,124 +169,28 @@
     "max": 1,
     "step": 0.05
   },
-  "showFollow": {
-    "type": "checkbox",
-    "label": "Afficher les Follows",
-    "value": true
-  },
-  "showSub": {
-    "type": "checkbox",
-    "label": "Afficher les Subs",
-    "value": true
-  },
-  "showResub": {
-    "type": "checkbox",
-    "label": "Afficher les Resubs",
-    "value": true
-  },
-  "showDonation": {
-    "type": "checkbox",
-    "label": "Afficher les Donations",
-    "value": true
-  },
-  "showRaid": {
-    "type": "checkbox",
-    "label": "Afficher les Raids",
-    "value": true
-  },
-  "showCheer": {
-    "type": "checkbox",
-    "label": "Afficher les Cheers / Bits",
-    "value": true
-  },
-  "iconFollow": {
-    "type": "text",
-    "label": "Icône Follow",
-    "value": "❤️"
-  },
-  "iconSub": {
-    "type": "text",
-    "label": "Icône Sub",
-    "value": "⭐"
-  },
-  "iconResub": {
-    "type": "text",
-    "label": "Icône Resub",
-    "value": "🔥"
-  },
-  "iconDonation": {
-    "type": "text",
-    "label": "Icône Donation",
-    "value": "💎"
-  },
-  "iconRaid": {
-    "type": "text",
-    "label": "Icône Raid",
-    "value": "⚔️"
-  },
-  "iconCheer": {
-    "type": "text",
-    "label": "Icône Cheer",
-    "value": "🎉"
-  },
-  "textFollow": {
-    "type": "text",
-    "label": "Texte Follow",
-    "value": "NOUVEAU FOLLOW"
-  },
-  "textSub": {
-    "type": "text",
-    "label": "Texte Sub",
-    "value": "NOUVELLE SUB"
-  },
-  "textResub": {
-    "type": "text",
-    "label": "Texte Resub",
-    "value": "RESUBSCRIPTION"
-  },
-  "textDonation": {
-    "type": "text",
-    "label": "Texte Donation",
-    "value": "DONATION"
-  },
-  "textRaid": {
-    "type": "text",
-    "label": "Texte Raid",
-    "value": "RAID INCOMING"
-  },
-  "textCheer": {
-    "type": "text",
-    "label": "Texte Cheer",
-    "value": "BITS"
-  },
-  "soundFollow": {
-    "type": "text",
-    "label": "Son Follow (URL MP3)",
-    "value": ""
-  },
-  "soundSub": {
-    "type": "text",
-    "label": "Son Sub (URL MP3)",
-    "value": ""
-  },
-  "soundResub": {
-    "type": "text",
-    "label": "Son Resub (URL MP3)",
-    "value": ""
-  },
-  "soundDonation": {
-    "type": "text",
-    "label": "Son Donation (URL MP3)",
-    "value": ""
-  },
-  "soundRaid": {
-    "type": "text",
-    "label": "Son Raid (URL MP3)",
-    "value": ""
-  },
-  "soundCheer": {
-    "type": "text",
-    "label": "Son Cheer (URL MP3)",
-    "value": ""
-  }
+  "showFollow":   { "type": "checkbox", "label": "Afficher les Follows",      "value": true },
+  "showSub":      { "type": "checkbox", "label": "Afficher les Subs",         "value": true },
+  "showResub":    { "type": "checkbox", "label": "Afficher les Resubs",        "value": true },
+  "showDonation": { "type": "checkbox", "label": "Afficher les Donations",     "value": true },
+  "showRaid":     { "type": "checkbox", "label": "Afficher les Raids",         "value": true },
+  "showCheer":    { "type": "checkbox", "label": "Afficher les Cheers / Bits", "value": true },
+  "iconFollow":   { "type": "text", "label": "Icône Follow",   "value": "❤️" },
+  "iconSub":      { "type": "text", "label": "Icône Sub",      "value": "⭐" },
+  "iconResub":    { "type": "text", "label": "Icône Resub",    "value": "🔥" },
+  "iconDonation": { "type": "text", "label": "Icône Donation", "value": "💎" },
+  "iconRaid":     { "type": "text", "label": "Icône Raid",     "value": "⚔️" },
+  "iconCheer":    { "type": "text", "label": "Icône Cheer",    "value": "🎉" },
+  "textFollow":   { "type": "text", "label": "Texte Follow",   "value": "NOUVEAU FOLLOW" },
+  "textSub":      { "type": "text", "label": "Texte Sub",      "value": "NOUVELLE SUB"   },
+  "textResub":    { "type": "text", "label": "Texte Resub",    "value": "RESUBSCRIPTION" },
+  "textDonation": { "type": "text", "label": "Texte Donation", "value": "DONATION"       },
+  "textRaid":     { "type": "text", "label": "Texte Raid",     "value": "RAID INCOMING"  },
+  "textCheer":    { "type": "text", "label": "Texte Cheer",    "value": "BITS"            },
+  "soundFollow":  { "type": "text", "label": "Son Follow (URL MP3)",   "value": "" },
+  "soundSub":     { "type": "text", "label": "Son Sub (URL MP3)",      "value": "" },
+  "soundResub":   { "type": "text", "label": "Son Resub (URL MP3)",    "value": "" },
+  "soundDonation":{ "type": "text", "label": "Son Donation (URL MP3)", "value": "" },
+  "soundRaid":    { "type": "text", "label": "Son Raid (URL MP3)",     "value": "" },
+  "soundCheer":   { "type": "text", "label": "Son Cheer (URL MP3)",    "value": "" }
 }
