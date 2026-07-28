@@ -238,27 +238,6 @@
     "step": 1,
     "group": "🔤 Typographie"
   },
-  "showSubMessage": {
-    "type": "checkbox",
-    "label": "💬 Afficher le message sous le widget",
-    "value": true,
-    "group": "💬 Sous-message"
-  },
-  "subMessageColor": {
-    "type": "colorpicker",
-    "label": "💬 Couleur du texte",
-    "value": "#ffffff",
-    "group": "💬 Sous-message"
-  },
-  "subMessageSize": {
-    "type": "slider",
-    "label": "💬 Taille du texte (px)",
-    "value": 22,
-    "min": 12,
-    "max": 42,
-    "step": 1,
-    "group": "💬 Sous-message"
-  },
   "showFollow": {
     "type": "checkbox",
     "label": "Follow",
