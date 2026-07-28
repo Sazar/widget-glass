@@ -4,9 +4,8 @@ let alertQueue = [];
 let isPlaying = false;
 let hideTimer = null;
 
-// FIX double-event — garde de déduplication
-let isLoading = true;           // true pendant le onWidgetLoad initial
-const seenEventIds = new Set(); // stocke les IDs déjà traités
+let isLoading = true;
+const seenEventIds = new Set();
 
 // ─── DOM refs ────────────────────────────────────────────────────────────────
 const alertEl    = document.getElementById('alert');
@@ -25,30 +24,6 @@ window.addEventListener('onWidgetLoad', function (obj) {
   setTimeout(() => { isLoading = false; }, 500);
 });
 
-// ─── Amélioration #2 — Bouton test depuis SE ─────────────────────────────────
-// SE déclenche onFieldChange quand l'utilisateur modifie un champ.
-// On détecte le champ "testAlertType" comme déclencheur de test.
-window.addEventListener('onFieldChange', function (obj) {
-  const field = obj.detail;
-  if (field.fieldName === 'testAlertType' && field.value !== 'none') {
-    const type = field.value;
-    const names = {
-      follow: 'StreamerTest',
-      sub: 'SubTest',
-      resub: 'ResubTest',
-      donation: 'DonationTest',
-      raid: 'RaidTest',
-      cheer: 'CheerTest'
-    };
-    showAlert(
-      type,
-      names[type] || 'TestUser',
-      'Aperçu de l\'alerte 👀',
-      type === 'donation' ? '25 €' : type === 'cheer' ? '500 bits' : type === 'raid' ? '42 viewers' : ''
-    );
-  }
-});
-
 // ─── Apply CSS variables from fields ─────────────────────────────────────────
 function applySettings() {
   const root = document.documentElement;
@@ -65,10 +40,8 @@ function applySettings() {
   root.style.setProperty('--amount-size',    fieldData.amountSize    + 'px');
   root.style.setProperty('--glow-intensity', (fieldData.glowIntensity || 20) + 'px');
   root.style.setProperty('--duration',       (parseInt(fieldData.duration, 10) || 7000) + 'ms');
-
   root.style.setProperty('--primary-color-soft', hexToRgba(fieldData.primaryColor, 0.25));
   root.style.setProperty('--accent-color-soft',  hexToRgba(fieldData.accentColor,  0.18));
-
   applyPosition(fieldData.widgetPosition || 'center');
   applyThemePreset(fieldData.themePreset || 'custom');
 }
@@ -77,9 +50,8 @@ function applySettings() {
 function hexToRgba(hex, alpha) {
   if (!hex || typeof hex !== 'string') return `rgba(0,245,255,${alpha})`;
   hex = hex.trim();
-  if (/^#[0-9a-fA-F]{3}$/.test(hex)) {
+  if (/^#[0-9a-fA-F]{3}$/.test(hex))
     hex = '#' + hex[1]+hex[1] + hex[2]+hex[2] + hex[3]+hex[3];
-  }
   if (!/^#[0-9a-fA-F]{6}$/.test(hex)) return `rgba(0,245,255,${alpha})`;
   const r = parseInt(hex.slice(1, 3), 16);
   const g = parseInt(hex.slice(3, 5), 16);
@@ -129,7 +101,6 @@ function createParticles() {
   const container = document.getElementById('particles');
   container.innerHTML = '';
   if (!fieldData.showParticles) return;
-
   const count = parseInt(fieldData.particleCount, 10) || 55;
   for (let i = 0; i < count; i++) {
     const p    = document.createElement('div');
@@ -168,23 +139,51 @@ function loadAvatar(username) {
   avatarEl.onerror = () => { avatarEl.style.display = 'none'; };
 }
 
-// ─── Amélioration #3 — Barre de progression ──────────────────────────────────
+// ─── Barre de progression ──────────────────────────────────────────────────────
 function startProgressBar(duration) {
   if (!progressEl) return;
-  if (!fieldData.showProgressBar) {
-    progressEl.classList.remove('active');
-    return;
-  }
-  // Reset : enlève et remet .active pour relancer l'animation CSS
+  if (!fieldData.showProgressBar) { progressEl.classList.remove('active'); return; }
   progressEl.classList.remove('active');
-  void progressEl.offsetWidth; // reflow
+  void progressEl.offsetWidth;
   document.documentElement.style.setProperty('--duration', duration + 'ms');
   progressEl.classList.add('active');
 }
 
+// ─── Feature #5 — Template de message raid ──────────────────────────────────────
+function formatRaidMessage(username, amount) {
+  const tpl = (fieldData.raidTemplate || '{username} arrive avec {amount} viewers !')
+    .replace(/{username}/g, username)
+    .replace(/{amount}/g,   amount);
+  return tpl;
+}
+
+// ─── Feature #6 — Emotes Twitch dans le message ───────────────────────────────
+// SE fournit data.emotes = [{ id, name, type, urls: { x1, x2, x4 } }]
+// On remplace les codes texte par des <img> inline.
+function renderEmotes(text, emotes) {
+  if (!emotes || !emotes.length || !text) return null; // null = pas d'émotes, utiliser textContent
+
+  // Construire un dictionnaire nom -> url
+  const dict = {};
+  emotes.forEach(e => {
+    if (e.name && e.urls) dict[e.name] = e.urls['x2'] || e.urls['x1'] || Object.values(e.urls)[0];
+  });
+  if (!Object.keys(dict).length) return null;
+
+  // Échappement HTML pour le texte brut, puis remplacement des codes
+  const safe = text.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  const html = safe.replace(/\b(\S+)\b/g, (match) => {
+    if (dict[match]) {
+      return `<img src="${dict[match]}" alt="${match}" title="${match}" style="height:1.2em;vertical-align:middle;display:inline;" loading="lazy">`;
+    }
+    return match;
+  });
+  return html;
+}
+
 // ─── File d'attente ───────────────────────────────────────────────────────────
-function enqueueAlert(type, username, message, amount) {
-  alertQueue.push({ type, username, message, amount });
+function enqueueAlert(type, username, message, amount, emotes) {
+  alertQueue.push({ type, username, message, amount, emotes: emotes || [] });
   if (!isPlaying) processQueue();
 }
 
@@ -192,34 +191,40 @@ function processQueue() {
   if (alertQueue.length === 0) { isPlaying = false; return; }
   isPlaying = true;
   const item = alertQueue.shift();
-  _playAlert(item.type, item.username, item.message, item.amount);
+  _playAlert(item.type, item.username, item.message, item.amount, item.emotes);
 }
 
 // ─── Lecture d'une alerte ─────────────────────────────────────────────────────
-function _playAlert(type, username, message, amount) {
+function _playAlert(type, username, message, amount, emotes) {
   const types = {
-    follow:   { icon: fieldData.iconFollow   || '❤️',  text: fieldData.textFollow   || 'NOUVEAU FOLLOW' },
-    sub:      { icon: fieldData.iconSub      || '⭐',  text: fieldData.textSub      || 'NOUVELLE SUB'   },
-    resub:    { icon: fieldData.iconResub    || '🔥',  text: fieldData.textResub    || 'RESUBSCRIPTION' },
-    donation: { icon: fieldData.iconDonation || '💎',  text: fieldData.textDonation || 'DONATION'       },
-    raid:     { icon: fieldData.iconRaid     || '⚔️',  text: fieldData.textRaid     || 'RAID INCOMING'  },
-    cheer:    { icon: fieldData.iconCheer    || '🎉',  text: fieldData.textCheer    || 'BITS'           }
+    follow:     { icon: fieldData.iconFollow     || '❤️',  text: fieldData.textFollow     || 'NOUVEAU FOLLOW'  },
+    sub:        { icon: fieldData.iconSub        || '⭐',  text: fieldData.textSub        || 'NOUVELLE SUB'    },
+    resub:      { icon: fieldData.iconResub      || '🔥',  text: fieldData.textResub      || 'RESUBSCRIPTION'  },
+    donation:   { icon: fieldData.iconDonation   || '💎',  text: fieldData.textDonation   || 'DONATION'        },
+    raid:       { icon: fieldData.iconRaid       || '⚔️',  text: fieldData.textRaid       || 'RAID INCOMING'   },
+    cheer:      { icon: fieldData.iconCheer      || '🎉',  text: fieldData.textCheer      || 'BITS'            },
+    hypetrain:  { icon: fieldData.iconHypeTrain  || '🚂',  text: fieldData.textHypeTrain  || 'HYPE TRAIN 🔥'  }
   };
 
   const t = types[type] || types.follow;
   iconEl.textContent     = t.icon;
   typeEl.textContent     = t.text;
   usernameEl.textContent = username;
-  messageEl.textContent  = message || '';
-  amountEl.textContent   = amount  || '';
+  amountEl.textContent   = amount || '';
+
+  // Feature #6 — rendu des emotes dans messageEl
+  const emoteHtml = renderEmotes(message, emotes);
+  if (emoteHtml !== null) {
+    messageEl.innerHTML = emoteHtml;
+  } else {
+    messageEl.textContent = message || '';
+  }
 
   loadAvatar(username);
 
-  // Reset des classes + reflow pour forcer le restart de l'animation
   alertEl.classList.remove('show', 'hide');
   void alertEl.offsetWidth;
   alertEl.classList.add('show');
-
   createParticles();
   playSound(type);
 
@@ -228,12 +233,9 @@ function _playAlert(type, username, message, amount) {
 
   if (hideTimer) clearTimeout(hideTimer);
   hideTimer = setTimeout(() => {
-    // Amélioration #1 — animation de sortie : on écoute animationend
-    // pour retirer .hide uniquement quand popOut est terminé
     progressEl && progressEl.classList.remove('active');
     alertEl.classList.remove('show');
     alertEl.classList.add('hide');
-
     function onHideEnd() {
       alertEl.removeEventListener('animationend', onHideEnd);
       alertEl.classList.remove('hide');
@@ -244,48 +246,57 @@ function _playAlert(type, username, message, amount) {
 }
 
 // ─── API publique ─────────────────────────────────────────────────────────────
-function showAlert(type, username, message = '', amount = '') {
-  enqueueAlert(type, username, message, amount);
+function showAlert(type, username, message = '', amount = '', emotes = []) {
+  enqueueAlert(type, username, message, amount, emotes);
 }
 
 // ─── StreamElements Events ────────────────────────────────────────────────────
 window.addEventListener('onEventReceived', function (obj) {
   if (!obj.detail || !obj.detail.event) return;
-
-  // Bloquer le replay initial de SE au chargement
   if (isLoading) return;
 
   const listener = obj.detail.listener;
   const data     = obj.detail.event;
+  const emotes   = data.emotes || [];
 
-  // Déduplication par identifiant unique
   const eventId = `${listener}_${data.name}_${data._id || data.createdAt || Date.now()}`;
   if (seenEventIds.has(eventId)) return;
   seenEventIds.add(eventId);
   setTimeout(() => seenEventIds.delete(eventId), 10000);
 
   if (listener === 'follower-latest' && fieldData.showFollow) {
-    showAlert('follow', data.name, data.message || '');
+    showAlert('follow', data.name, data.message || '', '', emotes);
   }
 
   if (listener === 'subscriber-latest') {
     if (data.amount > 1 && fieldData.showResub) {
-      showAlert('resub', data.name, `x${data.amount} mois`);
+      showAlert('resub', data.name, `x${data.amount} mois`, '', emotes);
     } else if (fieldData.showSub) {
-      showAlert('sub', data.name, data.message || '');
+      showAlert('sub', data.name, data.message || '', '', emotes);
     }
   }
 
   if (listener === 'tip-latest' && fieldData.showDonation) {
-    showAlert('donation', data.name, data.message || '', data.amount + ' €');
+    showAlert('donation', data.name, data.message || '', data.amount + ' €', emotes);
   }
 
   if (listener === 'raid-latest' && fieldData.showRaid) {
-    showAlert('raid', data.name, `avec ${data.amount} viewers !`);
+    // Feature #5 — message dynamique via template
+    const raidMsg = formatRaidMessage(data.name, data.amount);
+    showAlert('raid', data.name, raidMsg, '', []);
   }
 
   if (listener === 'cheer-latest' && fieldData.showCheer) {
-    showAlert('cheer', data.name, data.message || '', data.amount + ' bits');
+    showAlert('cheer', data.name, data.message || '', data.amount + ' bits', emotes);
+  }
+
+  // Feature #4 — Hype Train
+  // SE émet 'hype-train-*' avec data.level (niveau du train)
+  // On écoute le start et l'end pour couvrir les deux moments clés.
+  if ((listener === 'hype-train-start' || listener === 'hype-train-end') && fieldData.showHypeTrain) {
+    const level  = data.level  || data.current || '';
+    const suffix = listener === 'hype-train-end' ? 'TERMINÉ !' : `Niveau ${level}`;
+    showAlert('hypetrain', 'HYPE TRAIN', suffix, '', []);
   }
 });
 
@@ -295,7 +306,7 @@ window.testAlert = function(type = 'follow', name = 'TestUser') {
 };
 
 window.testQueue = function() {
-  ['follow', 'sub', 'donation', 'raid', 'cheer'].forEach((t, i) => {
+  ['follow', 'sub', 'donation', 'raid', 'cheer', 'hypetrain'].forEach((t, i) => {
     setTimeout(() => showAlert(t, 'User_' + t, 'Test queue', t === 'donation' ? '10 €' : ''), i * 200);
   });
 };
