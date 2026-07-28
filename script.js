@@ -139,7 +139,7 @@ function loadAvatar(username) {
   avatarEl.onerror = () => { avatarEl.style.display = 'none'; };
 }
 
-// ─── Barre de progression ──────────────────────────────────────────────────────
+// ─── Barre de progression ─────────────────────────────────────────────────────
 function startProgressBar(duration) {
   if (!progressEl) return;
   if (!fieldData.showProgressBar) { progressEl.classList.remove('active'); return; }
@@ -149,28 +149,15 @@ function startProgressBar(duration) {
   progressEl.classList.add('active');
 }
 
-// ─── Feature #5 — Template de message raid ──────────────────────────────────────
-function formatRaidMessage(username, amount) {
-  const tpl = (fieldData.raidTemplate || '{username} arrive avec {amount} viewers !')
-    .replace(/{username}/g, username)
-    .replace(/{amount}/g,   amount);
-  return tpl;
-}
-
-// ─── Feature #6 — Emotes Twitch dans le message ───────────────────────────────
+// ─── Feature #6 — Emotes Twitch dans le message ──────────────────────────────
 // SE fournit data.emotes = [{ id, name, type, urls: { x1, x2, x4 } }]
-// On remplace les codes texte par des <img> inline.
 function renderEmotes(text, emotes) {
-  if (!emotes || !emotes.length || !text) return null; // null = pas d'émotes, utiliser textContent
-
-  // Construire un dictionnaire nom -> url
+  if (!emotes || !emotes.length || !text) return null;
   const dict = {};
   emotes.forEach(e => {
     if (e.name && e.urls) dict[e.name] = e.urls['x2'] || e.urls['x1'] || Object.values(e.urls)[0];
   });
   if (!Object.keys(dict).length) return null;
-
-  // Échappement HTML pour le texte brut, puis remplacement des codes
   const safe = text.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
   const html = safe.replace(/\b(\S+)\b/g, (match) => {
     if (dict[match]) {
@@ -197,13 +184,13 @@ function processQueue() {
 // ─── Lecture d'une alerte ─────────────────────────────────────────────────────
 function _playAlert(type, username, message, amount, emotes) {
   const types = {
-    follow:     { icon: fieldData.iconFollow     || '❤️',  text: fieldData.textFollow     || 'NOUVEAU FOLLOW'  },
-    sub:        { icon: fieldData.iconSub        || '⭐',  text: fieldData.textSub        || 'NOUVELLE SUB'    },
-    resub:      { icon: fieldData.iconResub      || '🔥',  text: fieldData.textResub      || 'RESUBSCRIPTION'  },
-    donation:   { icon: fieldData.iconDonation   || '💎',  text: fieldData.textDonation   || 'DONATION'        },
-    raid:       { icon: fieldData.iconRaid       || '⚔️',  text: fieldData.textRaid       || 'RAID INCOMING'   },
-    cheer:      { icon: fieldData.iconCheer      || '🎉',  text: fieldData.textCheer      || 'BITS'            },
-    hypetrain:  { icon: fieldData.iconHypeTrain  || '🚂',  text: fieldData.textHypeTrain  || 'HYPE TRAIN 🔥'  }
+    follow:    { icon: fieldData.iconFollow    || '❤️', text: fieldData.textFollow    || 'NOUVEAU FOLLOW'  },
+    sub:       { icon: fieldData.iconSub       || '⭐', text: fieldData.textSub       || 'NOUVELLE SUB'    },
+    resub:     { icon: fieldData.iconResub     || '🔥', text: fieldData.textResub     || 'RESUBSCRIPTION'  },
+    donation:  { icon: fieldData.iconDonation  || '💎', text: fieldData.textDonation  || 'DONATION'        },
+    raid:      { icon: fieldData.iconRaid      || '⚔️', text: fieldData.textRaid      || 'RAID INCOMING'   },
+    cheer:     { icon: fieldData.iconCheer     || '🎉', text: fieldData.textCheer     || 'BITS'            },
+    hypetrain: { icon: fieldData.iconHypeTrain || '🚂', text: fieldData.textHypeTrain || 'HYPE TRAIN 🔥'  }
   };
 
   const t = types[type] || types.follow;
@@ -212,7 +199,7 @@ function _playAlert(type, username, message, amount, emotes) {
   usernameEl.textContent = username;
   amountEl.textContent   = amount || '';
 
-  // Feature #6 — rendu des emotes dans messageEl
+  // Emotes SE dans le message
   const emoteHtml = renderEmotes(message, emotes);
   if (emoteHtml !== null) {
     messageEl.innerHTML = emoteHtml;
@@ -281,9 +268,7 @@ window.addEventListener('onEventReceived', function (obj) {
   }
 
   if (listener === 'raid-latest' && fieldData.showRaid) {
-    // Feature #5 — message dynamique via template
-    const raidMsg = formatRaidMessage(data.name, data.amount);
-    showAlert('raid', data.name, raidMsg, '', []);
+    showAlert('raid', data.name, `avec ${data.amount} viewers !`, '', []);
   }
 
   if (listener === 'cheer-latest' && fieldData.showCheer) {
@@ -291,10 +276,8 @@ window.addEventListener('onEventReceived', function (obj) {
   }
 
   // Feature #4 — Hype Train
-  // SE émet 'hype-train-*' avec data.level (niveau du train)
-  // On écoute le start et l'end pour couvrir les deux moments clés.
   if ((listener === 'hype-train-start' || listener === 'hype-train-end') && fieldData.showHypeTrain) {
-    const level  = data.level  || data.current || '';
+    const level  = data.level || data.current || '';
     const suffix = listener === 'hype-train-end' ? 'TERMINÉ !' : `Niveau ${level}`;
     showAlert('hypetrain', 'HYPE TRAIN', suffix, '', []);
   }
