@@ -14,7 +14,6 @@ const typeEl     = document.getElementById('type');
 const usernameEl = document.getElementById('username');
 const messageEl  = document.getElementById('message');
 const amountEl   = document.getElementById('amount');
-const avatarEl   = document.getElementById('avatar');
 const progressEl = document.getElementById('progressBar');
 
 // ─── StreamElements load ─────────────────────────────────────────────────────
@@ -27,19 +26,21 @@ window.addEventListener('onWidgetLoad', function (obj) {
 // ─── Apply CSS variables from fields ─────────────────────────────────────────
 function applySettings() {
   const root = document.documentElement;
-  root.style.setProperty('--widget-width',   fieldData.widgetWidth   + 'px');
-  root.style.setProperty('--border-radius',  fieldData.borderRadius  + 'px');
-  root.style.setProperty('--blur-intensity', fieldData.blurIntensity + 'px');
-  root.style.setProperty('--glass-opacity',  fieldData.glassOpacity);
-  root.style.setProperty('--primary-color',  fieldData.primaryColor);
-  root.style.setProperty('--accent-color',   fieldData.accentColor);
-  root.style.setProperty('--icon-size',      fieldData.iconSize      + 'px');
-  root.style.setProperty('--type-size',      fieldData.typeSize      + 'px');
-  root.style.setProperty('--username-size',  fieldData.usernameSize  + 'px');
-  root.style.setProperty('--message-size',   fieldData.messageSize   + 'px');
-  root.style.setProperty('--amount-size',    fieldData.amountSize    + 'px');
-  root.style.setProperty('--glow-intensity', (fieldData.glowIntensity || 20) + 'px');
-  root.style.setProperty('--duration',       (parseInt(fieldData.duration, 10) || 7000) + 'ms');
+  root.style.setProperty('--widget-width',       fieldData.widgetWidth   + 'px');
+  root.style.setProperty('--border-radius',      fieldData.borderRadius  + 'px');
+  root.style.setProperty('--blur-intensity',     fieldData.blurIntensity + 'px');
+  root.style.setProperty('--glass-opacity',      fieldData.glassOpacity);
+  root.style.setProperty('--primary-color',      fieldData.primaryColor);
+  root.style.setProperty('--accent-color',       fieldData.accentColor);
+  root.style.setProperty('--icon-size',          fieldData.iconSize      + 'px');
+  root.style.setProperty('--type-size',          fieldData.typeSize      + 'px');
+  root.style.setProperty('--username-size',      fieldData.usernameSize  + 'px');
+  root.style.setProperty('--message-size',       fieldData.messageSize   + 'px');
+  root.style.setProperty('--amount-size',        fieldData.amountSize    + 'px');
+  root.style.setProperty('--glow-intensity',     (fieldData.glowIntensity || 20) + 'px');
+  root.style.setProperty('--duration',           (parseInt(fieldData.duration, 10) || 7000) + 'ms');
+  root.style.setProperty('--anim-duration-in',   (parseInt(fieldData.animDurationIn,  10) || 600)  + 'ms');
+  root.style.setProperty('--anim-duration-out',  (parseInt(fieldData.animDurationOut, 10) || 500)  + 'ms');
   root.style.setProperty('--primary-color-soft', hexToRgba(fieldData.primaryColor, 0.25));
   root.style.setProperty('--accent-color-soft',  hexToRgba(fieldData.accentColor,  0.18));
   applyPosition(fieldData.widgetPosition || 'center');
@@ -96,6 +97,13 @@ function applyThemePreset(preset) {
   root.style.setProperty('--accent-color-soft',  hexToRgba(theme.accent,  0.18));
 }
 
+// ─── Animations entrée / sortie ───────────────────────────────────────────────
+// Les classes CSS sont définies dans style.css sous forme :
+// .anim-in-popIn    { animation: popIn    var(--anim-duration-in)  ... }
+// .anim-out-popOut  { animation: popOut   var(--anim-duration-out) ... }
+function getAnimInClass()  { return 'anim-in-'  + (fieldData.animIn  || 'popIn');  }
+function getAnimOutClass() { return 'anim-out-' + (fieldData.animOut || 'popOut'); }
+
 // ─── Particules ───────────────────────────────────────────────────────────────
 function createParticles() {
   const container = document.getElementById('particles');
@@ -130,15 +138,6 @@ function playSound(type) {
   audio.play().catch(() => {});
 }
 
-// ─── Avatar Twitch ────────────────────────────────────────────────────────────
-function loadAvatar(username) {
-  if (!avatarEl) return;
-  if (!fieldData.showAvatar) { avatarEl.style.display = 'none'; return; }
-  avatarEl.style.display = 'block';
-  avatarEl.src = `https://decapi.me/twitch/avatar/${encodeURIComponent(username)}`;
-  avatarEl.onerror = () => { avatarEl.style.display = 'none'; };
-}
-
 // ─── Barre de progression ─────────────────────────────────────────────────────
 function startProgressBar(duration) {
   if (!progressEl) return;
@@ -149,8 +148,7 @@ function startProgressBar(duration) {
   progressEl.classList.add('active');
 }
 
-// ─── Feature #6 — Emotes Twitch dans le message ──────────────────────────────
-// SE fournit data.emotes = [{ id, name, type, urls: { x1, x2, x4 } }]
+// ─── Feature — Emotes Twitch dans le message ─────────────────────────────────
 function renderEmotes(text, emotes) {
   if (!emotes || !emotes.length || !text) return null;
   const dict = {};
@@ -199,7 +197,6 @@ function _playAlert(type, username, message, amount, emotes) {
   usernameEl.textContent = username;
   amountEl.textContent   = amount || '';
 
-  // Emotes SE dans le message
   const emoteHtml = renderEmotes(message, emotes);
   if (emoteHtml !== null) {
     messageEl.innerHTML = emoteHtml;
@@ -207,11 +204,15 @@ function _playAlert(type, username, message, amount, emotes) {
     messageEl.textContent = message || '';
   }
 
-  loadAvatar(username);
-
-  alertEl.classList.remove('show', 'hide');
+  // Retirer toutes les classes d'animation précédentes
+  alertEl.className = alertEl.className
+    .split(' ')
+    .filter(c => !c.startsWith('anim-in-') && !c.startsWith('anim-out-') && c !== 'show' && c !== 'hide')
+    .join(' ');
   void alertEl.offsetWidth;
-  alertEl.classList.add('show');
+
+  // Appliquer l'animation d'entrée
+  alertEl.classList.add(getAnimInClass());
   createParticles();
   playSound(type);
 
@@ -221,11 +222,15 @@ function _playAlert(type, username, message, amount, emotes) {
   if (hideTimer) clearTimeout(hideTimer);
   hideTimer = setTimeout(() => {
     progressEl && progressEl.classList.remove('active');
-    alertEl.classList.remove('show');
-    alertEl.classList.add('hide');
+
+    // Retirer l'animation d'entrée, appliquer celle de sortie
+    alertEl.classList.remove(getAnimInClass());
+    void alertEl.offsetWidth;
+    alertEl.classList.add(getAnimOutClass());
+
     function onHideEnd() {
       alertEl.removeEventListener('animationend', onHideEnd);
-      alertEl.classList.remove('hide');
+      alertEl.classList.remove(getAnimOutClass());
       processQueue();
     }
     alertEl.addEventListener('animationend', onHideEnd);
@@ -275,7 +280,6 @@ window.addEventListener('onEventReceived', function (obj) {
     showAlert('cheer', data.name, data.message || '', data.amount + ' bits', emotes);
   }
 
-  // Feature #4 — Hype Train
   if ((listener === 'hype-train-start' || listener === 'hype-train-end') && fieldData.showHypeTrain) {
     const level  = data.level || data.current || '';
     const suffix = listener === 'hype-train-end' ? 'TERMINÉ !' : `Niveau ${level}`;

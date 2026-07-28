@@ -12,7 +12,40 @@
       "bottom-right":  "Bas droite"
     }
   },
-  "widgetWidth":    { "type": "number",   "label": "Largeur (px)",              "value": 660,  "min": 400, "max": 900,   "step": 10,  "group": "⚙️ Général" },
+  "widgetWidth":    { "type": "number", "label": "Largeur (px)", "value": 660, "min": 400, "max": 900, "step": 10, "group": "⚙️ Général" },
+
+  "animIn": {
+    "type": "dropdown", "label": "✨ Animation entrée", "value": "popIn", "group": "⚙️ Général",
+    "options": {
+      "popIn":       "Pop (scale + fade)",
+      "slideUp":     "Glissement bas → haut",
+      "slideDown":   "Glissement haut → bas",
+      "slideLeft":   "Glissement droite → gauche",
+      "slideRight":  "Glissement gauche → droite",
+      "fadeIn":      "Fondu simple",
+      "flipIn":      "Flip 3D",
+      "bounceIn":    "Rebond",
+      "zoomIn":      "Zoom avant",
+      "glitchIn":    "Glitch"
+    }
+  },
+  "animOut": {
+    "type": "dropdown", "label": "💨 Animation sortie", "value": "popOut", "group": "⚙️ Général",
+    "options": {
+      "popOut":      "Pop (scale + fade)",
+      "slideUpOut":  "Glissement haut → bas",
+      "slideDownOut":"Glissement bas → haut",
+      "slideLeftOut":"Glissement gauche → droite",
+      "slideRightOut":"Glissement droite → gauche",
+      "fadeOut":     "Fondu simple",
+      "flipOut":     "Flip 3D",
+      "bounceOut":   "Rebond sortie",
+      "zoomOut":     "Zoom arrière",
+      "glitchOut":   "Glitch"
+    }
+  },
+  "animDurationIn":  { "type": "slider", "label": "Vitesse entrée (ms)",  "value": 600, "min": 100, "max": 1500, "step": 50, "group": "⚙️ Général" },
+  "animDurationOut": { "type": "slider", "label": "Vitesse sortie (ms)",  "value": 500, "min": 100, "max": 1500, "step": 50, "group": "⚙️ Général" },
 
   "themePreset": {
     "type": "dropdown", "label": "Preset de thème", "value": "custom", "group": "🎨 Apparence",
@@ -34,7 +67,6 @@
   "showProgressBar": { "type": "checkbox",    "label": "Barre de progression",   "value": true,  "group": "🎨 Apparence" },
   "showParticles":   { "type": "checkbox",    "label": "Particules",              "value": true,  "group": "🎨 Apparence" },
   "particleCount":   { "type": "number",      "label": "Nombre de particules",   "value": 55,   "min": 10,  "max": 100, "step": 5,    "group": "🎨 Apparence" },
-  "showAvatar":      { "type": "checkbox",    "label": "Avatar Twitch",          "value": false, "group": "🎨 Apparence" },
 
   "iconSize":     { "type": "number", "label": "Taille icônes (px)",  "value": 56,   "min": 30, "max": 80, "step": 2,   "group": "🔤 Typographie" },
   "typeSize":     { "type": "number", "label": "Taille type (px)",    "value": 15.5, "min": 12, "max": 24, "step": 0.5, "group": "🔤 Typographie" },
