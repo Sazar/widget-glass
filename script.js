@@ -205,11 +205,12 @@ function resolveTemplate(template, vars) {
 }
 
 // ─── Masquage conditionnel du message viewer ──────────────────────────────────
+// showViewerMessage = checkbox unique qui contrôle Sub/Resub, Tips et Bits d'un coup.
+// Retourne false si la case est décochée ET que le type concerné est l'un des 3.
 function shouldShowMessage(type) {
-  if (type === 'sub'  || type === 'resub') return fieldData.showMessageSub      !== false;
-  if (type === 'donation')                 return fieldData.showMessageDonation !== false;
-  if (type === 'cheer')                    return fieldData.showMessageCheer    !== false;
-  return true;
+  const concerned = ['sub', 'resub', 'donation', 'cheer'];
+  if (concerned.includes(type)) return fieldData.showViewerMessage !== false;
+  return true; // follow, giftsub, raid, hypetrain : message toujours visible
 }
 
 // ─── File d'attente ───────────────────────────────────────────────────────────
@@ -267,13 +268,10 @@ function _playAlert(type, username, message, amount, emotes) {
     vars.months = amount;
   }
 
-  // ── Affichage conditionnel : la checkbox hideMessage masque TOUT le bloc
-  // message (template inclus). C'est un masquage complet, pas partiel.
+  // ── showViewerMessage décoché → masquer immédiatement, avant tout remplissage
   if (!shouldShowMessage(type)) {
-    // Masquer immédiatement, avant tout remplissage
     messageEl.style.display = 'none';
   } else {
-    // Message autorisé : remplir via template ou texte brut
     if (template && template.trim() !== '') {
       messageEl.textContent = resolveTemplate(template, vars);
     } else {
@@ -281,13 +279,11 @@ function _playAlert(type, username, message, amount, emotes) {
       if (emoteHtml !== null) messageEl.innerHTML  = emoteHtml;
       else                    messageEl.textContent = message || '';
     }
-    // Masquer si finalement vide (viewer n'a rien écrit + pas de template)
     if (!messageEl.textContent.trim() && !messageEl.querySelector('img')) {
       messageEl.style.display = 'none';
     }
   }
 
-  // Nettoyer les classes d'animation précédentes
   alertEl.className = alertEl.className
     .split(' ')
     .filter(c => !c.startsWith('anim-in-') && !c.startsWith('anim-out-'))
