@@ -1,124 +1,496 @@
 {
-  "duration":       { "type": "slider",  "label": "Durée d'affichage (ms)",  "value": 7000, "min": 3000, "max": 15000, "step": 500, "group": "⚙️ Général" },
+  "duration": {
+    "type": "slider",
+    "label": "Durée d'affichage (ms)",
+    "value": 7000,
+    "min": 3000,
+    "max": 15000,
+    "step": 500,
+    "group": "⚙️ Général"
+  },
   "widgetPosition": {
-    "type": "dropdown", "label": "Position du widget", "value": "center", "group": "⚙️ Général",
+    "type": "dropdown",
+    "label": "Position du widget",
+    "value": "center",
+    "group": "⚙️ Général",
     "options": {
-      "center":        "Centre",
-      "top-left":      "Haut gauche",
-      "top-center":    "Haut centre",
-      "top-right":     "Haut droite",
-      "bottom-left":   "Bas gauche",
+      "center": "Centre",
+      "top-left": "Haut gauche",
+      "top-center": "Haut centre",
+      "top-right": "Haut droite",
+      "bottom-left": "Bas gauche",
       "bottom-center": "Bas centre",
-      "bottom-right":  "Bas droite"
+      "bottom-right": "Bas droite"
     }
   },
-  "widgetWidth":    { "type": "number", "label": "Largeur (px)", "value": 660, "min": 400, "max": 900, "step": 10, "group": "⚙️ Général" },
-
+  "widgetWidth": {
+    "type": "number",
+    "label": "Largeur (px)",
+    "value": 660,
+    "min": 400,
+    "max": 900,
+    "step": 10,
+    "group": "⚙️ Général"
+  },
   "animIn": {
-    "type": "dropdown", "label": "✨ Animation entrée", "value": "popIn", "group": "⚙️ Général",
+    "type": "dropdown",
+    "label": "✨ Animation entrée",
+    "value": "popIn",
+    "group": "⚙️ Général",
     "options": {
-      "popIn":       "Pop (scale + fade)",
-      "slideUp":     "Glissement bas → haut",
-      "slideDown":   "Glissement haut → bas",
-      "slideLeft":   "Glissement droite → gauche",
-      "slideRight":  "Glissement gauche → droite",
-      "fadeIn":      "Fondu simple",
-      "flipIn":      "Flip 3D",
-      "bounceIn":    "Rebond",
-      "zoomIn":      "Zoom avant",
-      "glitchIn":    "Glitch"
+      "popIn": "Pop (scale + fade)",
+      "slideUp": "Glissement bas → haut",
+      "slideDown": "Glissement haut → bas",
+      "slideLeft": "Glissement droite → gauche",
+      "slideRight": "Glissement gauche → droite",
+      "fadeIn": "Fondu simple",
+      "flipIn": "Flip 3D",
+      "bounceIn": "Rebond",
+      "zoomIn": "Zoom avant",
+      "glitchIn": "Glitch"
     }
   },
   "animOut": {
-    "type": "dropdown", "label": "💨 Animation sortie", "value": "popOut", "group": "⚙️ Général",
+    "type": "dropdown",
+    "label": "💨 Animation sortie",
+    "value": "popOut",
+    "group": "⚙️ Général",
     "options": {
-      "popOut":        "Pop (scale + fade)",
-      "slideUpOut":    "Glissement haut → bas",
-      "slideDownOut":  "Glissement bas → haut",
-      "slideLeftOut":  "Glissement gauche → droite",
+      "popOut": "Pop (scale + fade)",
+      "slideUpOut": "Glissement haut → bas",
+      "slideDownOut": "Glissement bas → haut",
+      "slideLeftOut": "Glissement gauche → droite",
       "slideRightOut": "Glissement droite → gauche",
-      "fadeOut":       "Fondu simple",
-      "flipOut":       "Flip 3D",
-      "bounceOut":     "Rebond sortie",
-      "zoomOut":       "Zoom arrière",
-      "glitchOut":     "Glitch"
+      "fadeOut": "Fondu simple",
+      "flipOut": "Flip 3D",
+      "bounceOut": "Rebond sortie",
+      "zoomOut": "Zoom arrière",
+      "glitchOut": "Glitch"
     }
   },
-  "animDurationIn":  { "type": "slider", "label": "Vitesse entrée (ms)",  "value": 600, "min": 100, "max": 1500, "step": 50, "group": "⚙️ Général" },
-  "animDurationOut": { "type": "slider", "label": "Vitesse sortie (ms)",  "value": 500, "min": 100, "max": 1500, "step": 50, "group": "⚙️ Général" },
-
+  "animDurationIn": {
+    "type": "slider",
+    "label": "Vitesse entrée (ms)",
+    "value": 600,
+    "min": 100,
+    "max": 1500,
+    "step": 50,
+    "group": "⚙️ Général"
+  },
+  "animDurationOut": {
+    "type": "slider",
+    "label": "Vitesse sortie (ms)",
+    "value": 500,
+    "min": 100,
+    "max": 1500,
+    "step": 50,
+    "group": "⚙️ Général"
+  },
   "themePreset": {
-    "type": "dropdown", "label": "Preset de thème", "value": "custom", "group": "🎨 Apparence",
+    "type": "dropdown",
+    "label": "Preset de thème",
+    "value": "custom",
+    "group": "🎨 Apparence",
     "options": {
-      "custom":        "Personnalisé",
-      "neon-cyan":     "Neon Cyan (défaut)",
-      "gold":          "Gold",
-      "purple-storm":  "Purple Storm",
+      "custom": "Personnalisé",
+      "neon-cyan": "Neon Cyan (défaut)",
+      "gold": "Gold",
+      "purple-storm": "Purple Storm",
       "minimal-white": "Minimal White",
-      "green-matrix":  "Green Matrix"
+      "green-matrix": "Green Matrix"
     }
   },
-  "primaryColor":      { "type": "colorpicker", "label": "Couleur principale",    "value": "#00f5ff", "group": "🎨 Apparence" },
-  "accentColor":       { "type": "colorpicker", "label": "Couleur d'accent",       "value": "#ff2ec4", "group": "🎨 Apparence" },
-  "borderRadius":      { "type": "slider",      "label": "Arrondi des coins (px)", "value": 28,   "min": 0,   "max": 50,  "step": 2,    "group": "🎨 Apparence" },
-  "blurIntensity":     { "type": "slider",      "label": "Intensité du flou (px)", "value": 28,   "min": 10,  "max": 50,  "step": 2,    "group": "🎨 Apparence" },
-  "glassOpacity":      { "type": "slider",      "label": "Opacité du glass",       "value": 0.45, "min": 0.1, "max": 0.9, "step": 0.05, "group": "🎨 Apparence" },
-  "glowIntensity":     { "type": "slider",      "label": "Intensité du glow (px)", "value": 20,   "min": 0,   "max": 60,  "step": 2,    "group": "🎨 Apparence" },
-  "showProgressBar":   { "type": "checkbox",    "label": "Barre de progression",   "value": true,       "group": "🎨 Apparence" },
-  "progressBarColor1": { "type": "colorpicker", "label": "Barre — Couleur gauche", "value": "#00f5ff", "group": "🎨 Apparence" },
-  "progressBarColor2": { "type": "colorpicker", "label": "Barre — Couleur droite", "value": "#ff2ec4", "group": "🎨 Apparence" },
-  "showParticles":     { "type": "checkbox",    "label": "Particules",             "value": true,       "group": "🎨 Apparence" },
-  "particleCount":     { "type": "slider",      "label": "Nombre de particules",   "value": 55,   "min": 10,  "max": 100, "step": 5,    "group": "🎨 Apparence" },
-
-  "iconSize":    { "type": "slider",      "label": "🔸 Icône — taille emoji (px)",                 "value": 56,   "min": 24,  "max": 90,  "step": 2,   "group": "🔤 Typographie" },
-  "typeSize":    { "type": "slider",      "label": "🏷️ Type d'alerte — ex: NOUVEAU FOLLOW (px)",  "value": 15.5, "min": 10,  "max": 60,  "step": 0.5, "group": "🔤 Typographie" },
-  "typeColor":   { "type": "colorpicker", "label": "🏷️ Type d'alerte — couleur",                  "value": "#00f5ff",     "group": "🔤 Typographie" },
-  "messageSize": { "type": "slider",      "label": "💬 Message (px)",                             "value": 23,   "min": 14,  "max": 40,  "step": 1,   "group": "🔤 Typographie" },
-  "amountSize":  { "type": "slider",      "label": "💰 Montant — € / bits / nb viewers raid (px)", "value": 35,   "min": 18,  "max": 60,  "step": 1,   "group": "🔤 Typographie" },
-
-  "showFollow":    { "type": "checkbox", "label": "Follow",       "value": true, "group": "📡 Événements actifs" },
-  "showSub":       { "type": "checkbox", "label": "Sub",          "value": true, "group": "📡 Événements actifs" },
-  "showResub":     { "type": "checkbox", "label": "Resub",        "value": true, "group": "📡 Événements actifs" },
-  "showGiftSub":   { "type": "checkbox", "label": "Gift Sub",     "value": true, "group": "📡 Événements actifs" },
-  "showDonation":  { "type": "checkbox", "label": "Donation",     "value": true, "group": "📡 Événements actifs" },
-  "showRaid":      { "type": "checkbox", "label": "Raid",         "value": true, "group": "📡 Événements actifs" },
-  "showCheer":     { "type": "checkbox", "label": "Cheer / Bits", "value": true, "group": "📡 Événements actifs" },
-  "showHypeTrain": { "type": "checkbox", "label": "Hype Train",   "value": true, "group": "📡 Événements actifs" },
-
-  "iconFollow":    { "type": "text", "label": "Icône Follow",     "value": "❤️",  "group": "🏷️ Icônes & Textes" },
-  "textFollow":    { "type": "text", "label": "Texte Follow",     "value": "NOUVEAU FOLLOW",  "group": "🏷️ Icônes & Textes" },
-  "iconSub":       { "type": "text", "label": "Icône Sub",        "value": "⭐",  "group": "🏷️ Icônes & Textes" },
-  "textSub":       { "type": "text", "label": "Texte Sub",        "value": "NOUVELLE SUB",    "group": "🏷️ Icônes & Textes" },
-  "iconResub":     { "type": "text", "label": "Icône Resub",      "value": "🔥", "group": "🏷️ Icônes & Textes" },
-  "textResub":     { "type": "text", "label": "Texte Resub",      "value": "RESUBSCRIPTION",  "group": "🏷️ Icônes & Textes" },
-  "iconGiftSub":   { "type": "text", "label": "Icône Gift Sub",   "value": "🎁", "group": "🏷️ Icônes & Textes" },
-  "textGiftSub":   { "type": "text", "label": "Texte Gift Sub",   "value": "GIFT SUB",        "group": "🏷️ Icônes & Textes" },
-  "iconDonation":  { "type": "text", "label": "Icône Donation",   "value": "💎", "group": "🏷️ Icônes & Textes" },
-  "textDonation":  { "type": "text", "label": "Texte Donation",   "value": "DONATION",        "group": "🏷️ Icônes & Textes" },
-  "iconRaid":      { "type": "text", "label": "Icône Raid",       "value": "⚔️",  "group": "🏷️ Icônes & Textes" },
-  "textRaid":      { "type": "text", "label": "Texte Raid",       "value": "RAID INCOMING",   "group": "🏷️ Icônes & Textes" },
-  "iconCheer":     { "type": "text", "label": "Icône Cheer",      "value": "🎉", "group": "🏷️ Icônes & Textes" },
-  "textCheer":     { "type": "text", "label": "Texte Cheer",      "value": "BITS",             "group": "🏷️ Icônes & Textes" },
-  "iconHypeTrain": { "type": "text", "label": "Icône Hype Train", "value": "🚂", "group": "🏷️ Icônes & Textes" },
-  "textHypeTrain": { "type": "text", "label": "Texte Hype Train", "value": "HYPE TRAIN 🔥",  "group": "🏷️ Icônes & Textes" },
-
-  "_msgHint":     { "type": "text", "label": "Balises disponibles : {username} {amount} {message} {months} {count} {recipient}", "value": "", "group": "💬 Messages personnalisés" },
-  "msgFollow":    { "type": "text", "label": "Message Follow",     "value": "{username} vient de follow ! ❤️",               "group": "💬 Messages personnalisés" },
-  "msgSub":       { "type": "text", "label": "Message Sub",        "value": "{username} vient de s'abonner ! ⭐",             "group": "💬 Messages personnalisés" },
-  "msgResub":     { "type": "text", "label": "Message Resub",      "value": "{username} se réabonne pour {months} mois ! 🔥", "group": "💬 Messages personnalisés" },
-  "msgGiftSub":   { "type": "text", "label": "Message Gift Sub",   "value": "{username} offre {count} sub(s) ! 🎁",           "group": "💬 Messages personnalisés" },
-  "msgDonation":  { "type": "text", "label": "Message Donation",   "value": "{username} a donné {amount} ! 💎",               "group": "💬 Messages personnalisés" },
-  "msgRaid":      { "type": "text", "label": "Message Raid",       "value": "{username} raid avec {amount} viewers ! ⚔️",     "group": "💬 Messages personnalisés" },
-  "msgCheer":     { "type": "text", "label": "Message Cheer",      "value": "{username} envoie {amount} bits ! 🎉",            "group": "💬 Messages personnalisés" },
-  "msgHypeTrain": { "type": "text", "label": "Message Hype Train", "value": "HYPE TRAIN en cours ! 🚂",                        "group": "💬 Messages personnalisés" },
-
-  "soundVolume":    { "type": "slider", "label": "Volume",                   "value": 0.7, "min": 0, "max": 1, "step": 0.05, "group": "🔊 Sons" },
-  "soundFollow":    { "type": "text",   "label": "Son Follow (URL MP3)",     "value": "", "group": "🔊 Sons" },
-  "soundSub":       { "type": "text",   "label": "Son Sub (URL MP3)",        "value": "", "group": "🔊 Sons" },
-  "soundResub":     { "type": "text",   "label": "Son Resub (URL MP3)",      "value": "", "group": "🔊 Sons" },
-  "soundGiftSub":   { "type": "text",   "label": "Son Gift Sub (URL MP3)",   "value": "", "group": "🔊 Sons" },
-  "soundDonation":  { "type": "text",   "label": "Son Donation (URL MP3)",   "value": "", "group": "🔊 Sons" },
-  "soundRaid":      { "type": "text",   "label": "Son Raid (URL MP3)",       "value": "", "group": "🔊 Sons" },
-  "soundCheer":     { "type": "text",   "label": "Son Cheer (URL MP3)",      "value": "", "group": "🔊 Sons" },
-  "soundHypeTrain": { "type": "text",   "label": "Son Hype Train (URL MP3)", "value": "", "group": "🔊 Sons" }
+  "primaryColor": {
+    "type": "colorpicker",
+    "label": "Couleur principale",
+    "value": "#00f5ff",
+    "group": "🎨 Apparence"
+  },
+  "accentColor": {
+    "type": "colorpicker",
+    "label": "Couleur d'accent",
+    "value": "#ff2ec4",
+    "group": "🎨 Apparence"
+  },
+  "borderRadius": {
+    "type": "slider",
+    "label": "Arrondi des coins (px)",
+    "value": 28,
+    "min": 0,
+    "max": 50,
+    "step": 2,
+    "group": "🎨 Apparence"
+  },
+  "blurIntensity": {
+    "type": "slider",
+    "label": "Intensité du flou (px)",
+    "value": 28,
+    "min": 10,
+    "max": 50,
+    "step": 2,
+    "group": "🎨 Apparence"
+  },
+  "glassOpacity": {
+    "type": "slider",
+    "label": "Opacité du glass",
+    "value": 0.45,
+    "min": 0.1,
+    "max": 0.9,
+    "step": 0.05,
+    "group": "🎨 Apparence"
+  },
+  "glowIntensity": {
+    "type": "slider",
+    "label": "Intensité du glow (px)",
+    "value": 20,
+    "min": 0,
+    "max": 60,
+    "step": 2,
+    "group": "🎨 Apparence"
+  },
+  "showProgressBar": {
+    "type": "checkbox",
+    "label": "Barre de progression",
+    "value": true,
+    "group": "🎨 Apparence"
+  },
+  "progressBarColor1": {
+    "type": "colorpicker",
+    "label": "Barre — Couleur gauche",
+    "value": "#00f5ff",
+    "group": "🎨 Apparence"
+  },
+  "progressBarColor2": {
+    "type": "colorpicker",
+    "label": "Barre — Couleur droite",
+    "value": "#ff2ec4",
+    "group": "🎨 Apparence"
+  },
+  "showParticles": {
+    "type": "checkbox",
+    "label": "Particules",
+    "value": true,
+    "group": "🎨 Apparence"
+  },
+  "particleCount": {
+    "type": "slider",
+    "label": "Nombre de particules",
+    "value": 55,
+    "min": 10,
+    "max": 100,
+    "step": 5,
+    "group": "🎨 Apparence"
+  },
+  "iconSize": {
+    "type": "slider",
+    "label": "🔸 Icône — taille emoji (px)",
+    "value": 56,
+    "min": 24,
+    "max": 90,
+    "step": 2,
+    "group": "🔤 Typographie"
+  },
+  "typeSize": {
+    "type": "slider",
+    "label": "🏷️ Type d'alerte — ex: NOUVEAU FOLLOW (px)",
+    "value": 15.5,
+    "min": 10,
+    "max": 60,
+    "step": 0.5,
+    "group": "🔤 Typographie"
+  },
+  "typeColor": {
+    "type": "colorpicker",
+    "label": "🏷️ Type d'alerte — couleur",
+    "value": "#00f5ff",
+    "group": "🔤 Typographie"
+  },
+  "usernameSize": {
+    "type": "slider",
+    "label": "👤 Pseudo — nom du viewer (px)",
+    "value": 49,
+    "min": 24,
+    "max": 80,
+    "step": 1,
+    "group": "🔤 Typographie"
+  },
+  "usernameColor": {
+    "type": "colorpicker",
+    "label": "👤 Pseudo — couleur",
+    "value": "#ffffff",
+    "group": "🔤 Typographie"
+  },
+  "messageSize": {
+    "type": "slider",
+    "label": "💬 Message — texte du viewer (px)",
+    "value": 23,
+    "min": 14,
+    "max": 40,
+    "step": 1,
+    "group": "🔤 Typographie"
+  },
+  "amountSize": {
+    "type": "slider",
+    "label": "💰 Montant — € / bits / nb viewers raid (px)",
+    "value": 35,
+    "min": 18,
+    "max": 60,
+    "step": 1,
+    "group": "🔤 Typographie"
+  },
+  "showFollow": {
+    "type": "checkbox",
+    "label": "Follow",
+    "value": true,
+    "group": "📡 Événements actifs"
+  },
+  "showSub": {
+    "type": "checkbox",
+    "label": "Sub",
+    "value": true,
+    "group": "📡 Événements actifs"
+  },
+  "showResub": {
+    "type": "checkbox",
+    "label": "Resub",
+    "value": true,
+    "group": "📡 Événements actifs"
+  },
+  "showGiftSub": {
+    "type": "checkbox",
+    "label": "Gift Sub",
+    "value": true,
+    "group": "📡 Événements actifs"
+  },
+  "showDonation": {
+    "type": "checkbox",
+    "label": "Donation",
+    "value": true,
+    "group": "📡 Événements actifs"
+  },
+  "showRaid": {
+    "type": "checkbox",
+    "label": "Raid",
+    "value": true,
+    "group": "📡 Événements actifs"
+  },
+  "showCheer": {
+    "type": "checkbox",
+    "label": "Cheer / Bits",
+    "value": true,
+    "group": "📡 Événements actifs"
+  },
+  "showHypeTrain": {
+    "type": "checkbox",
+    "label": "Hype Train",
+    "value": true,
+    "group": "📡 Événements actifs"
+  },
+  "iconFollow": {
+    "type": "text",
+    "label": "Icône Follow",
+    "value": "❤️",
+    "group": "🏷️ Icônes & Textes"
+  },
+  "textFollow": {
+    "type": "text",
+    "label": "Texte Follow",
+    "value": "NOUVEAU FOLLOW",
+    "group": "🏷️ Icônes & Textes"
+  },
+  "iconSub": {
+    "type": "text",
+    "label": "Icône Sub",
+    "value": "⭐",
+    "group": "🏷️ Icônes & Textes"
+  },
+  "textSub": {
+    "type": "text",
+    "label": "Texte Sub",
+    "value": "NOUVELLE SUB",
+    "group": "🏷️ Icônes & Textes"
+  },
+  "iconResub": {
+    "type": "text",
+    "label": "Icône Resub",
+    "value": "🔥",
+    "group": "🏷️ Icônes & Textes"
+  },
+  "textResub": {
+    "type": "text",
+    "label": "Texte Resub",
+    "value": "RESUBSCRIPTION",
+    "group": "🏷️ Icônes & Textes"
+  },
+  "iconGiftSub": {
+    "type": "text",
+    "label": "Icône Gift Sub",
+    "value": "🎁",
+    "group": "🏷️ Icônes & Textes"
+  },
+  "textGiftSub": {
+    "type": "text",
+    "label": "Texte Gift Sub",
+    "value": "GIFT SUB",
+    "group": "🏷️ Icônes & Textes"
+  },
+  "iconDonation": {
+    "type": "text",
+    "label": "Icône Donation",
+    "value": "💎",
+    "group": "🏷️ Icônes & Textes"
+  },
+  "textDonation": {
+    "type": "text",
+    "label": "Texte Donation",
+    "value": "DONATION",
+    "group": "🏷️ Icônes & Textes"
+  },
+  "iconRaid": {
+    "type": "text",
+    "label": "Icône Raid",
+    "value": "⚔️",
+    "group": "🏷️ Icônes & Textes"
+  },
+  "textRaid": {
+    "type": "text",
+    "label": "Texte Raid",
+    "value": "RAID INCOMING",
+    "group": "🏷️ Icônes & Textes"
+  },
+  "iconCheer": {
+    "type": "text",
+    "label": "Icône Cheer",
+    "value": "🎉",
+    "group": "🏷️ Icônes & Textes"
+  },
+  "textCheer": {
+    "type": "text",
+    "label": "Texte Cheer",
+    "value": "BITS",
+    "group": "🏷️ Icônes & Textes"
+  },
+  "iconHypeTrain": {
+    "type": "text",
+    "label": "Icône Hype Train",
+    "value": "🚂",
+    "group": "🏷️ Icônes & Textes"
+  },
+  "textHypeTrain": {
+    "type": "text",
+    "label": "Texte Hype Train",
+    "value": "HYPE TRAIN 🔥",
+    "group": "🏷️ Icônes & Textes"
+  },
+  "_msgHint": {
+    "type": "text",
+    "label": "Balises : {username} {amount} {message} {months} {count} {recipient}",
+    "value": "",
+    "group": "💬 Messages personnalisés"
+  },
+  "msgFollow": {
+    "type": "text",
+    "label": "Message Follow",
+    "value": "{username} vient de follow ! ❤️",
+    "group": "💬 Messages personnalisés"
+  },
+  "msgSub": {
+    "type": "text",
+    "label": "Message Sub",
+    "value": "{username} vient de s'abonner ! ⭐",
+    "group": "💬 Messages personnalisés"
+  },
+  "msgResub": {
+    "type": "text",
+    "label": "Message Resub",
+    "value": "{username} se réabonne pour {months} mois ! 🔥",
+    "group": "💬 Messages personnalisés"
+  },
+  "msgGiftSub": {
+    "type": "text",
+    "label": "Message Gift Sub",
+    "value": "{username} offre {count} sub(s) ! 🎁",
+    "group": "💬 Messages personnalisés"
+  },
+  "msgDonation": {
+    "type": "text",
+    "label": "Message Donation",
+    "value": "{username} a donné {amount} ! 💎",
+    "group": "💬 Messages personnalisés"
+  },
+  "msgRaid": {
+    "type": "text",
+    "label": "Message Raid",
+    "value": "{username} raid avec {amount} viewers ! ⚔️",
+    "group": "💬 Messages personnalisés"
+  },
+  "msgCheer": {
+    "type": "text",
+    "label": "Message Cheer",
+    "value": "{username} envoie {amount} bits ! 🎉",
+    "group": "💬 Messages personnalisés"
+  },
+  "msgHypeTrain": {
+    "type": "text",
+    "label": "Message Hype Train",
+    "value": "HYPE TRAIN en cours ! 🚂",
+    "group": "💬 Messages personnalisés"
+  },
+  "soundVolume": {
+    "type": "slider",
+    "label": "Volume",
+    "value": 0.7,
+    "min": 0,
+    "max": 1,
+    "step": 0.05,
+    "group": "🔊 Sons"
+  },
+  "soundFollow": {
+    "type": "text",
+    "label": "Son Follow (URL MP3)",
+    "value": "",
+    "group": "🔊 Sons"
+  },
+  "soundSub": {
+    "type": "text",
+    "label": "Son Sub (URL MP3)",
+    "value": "",
+    "group": "🔊 Sons"
+  },
+  "soundResub": {
+    "type": "text",
+    "label": "Son Resub (URL MP3)",
+    "value": "",
+    "group": "🔊 Sons"
+  },
+  "soundGiftSub": {
+    "type": "text",
+    "label": "Son Gift Sub (URL MP3)",
+    "value": "",
+    "group": "🔊 Sons"
+  },
+  "soundDonation": {
+    "type": "text",
+    "label": "Son Donation (URL MP3)",
+    "value": "",
+    "group": "🔊 Sons"
+  },
+  "soundRaid": {
+    "type": "text",
+    "label": "Son Raid (URL MP3)",
+    "value": "",
+    "group": "🔊 Sons"
+  },
+  "soundCheer": {
+    "type": "text",
+    "label": "Son Cheer (URL MP3)",
+    "value": "",
+    "group": "🔊 Sons"
+  },
+  "soundHypeTrain": {
+    "type": "text",
+    "label": "Son Hype Train (URL MP3)",
+    "value": "",
+    "group": "🔊 Sons"
+  }
 }
