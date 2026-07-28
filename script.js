@@ -1,39 +1,40 @@
-// ─── State ─────────────────────────────────────────────────────────────────────────────────
+// ─── State ────────────────────────────────────────────────────────────────────
 let fieldData = {};
 let alertQueue = [];
 let isPlaying = false;
 let hideTimer = null;
 let isLoading = true;
-let _hideEndListener = null;
+let _hideEndListener = null; // FIX: référence au listener pour cleanup
 
+// FIX: Set borné (max 200 entrées) pour éviter la fuite mémoire sur stream long
 const seenEventIds = new Set();
 const SEEN_MAX = 200;
 
-// Types qui affichent le message sous le widget
-const TYPES_WITH_SUBMESSAGE = new Set(['sub', 'resub', 'donation', 'cheer']);
-
-// ─── DOM refs ──────────────────────────────────────────────────────────────────────────
+// ─── DOM refs ──────────────────────────────────────────────────────────────────
 const alertEl    = document.getElementById('alert');
 const iconEl     = document.getElementById('icon');
 const typeEl     = document.getElementById('type');
 const usernameEl = document.getElementById('username');
-const messageEl  = document.getElementById('message');   // .alert-submessage hors widget
+const messageEl  = document.getElementById('message');
 const amountEl   = document.getElementById('amount');
-const progressEl = document.querySelector('.progress-bar'); // classe HTML = .progress-bar
+const progressEl = document.getElementById('progressBar');
 
-// ─── StreamElements load ───────────────────────────────────────────────────────────────
+// ─── StreamElements load ───────────────────────────────────────────────────────
 window.addEventListener('onWidgetLoad', function (obj) {
   fieldData = obj.detail.fieldData;
   applySettings();
   setTimeout(() => { isLoading = false; }, 500);
 });
 
-// ─── Apply settings ─────────────────────────────────────────────────────────────────
+// ─── Apply CSS variables from fields ──────────────────────────────────────────
 function applySettings() {
   const root = document.documentElement;
   root.style.setProperty('--widget-width',      (fieldData.widgetWidth   || 660)  + 'px');
   root.style.setProperty('--border-radius',     (fieldData.borderRadius  || 28)   + 'px');
   root.style.setProperty('--blur-intensity',    (fieldData.blurIntensity || 28)   + 'px');
+  root.style.setProperty('--glass-opacity',      fieldData.glassOpacity  || 0.45);
+  root.style.setProperty('--primary-color',      fieldData.primaryColor  || '#00f5ff');
+  root.style.setProperty('--accent-color',       fieldData.accentColor   || '#ff2ec4');
   root.style.setProperty('--icon-size',         (fieldData.iconSize      || 56)   + 'px');
   root.style.setProperty('--type-size',         (fieldData.typeSize      || 15.5) + 'px');
   root.style.setProperty('--type-color',         fieldData.typeColor     || fieldData.primaryColor || '#00f5ff');
@@ -42,46 +43,42 @@ function applySettings() {
   root.style.setProperty('--message-size',      (fieldData.messageSize   || 23)   + 'px');
   root.style.setProperty('--amount-size',       (fieldData.amountSize    || 35)   + 'px');
   root.style.setProperty('--glow-intensity',    (fieldData.glowIntensity || 20)   + 'px');
-  root.style.setProperty('--primary-color',      fieldData.primaryColor  || '#00f5ff');
-  root.style.setProperty('--accent-color',       fieldData.accentColor   || '#ff2ec4');
-  root.style.setProperty('--primary-color-soft', hexToRgba(fieldData.primaryColor || '#00f5ff', 0.25));
-  root.style.setProperty('--accent-color-soft',  hexToRgba(fieldData.accentColor  || '#ff2ec4', 0.18));
-  root.style.setProperty('--progress-color-1',   fieldData.progressBarColor1 || fieldData.primaryColor || '#00f5ff');
-  root.style.setProperty('--progress-color-2',   fieldData.progressBarColor2 || fieldData.accentColor  || '#ff2ec4');
-  root.style.setProperty('--submsg-color',       fieldData.subMessageColor || '#ffffff');
-  root.style.setProperty('--submsg-size',       (fieldData.subMessageSize  || 22)  + 'px');
-
+  // FIX: valider duration côté JS (min 1000ms, max 60000ms)
   const dur = Math.min(60000, Math.max(1000, parseInt(fieldData.duration, 10) || 7000));
   root.style.setProperty('--duration', dur + 'ms');
   root.style.setProperty('--anim-duration-in',  (parseInt(fieldData.animDurationIn,  10) || 600)  + 'ms');
   root.style.setProperty('--anim-duration-out', (parseInt(fieldData.animDurationOut, 10) || 500)  + 'ms');
-
-  // FIX: rgba+var() ne fonctionne pas dans tous les navigateurs → on calcule --glass-bg entièrement en JS
-  const opacity = parseFloat(fieldData.glassOpacity) || 0.45;
-  root.style.setProperty('--glass-opacity', opacity);
-  root.style.setProperty('--glass-bg', `rgba(255, 255, 255, ${opacity})`);
-
+  root.style.setProperty('--primary-color-soft', hexToRgba(fieldData.primaryColor || '#00f5ff', 0.25));
+  root.style.setProperty('--accent-color-soft',  hexToRgba(fieldData.accentColor  || '#ff2ec4', 0.18));
+  root.style.setProperty('--progress-color-1',   fieldData.progressBarColor1 || fieldData.primaryColor || '#00f5ff');
+  root.style.setProperty('--progress-color-2',   fieldData.progressBarColor2 || fieldData.accentColor  || '#ff2ec4');
   applyPosition(fieldData.widgetPosition || 'center');
-  // applyThemePreset EN DERNIER pour écraser les couleurs si preset actif
+  // applyThemePreset EN DERNIER : ses couleurs écrasent typeColor/usernameColor si preset actif
   applyThemePreset(fieldData.themePreset || 'custom');
 }
 
-// ─── hexToRgba robuste ─────────────────────────────────────────────────────────────────
+// ─── hexToRgba robuste ─────────────────────────────────────────────────────────
+// FIX: gère aussi les formats rgb() et rgba() renvoyés par certains navigateurs
 function hexToRgba(hex, alpha) {
   if (!hex || typeof hex !== 'string') return `rgba(0,245,255,${alpha})`;
   hex = hex.trim();
+
+  // Cas rgb(r, g, b) ou rgba(r, g, b, a)
   const rgbMatch = hex.match(/^rgba?\((\d+),\s*(\d+),\s*(\d+)/);
   if (rgbMatch) return `rgba(${rgbMatch[1]},${rgbMatch[2]},${rgbMatch[3]},${alpha})`;
+
+  // Expand shorthand #abc → #aabbcc
   if (/^#[0-9a-fA-F]{3}$/.test(hex))
     hex = '#' + hex[1]+hex[1] + hex[2]+hex[2] + hex[3]+hex[3];
+
   if (!/^#[0-9a-fA-F]{6}$/.test(hex)) return `rgba(0,245,255,${alpha})`;
-  const r = parseInt(hex.slice(1,3), 16);
-  const g = parseInt(hex.slice(3,5), 16);
-  const b = parseInt(hex.slice(5,7), 16);
+  const r = parseInt(hex.slice(1, 3), 16);
+  const g = parseInt(hex.slice(3, 5), 16);
+  const b = parseInt(hex.slice(5, 7), 16);
   return `rgba(${r},${g},${b},${alpha})`;
 }
 
-// ─── Position ────────────────────────────────────────────────────────────────────────────
+// ─── Position du widget ────────────────────────────────────────────────────────
 function applyPosition(pos) {
   const map = {
     'top-left':      ['flex-start', 'flex-start'],
@@ -97,7 +94,10 @@ function applyPosition(pos) {
   document.body.style.justifyContent = justify;
 }
 
-// ─── Thèmes prédéfinis ────────────────────────────────────────────────────────────────
+// ─── Presets de thème ──────────────────────────────────────────────────────────
+// Chaque preset définit primary, accent, typeColor ET usernameColor.
+// Quand un preset est actif, ces 4 valeurs écrasent les colorpickers manuels.
+// En mode 'custom', rien n'est écrasé : les colorpickers s'appliquent librement.
 const THEME_PRESETS = {
   'neon-cyan':     { primary: '#00f5ff', accent: '#ff2ec4', typeColor: '#00f5ff', usernameColor: '#ffffff' },
   'gold':          { primary: '#ffd700', accent: '#ff8c00', typeColor: '#ffd700', usernameColor: '#fff8dc' },
@@ -109,21 +109,24 @@ const THEME_PRESETS = {
 
 function applyThemePreset(preset) {
   const theme = THEME_PRESETS[preset];
+  // 'custom' ou preset inconnu → on ne touche à rien, les colorpickers restent actifs
   if (!theme) return;
   const root = document.documentElement;
   root.style.setProperty('--primary-color',      theme.primary);
   root.style.setProperty('--accent-color',       theme.accent);
   root.style.setProperty('--primary-color-soft', hexToRgba(theme.primary, 0.25));
   root.style.setProperty('--accent-color-soft',  hexToRgba(theme.accent,  0.18));
+  // Écrase typeColor et usernameColor des colorpickers manuels
   root.style.setProperty('--type-color',     theme.typeColor);
   root.style.setProperty('--username-color', theme.usernameColor);
 }
 
-// ─── Classes d'animation ──────────────────────────────────────────────────────────────
+// ─── Animations entrée / sortie ───────────────────────────────────────────────
 function getAnimInClass()  { return 'anim-in-'  + (fieldData.animIn  || 'popIn');  }
 function getAnimOutClass() { return 'anim-out-' + (fieldData.animOut || 'popOut'); }
 
-// ─── Couleurs particules par type ─────────────────────────────────────────────────────
+// ─── Couleur de particule selon le type d'alerte ──────────────────────────────
+// AMÉLIORATION: chaque type a une couleur de particule thématique
 const PARTICLE_COLORS = {
   follow:    ['#ff6b8a', '#ff2ec4'],
   sub:       ['#ffd700', '#ffaa00'],
@@ -135,21 +138,22 @@ const PARTICLE_COLORS = {
   hypetrain: ['#ffd700', '#ff6600']
 };
 
-// ─── Particules ─────────────────────────────────────────────────────────────────────────────
+// ─── Particules ───────────────────────────────────────────────────────────────
 function createParticles(alertType) {
-  const container = document.querySelector('.particles');
-  if (!container) return;
+  const container = document.getElementById('particles');
   container.innerHTML = '';
   if (!fieldData.showParticles) return;
   const count  = parseInt(fieldData.particleCount, 10) || 55;
   const colors = PARTICLE_COLORS[alertType] || [fieldData.primaryColor || '#00f5ff', fieldData.accentColor || '#ff2ec4'];
   for (let i = 0; i < count; i++) {
-    const p      = document.createElement('div');
-    const size   = (Math.random() * 5 + 3) + 'px';
+    const p    = document.createElement('div');
+    const size = (Math.random() * 5 + 3) + 'px';
+    // AMÉLIORATION: translateY variable par particule via custom property inline
     const travelY = 200 + Math.floor(Math.random() * 160);
     p.style.cssText = [
       'position:absolute',
-      `width:${size}`, `height:${size}`,
+      `width:${size}`,
+      `height:${size}`,
       `background:${i % 2 === 0 ? colors[0] : colors[1]}`,
       'border-radius:50%',
       `left:${Math.random() * 100}%`,
@@ -162,22 +166,24 @@ function createParticles(alertType) {
   }
 }
 
-// ─── Sons ───────────────────────────────────────────────────────────────────────────────────
+// ─── Sons ──────────────────────────────────────────────────────────────────────
 function playSound(type) {
   const key = 'sound' + type.charAt(0).toUpperCase() + type.slice(1);
   const url = fieldData[key];
   if (!url || url.trim() === '') return;
   const audio = new Audio(url);
   audio.volume = Math.min(1, Math.max(0, parseFloat(fieldData.soundVolume) || 0.7));
+  // AMÉLIORATION: log debug en cas d'erreur de chargement du son
   audio.play().catch(err => {
     console.warn(`[widget-glass] Son "${type}" inaccessible (${url}):`, err.message);
   });
 }
 
-// ─── Barre de progression ────────────────────────────────────────────────────────────────
+// ─── Barre de progression ──────────────────────────────────────────────────────
 function startProgressBar(duration) {
   if (!progressEl) return;
   if (!fieldData.showProgressBar) { progressEl.classList.remove('active'); return; }
+  // FIX: forcer display:block avant le reflow trick pour garantir le reset de l'animation
   progressEl.style.display = 'block';
   progressEl.classList.remove('active');
   void progressEl.offsetWidth; // force reflow
@@ -185,7 +191,7 @@ function startProgressBar(duration) {
   progressEl.classList.add('active');
 }
 
-// ─── Emotes Twitch ──────────────────────────────────────────────────────────────────────
+// ─── Emotes Twitch dans le message ────────────────────────────────────────────
 function renderEmotes(text, emotes) {
   if (!emotes || !emotes.length || !text) return null;
   const dict = {};
@@ -201,7 +207,7 @@ function renderEmotes(text, emotes) {
   );
 }
 
-// ─── Templates ────────────────────────────────────────────────────────────────────────────
+// ─── Résolution des templates de messages ─────────────────────────────────────
 function resolveTemplate(template, vars) {
   if (!template) return '';
   return template
@@ -213,29 +219,7 @@ function resolveTemplate(template, vars) {
     .replace(/\{recipient\}/gi, vars.recipient || '');
 }
 
-// ─── Sous-message ────────────────────────────────────────────────────────────────────────
-function showSubMessage(text, html, type) {
-  if (!messageEl) return;
-  if (!fieldData.showSubMessage || !TYPES_WITH_SUBMESSAGE.has(type) || !text || text.trim() === '') {
-    messageEl.classList.remove('visible');
-    messageEl.textContent = '';
-    return;
-  }
-  if (html !== null) {
-    messageEl.innerHTML = html;
-  } else {
-    messageEl.textContent = text;
-  }
-  messageEl.classList.add('visible');
-}
-
-function hideSubMessage() {
-  if (!messageEl) return;
-  messageEl.classList.remove('visible');
-  setTimeout(() => { messageEl.textContent = ''; }, 320);
-}
-
-// ─── File d'alertes ─────────────────────────────────────────────────────────────────────────
+// ─── File d'attente ───────────────────────────────────────────────────────────
 function enqueueAlert(type, username, message, amount, emotes) {
   alertQueue.push({ type, username, message, amount, emotes: emotes || [] });
   if (!isPlaying) processQueue();
@@ -248,7 +232,7 @@ function processQueue() {
   _playAlert(item.type, item.username, item.message, item.amount, item.emotes);
 }
 
-// ─── Lecture d'une alerte ───────────────────────────────────────────────────────────────────
+// ─── Lecture d'une alerte ─────────────────────────────────────────────────────
 function _playAlert(type, username, message, amount, emotes) {
   const types = {
     follow:    { icon: fieldData.iconFollow    || '❤️',  text: fieldData.textFollow    || 'NOUVEAU FOLLOW'  },
@@ -265,30 +249,35 @@ function _playAlert(type, username, message, amount, emotes) {
   iconEl.textContent     = t.icon;
   typeEl.textContent     = t.text;
   usernameEl.textContent = username;
+  // AMÉLIORATION: title attribute pour afficher le nom complet si tronqué (ellipsis)
   usernameEl.title       = username || '';
   amountEl.textContent   = amount || '';
 
   const templateKey = 'msg' + type.charAt(0).toUpperCase() + type.slice(1);
   const template    = fieldData[templateKey];
+
+  // FIX giftsub: recipient est passé directement via le paramètre message (3e arg),
+  // pas besoin de regex sur une chaîne déjà construite
   const vars = {
     username:  username || '',
     amount:    amount   || '',
     message:   message  || '',
-    months:    type === 'resub' ? (amount || '') : '',
+    months:    '',
     count:     amount   || '',
     recipient: type === 'giftsub' ? (message || '') : ''
   };
 
-  let resolvedText = '';
-  let resolvedHtml = null;
-  if (template && template.trim() !== '') {
-    resolvedText = resolveTemplate(template, vars);
-  } else {
-    resolvedHtml = renderEmotes(message, emotes);
-    resolvedText = message || '';
+  if (type === 'resub' && amount) {
+    vars.months = amount;
   }
 
-  showSubMessage(resolvedText, resolvedHtml, type);
+  if (template && template.trim() !== '') {
+    messageEl.textContent = resolveTemplate(template, vars);
+  } else {
+    const emoteHtml = renderEmotes(message, emotes);
+    if (emoteHtml !== null) messageEl.innerHTML  = emoteHtml;
+    else                    messageEl.textContent = message || '';
+  }
 
   // Nettoyer les classes d'animation précédentes
   alertEl.className = alertEl.className
@@ -298,12 +287,13 @@ function _playAlert(type, username, message, amount, emotes) {
   void alertEl.offsetWidth;
 
   alertEl.classList.add(getAnimInClass());
-  createParticles(type);
+  createParticles(type); // AMÉLIORATION: passe le type pour la couleur des particules
   playSound(type);
 
   const duration = Math.min(60000, Math.max(1000, parseInt(fieldData.duration, 10) || 7000));
   startProgressBar(duration);
 
+  // FIX: retirer l'ancien listener animationend avant d'en créer un nouveau
   if (_hideEndListener) {
     alertEl.removeEventListener('animationend', _hideEndListener);
     _hideEndListener = null;
@@ -312,11 +302,11 @@ function _playAlert(type, username, message, amount, emotes) {
 
   hideTimer = setTimeout(() => {
     if (progressEl) progressEl.classList.remove('active');
-    hideSubMessage();
     alertEl.classList.remove(getAnimInClass());
     void alertEl.offsetWidth;
     alertEl.classList.add(getAnimOutClass());
 
+    // FIX: { once: true } + référence stockée pour cleanup propre
     _hideEndListener = function onHideEnd() {
       _hideEndListener = null;
       alertEl.classList.remove(getAnimOutClass());
@@ -326,17 +316,23 @@ function _playAlert(type, username, message, amount, emotes) {
   }, duration);
 }
 
-// ─── API publique ─────────────────────────────────────────────────────────────────────────────
-function showAlert(type, username, message, amount, emotes) {
-  enqueueAlert(type, username, message || '', amount || '', emotes || []);
+// ─── API publique ──────────────────────────────────────────────────────────────
+function showAlert(type, username, message = '', amount = '', emotes = []) {
+  enqueueAlert(type, username, message, amount, emotes);
 }
 
-// ─── Détection gift sub ────────────────────────────────────────────────────────────────────
+// ─── Détection gift sub ───────────────────────────────────────────────────────
 function isGiftSub(data) {
-  return !!(data.isCommunityGift || data.gifted || data.isGift || data.sender || data.gifter);
+  return !!(
+    data.isCommunityGift ||
+    data.gifted          ||
+    data.isGift          ||
+    data.sender          ||
+    data.gifter
+  );
 }
 
-// ─── StreamElements Events ────────────────────────────────────────────────────────────────
+// ─── StreamElements Events ────────────────────────────────────────────────────
 window.addEventListener('onEventReceived', function (obj) {
   if (!obj.detail || !obj.detail.event) return;
   if (isLoading) return;
@@ -349,6 +345,8 @@ window.addEventListener('onEventReceived', function (obj) {
 
   const eventId = `${listener}_${data.name}_${data._id || data.createdAt || Date.now()}`;
   if (seenEventIds.has(eventId)) return;
+
+  // FIX: Set borné — supprimer la plus vieille entrée si on dépasse SEEN_MAX
   if (seenEventIds.size >= SEEN_MAX) {
     const oldest = seenEventIds.values().next().value;
     seenEventIds.delete(oldest);
@@ -357,12 +355,12 @@ window.addEventListener('onEventReceived', function (obj) {
   setTimeout(() => seenEventIds.delete(eventId), 10000);
 
   if (listener === 'follower-latest' && fieldData.showFollow) {
-    showAlert('follow', data.name, '', '', emotes);
+    showAlert('follow', data.name, data.message || '', '', emotes);
   }
 
   if (listener === 'subscriber-latest' && !isGiftSub(data)) {
     if (data.amount > 1 && fieldData.showResub) {
-      showAlert('resub', data.name, data.message || '', `${data.amount}`, emotes);
+      showAlert('resub', data.name, `x${data.amount} mois`, `${data.amount}`, emotes);
     } else if (fieldData.showSub) {
       showAlert('sub', data.name, data.message || '', '', emotes);
     }
@@ -375,8 +373,9 @@ window.addEventListener('onEventReceived', function (obj) {
     && fieldData.showGiftSub
   ) {
     const qty       = data.amount || data.quantity || data.count || 1;
+    // FIX: recipient passé directement comme 3e arg (message), pas besoin de regex
     const recipient = data.recipientDisplayName || data.recipient || data.gifted || '';
-    const gifter    = data.name || data.sender || data.gifter || 'Anonyme';
+    const gifter    = data.name || data.sender   || data.gifter  || 'Anonyme';
     showAlert('giftsub', gifter, recipient, String(qty), []);
   }
 
@@ -385,7 +384,7 @@ window.addEventListener('onEventReceived', function (obj) {
   }
 
   if (listener === 'raid-latest' && fieldData.showRaid) {
-    showAlert('raid', data.name, '', String(data.amount || ''), []);
+    showAlert('raid', data.name, data.message || '', String(data.amount || ''), []);
   }
 
   if (listener === 'cheer-latest' && fieldData.showCheer) {
@@ -399,17 +398,17 @@ window.addEventListener('onEventReceived', function (obj) {
   }
 });
 
-// ─── Tests console ──────────────────────────────────────────────────────────────────────────────
+// ─── Fonctions de test console ────────────────────────────────────────────────
 window.testAlert = function(type = 'follow', name = 'TestUser') {
   const testData = {
-    follow:    { msg: '',                          amount: '' },
-    sub:       { msg: 'Super stream merci !',       amount: '' },
-    resub:     { msg: 'Déjà 3 mois que je suis là !', amount: '3' },
-    giftsub:   { msg: 'DestUser',                  amount: '5' },
-    donation:  { msg: 'Continue comme ça !',       amount: '10 €' },
-    raid:      { msg: '',                          amount: '42' },
-    cheer:     { msg: 'Hype !',                    amount: '500 bits' },
-    hypetrain: { msg: 'Niveau 2',                  amount: '2' }
+    follow:    { msg: '',          amount: '' },
+    sub:       { msg: '',          amount: '' },
+    resub:     { msg: '',          amount: '3' },
+    giftsub:   { msg: 'DestUser',  amount: '5' },
+    donation:  { msg: 'Merci !',   amount: '10 €' },
+    raid:      { msg: '',          amount: '42' },
+    cheer:     { msg: 'Hype !',    amount: '500 bits' },
+    hypetrain: { msg: 'Niveau 2',  amount: '2' }
   };
   const d = testData[type] || testData.follow;
   showAlert(type, name, d.msg, d.amount);
