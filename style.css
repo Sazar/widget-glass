@@ -303,15 +303,7 @@ body {
   text-shadow: 0 0 10px rgba(0, 245, 255, 0.6);
 }
 
-/*
-  .username
-  -----------------------------------------------------------------------
-  Le dégradé utilise --username-color comme couleur principale.
-  On supprime le blanc hardcodé qui rendait --username-color inactif :
-    AVANT : linear-gradient(90deg, #ffffff, --primary-color, #ffffff)
-    APRES : linear-gradient(90deg, --username-color, --primary-color, --username-color)
-  Ainsi le colorpicker "Pseudo - couleur" s'applique réellement.
-*/
+/* Couleur pleine — aucun dégradé, uniquement --username-color */
 .username {
   font-family: 'Space Grotesk', sans-serif;
   font-size: var(--username-size, 49px);
@@ -320,15 +312,11 @@ body {
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  background: linear-gradient(
-    90deg,
-    var(--username-color, #ffffff),
-    var(--primary-color,  #7cfcff),
-    var(--username-color, #ffffff)
-  );
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
+  color: var(--username-color, #ffffff);
+  background: none;
+  -webkit-background-clip: unset;
+  -webkit-text-fill-color: unset;
+  background-clip: unset;
 }
 
 .message {
