@@ -145,7 +145,7 @@ function startProgressBar(duration) {
   progressEl.classList.add('active');
 }
 
-// ─── Emotes Twitch dans le message ───────────────────────────────────────────
+// ─── Emotes Twitch dans le message ───────────────────────────────────────────────
 function renderEmotes(text, emotes) {
   if (!emotes || !emotes.length || !text) return null;
   const dict = {};
@@ -159,6 +159,25 @@ function renderEmotes(text, emotes) {
       ? `<img src="${dict[match]}" alt="${match}" title="${match}" style="height:1.2em;vertical-align:middle;display:inline;" loading="lazy">`
       : match
   );
+}
+
+// ─── Résolution des templates de messages ────────────────────────────────────
+// Balises disponibles :
+//   {username}  → nom de l'utilisateur
+//   {amount}    → montant (donation, bits, viewers raid)
+//   {message}   → message laissé par l'utilisateur
+//   {months}    → nombre de mois (resub)
+//   {count}     → nombre de subs offerts (giftsub)
+//   {recipient} → destinataire du gift sub
+function resolveTemplate(template, vars) {
+  if (!template) return '';
+  return template
+    .replace(/\{username\}/gi,  vars.username  || '')
+    .replace(/\{amount\}/gi,    vars.amount    || '')
+    .replace(/\{message\}/gi,   vars.message   || '')
+    .replace(/\{months\}/gi,    vars.months    || '')
+    .replace(/\{count\}/gi,     vars.count     || '')
+    .replace(/\{recipient\}/gi, vars.recipient || '');
 }
 
 // ─── File d'attente ───────────────────────────────────────────────────────────
@@ -193,10 +212,47 @@ function _playAlert(type, username, message, amount, emotes) {
   usernameEl.textContent = username;
   amountEl.textContent   = amount || '';
 
-  const emoteHtml = renderEmotes(message, emotes);
-  if (emoteHtml !== null) messageEl.innerHTML  = emoteHtml;
-  else                    messageEl.textContent = message || '';
+  // ─── Résolution du message personnalisé ──────────────────────────────────
+  // On parse le template du champ si défini, sinon on retombe sur le message brut SE.
+  const templateKey = 'msg' + type.charAt(0).toUpperCase() + type.slice(1); // ex: msgFollow
+  const template    = fieldData[templateKey];
 
+  // Décomposition des variables disponibles pour ce type
+  const vars = {
+    username:  username || '',
+    amount:    amount   || '',
+    message:   message  || '',
+    months:    message  || '',   // pour resub, message contient "x3 mois"
+    count:     amount   || '',   // pour giftsub, amount peut contenir le count
+    recipient: ''               // rempli ci-dessous si présent dans message
+  };
+
+  // Pour giftsub : message peut contenir "offre 1 sub à NomDestinataire !"
+  // On extrait le destinataire si présent.
+  if (type === 'giftsub' && message) {
+    const recipientMatch = message.match(/à\s+(\S+)/);
+    if (recipientMatch) vars.recipient = recipientMatch[1];
+    vars.count = message.match(/(\d+)/)?.[1] || '1';
+  }
+
+  // Pour resub : message contient "x3 mois"
+  if (type === 'resub' && message) {
+    vars.months = message.match(/(\d+)/)?.[1] || '';
+  }
+
+  let finalMessage;
+  if (template && template.trim() !== '') {
+    // Template personnalisé défini dans les fields → on remplace les balises
+    finalMessage = resolveTemplate(template, vars);
+    messageEl.textContent = finalMessage;
+  } else {
+    // Pas de template → comportement original avec support emotes
+    const emoteHtml = renderEmotes(message, emotes);
+    if (emoteHtml !== null) messageEl.innerHTML  = emoteHtml;
+    else                    messageEl.textContent = message || '';
+  }
+
+  // Nettoyer les classes d'anim précédentes
   alertEl.className = alertEl.className
     .split(' ')
     .filter(c => !c.startsWith('anim-in-') && !c.startsWith('anim-out-'))
@@ -251,7 +307,7 @@ window.addEventListener('onEventReceived', function (obj) {
   const data     = obj.detail.event;
   const emotes   = data.emotes || [];
 
-  // ── DEBUG : colle ce log dans la console SE pour voir le vrai nom du listener ──
+  // DEBUG — à retirer une fois les listeners confirmés
   console.log('[widget-glass] event =>', listener, JSON.stringify(data).slice(0, 300));
 
   const eventId = `${listener}_${data.name}_${data._id || data.createdAt || Date.now()}`;
@@ -264,31 +320,30 @@ window.addEventListener('onEventReceived', function (obj) {
     showAlert('follow', data.name, data.message || '', '', emotes);
   }
 
-  // ── Sub / Resub (ignorer si c'est un gift sub) ────────────────────────────
+  // ── Sub / Resub (ignorer si gift sub) ─────────────────────────────────────
   if (listener === 'subscriber-latest' && !isGiftSub(data)) {
     if (data.amount > 1 && fieldData.showResub) {
-      showAlert('resub', data.name, `x${data.amount} mois`, '', emotes);
+      showAlert('resub', data.name, `x${data.amount} mois`, `${data.amount}`, emotes);
     } else if (fieldData.showSub) {
       showAlert('sub', data.name, data.message || '', '', emotes);
     }
   }
 
-  // ── Gift Sub — listener officiel SE ──────────────────────────────────────────
-  // SE peut envoyer 'subscriber-gifted-latest' ou 'community-gift-purchase-latest'
-  // selon la version. On couvre les deux + le cas subscriber-latest avec champs gift.
+  // ── Gift Sub ──────────────────────────────────────────────────────────────
   if (
     (listener === 'subscriber-gifted-latest' ||
      listener === 'community-gift-purchase-latest' ||
      (listener === 'subscriber-latest' && isGiftSub(data)))
     && fieldData.showGiftSub
   ) {
-    const qty    = data.amount || data.quantity || data.count || 1;
-    const gifted = data.recipientDisplayName || data.recipient || data.gifted || '';
-    const gifter = data.name || data.sender   || data.gifter  || 'Anonyme';
-    const msg    = qty > 1
-      ? `offre ${qty} subs !`
-      : gifted ? `offre 1 sub à ${gifted} !` : 'offre un sub !';
-    showAlert('giftsub', gifter, msg, '', []);
+    const qty       = data.amount || data.quantity || data.count || 1;
+    const recipient = data.recipientDisplayName || data.recipient || data.gifted || '';
+    const gifter    = data.name || data.sender   || data.gifter  || 'Anonyme';
+    const msg       = qty > 1
+      ? `offre ${qty} subs !`
+      : recipient ? `offre 1 sub à ${recipient} !` : 'offre un sub !';
+    // On passe qty dans amount et recipient dans message pour que les balises {count} et {recipient} fonctionnent
+    showAlert('giftsub', gifter, recipient, String(qty), []);
   }
 
   // ── Donation ──────────────────────────────────────────────────────────────
@@ -296,9 +351,9 @@ window.addEventListener('onEventReceived', function (obj) {
     showAlert('donation', data.name, data.message || '', data.amount + ' €', emotes);
   }
 
-  // ── Raid ──────────────────────────────────────────────────────────────
+  // ── Raid ──────────────────────────────────────────────────────────────────
   if (listener === 'raid-latest' && fieldData.showRaid) {
-    showAlert('raid', data.name, `avec ${data.amount} viewers !`, '', []);
+    showAlert('raid', data.name, data.message || '', String(data.amount || ''), []);
   }
 
   // ── Cheer / Bits ──────────────────────────────────────────────────────────
@@ -309,18 +364,29 @@ window.addEventListener('onEventReceived', function (obj) {
   // ── Hype Train ────────────────────────────────────────────────────────────
   if ((listener === 'hype-train-start' || listener === 'hype-train-end') && fieldData.showHypeTrain) {
     const level  = data.level || data.current || '';
-    const suffix = listener === 'hype-train-end' ? 'TERMINÉ !' : `Niveau ${level}`;
-    showAlert('hypetrain', 'HYPE TRAIN', suffix, '', []);
+    const suffix = listener === 'hype-train-end' ? 'TERMINÉ !' : `Niveau ${level}`;
+    showAlert('hypetrain', 'HYPE TRAIN', suffix, String(level), []);
   }
 });
 
 // ─── Fonctions de test console ────────────────────────────────────────────────
 window.testAlert = function(type = 'follow', name = 'TestUser') {
-  showAlert(type, name, 'Message de test', type === 'donation' ? '25 €' : type === 'cheer' ? '500 bits' : '');
+  const testData = {
+    follow:    { msg: '',            amount: '' },
+    sub:       { msg: 'Super stream !', amount: '' },
+    resub:     { msg: 'x3 mois',    amount: '3' },
+    giftsub:   { msg: 'DestUser',   amount: '5' },
+    donation:  { msg: 'Merci !',    amount: '10 €' },
+    raid:      { msg: '',           amount: '42' },
+    cheer:     { msg: 'Hype !',     amount: '500 bits' },
+    hypetrain: { msg: 'Niveau 2',   amount: '2' }
+  };
+  const d = testData[type] || testData.follow;
+  showAlert(type, name, d.msg, d.amount);
 };
 
 window.testQueue = function() {
   ['follow', 'sub', 'giftsub', 'donation', 'raid', 'cheer', 'hypetrain'].forEach((t, i) => {
-    setTimeout(() => showAlert(t, 'User_' + t, 'Test queue', t === 'donation' ? '10 €' : ''), i * 200);
+    setTimeout(() => window.testAlert(t, 'User_' + t), i * 200);
   });
 };

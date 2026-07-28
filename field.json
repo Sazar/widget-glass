@@ -102,6 +102,16 @@
   "iconHypeTrain": { "type": "text", "label": "Icône Hype Train", "value": "🚂", "group": "🏷️ Icônes & Textes" },
   "textHypeTrain": { "type": "text", "label": "Texte Hype Train", "value": "HYPE TRAIN 🔥",  "group": "🏷️ Icônes & Textes" },
 
+  "_msgHint": { "type": "text", "label": "Balises dispo : {username} {amount} {message} {months} {count} {recipient}", "value": "", "group": "💬 Messages personnalisés" },
+  "msgFollow":    { "type": "text", "label": "Message Follow",    "value": "{username} vient de follow ! ❤️",                        "group": "💬 Messages personnalisés" },
+  "msgSub":       { "type": "text", "label": "Message Sub",       "value": "{username} vient de s'abonner ! ⭐",                      "group": "💬 Messages personnalisés" },
+  "msgResub":     { "type": "text", "label": "Message Resub",     "value": "{username} se réabonne pour {months} mois ! 🔥",          "group": "💬 Messages personnalisés" },
+  "msgGiftSub":   { "type": "text", "label": "Message Gift Sub",  "value": "{username} offre {count} sub(s) ! 🎁",                   "group": "💬 Messages personnalisés" },
+  "msgDonation":  { "type": "text", "label": "Message Donation",  "value": "{username} a donné {amount} ! 💎",                       "group": "💬 Messages personnalisés" },
+  "msgRaid":      { "type": "text", "label": "Message Raid",      "value": "{username} raid avec {amount} viewers ! ⚔️",              "group": "💬 Messages personnalisés" },
+  "msgCheer":     { "type": "text", "label": "Message Cheer",     "value": "{username} envoie {amount} bits ! 🎉",                   "group": "💬 Messages personnalisés" },
+  "msgHypeTrain": { "type": "text", "label": "Message Hype Train","value": "HYPE TRAIN en cours ! 🚂",                               "group": "💬 Messages personnalisés" },
+
   "soundVolume":    { "type": "slider", "label": "Volume",                   "value": 0.7, "min": 0, "max": 1, "step": 0.05, "group": "🔊 Sons" },
   "soundFollow":    { "type": "text",   "label": "Son Follow (URL MP3)",     "value": "", "group": "🔊 Sons" },
   "soundSub":       { "type": "text",   "label": "Son Sub (URL MP3)",        "value": "", "group": "🔊 Sons" },
