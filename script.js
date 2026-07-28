@@ -26,21 +26,21 @@ window.addEventListener('onWidgetLoad', function (obj) {
 // ─── Apply CSS variables from fields ─────────────────────────────────────────
 function applySettings() {
   const root = document.documentElement;
-  root.style.setProperty('--widget-width',       fieldData.widgetWidth   + 'px');
-  root.style.setProperty('--border-radius',      fieldData.borderRadius  + 'px');
-  root.style.setProperty('--blur-intensity',     fieldData.blurIntensity + 'px');
-  root.style.setProperty('--glass-opacity',      fieldData.glassOpacity);
-  root.style.setProperty('--primary-color',      fieldData.primaryColor);
-  root.style.setProperty('--accent-color',       fieldData.accentColor);
-  root.style.setProperty('--icon-size',          fieldData.iconSize      + 'px');
-  root.style.setProperty('--type-size',          fieldData.typeSize      + 'px');
-  root.style.setProperty('--username-size',      fieldData.usernameSize  + 'px');
-  root.style.setProperty('--message-size',       fieldData.messageSize   + 'px');
-  root.style.setProperty('--amount-size',        fieldData.amountSize    + 'px');
-  root.style.setProperty('--glow-intensity',     (fieldData.glowIntensity || 20) + 'px');
-  root.style.setProperty('--duration',           (parseInt(fieldData.duration, 10) || 7000) + 'ms');
-  root.style.setProperty('--anim-duration-in',   (parseInt(fieldData.animDurationIn,  10) || 600)  + 'ms');
-  root.style.setProperty('--anim-duration-out',  (parseInt(fieldData.animDurationOut, 10) || 500)  + 'ms');
+  root.style.setProperty('--widget-width',      fieldData.widgetWidth   + 'px');
+  root.style.setProperty('--border-radius',     fieldData.borderRadius  + 'px');
+  root.style.setProperty('--blur-intensity',    fieldData.blurIntensity + 'px');
+  root.style.setProperty('--glass-opacity',     fieldData.glassOpacity);
+  root.style.setProperty('--primary-color',     fieldData.primaryColor);
+  root.style.setProperty('--accent-color',      fieldData.accentColor);
+  root.style.setProperty('--icon-size',         fieldData.iconSize      + 'px');
+  root.style.setProperty('--type-size',         fieldData.typeSize      + 'px');
+  root.style.setProperty('--username-size',     fieldData.usernameSize  + 'px');
+  root.style.setProperty('--message-size',      fieldData.messageSize   + 'px');
+  root.style.setProperty('--amount-size',       fieldData.amountSize    + 'px');
+  root.style.setProperty('--glow-intensity',    (fieldData.glowIntensity || 20) + 'px');
+  root.style.setProperty('--duration',          (parseInt(fieldData.duration, 10) || 7000) + 'ms');
+  root.style.setProperty('--anim-duration-in',  (parseInt(fieldData.animDurationIn,  10) || 600)  + 'ms');
+  root.style.setProperty('--anim-duration-out', (parseInt(fieldData.animDurationOut, 10) || 500)  + 'ms');
   root.style.setProperty('--primary-color-soft', hexToRgba(fieldData.primaryColor, 0.25));
   root.style.setProperty('--accent-color-soft',  hexToRgba(fieldData.accentColor,  0.18));
   applyPosition(fieldData.widgetPosition || 'center');
@@ -98,9 +98,6 @@ function applyThemePreset(preset) {
 }
 
 // ─── Animations entrée / sortie ───────────────────────────────────────────────
-// Les classes CSS sont définies dans style.css sous forme :
-// .anim-in-popIn    { animation: popIn    var(--anim-duration-in)  ... }
-// .anim-out-popOut  { animation: popOut   var(--anim-duration-out) ... }
 function getAnimInClass()  { return 'anim-in-'  + (fieldData.animIn  || 'popIn');  }
 function getAnimOutClass() { return 'anim-out-' + (fieldData.animOut || 'popOut'); }
 
@@ -148,7 +145,7 @@ function startProgressBar(duration) {
   progressEl.classList.add('active');
 }
 
-// ─── Feature — Emotes Twitch dans le message ─────────────────────────────────
+// ─── Emotes Twitch dans le message ───────────────────────────────────────────────
 function renderEmotes(text, emotes) {
   if (!emotes || !emotes.length || !text) return null;
   const dict = {};
@@ -182,11 +179,12 @@ function processQueue() {
 // ─── Lecture d'une alerte ─────────────────────────────────────────────────────
 function _playAlert(type, username, message, amount, emotes) {
   const types = {
-    follow:    { icon: fieldData.iconFollow    || '❤️', text: fieldData.textFollow    || 'NOUVEAU FOLLOW'  },
-    sub:       { icon: fieldData.iconSub       || '⭐', text: fieldData.textSub       || 'NOUVELLE SUB'    },
+    follow:    { icon: fieldData.iconFollow    || '❤️',  text: fieldData.textFollow    || 'NOUVEAU FOLLOW'  },
+    sub:       { icon: fieldData.iconSub       || '⭐',  text: fieldData.textSub       || 'NOUVELLE SUB'    },
     resub:     { icon: fieldData.iconResub     || '🔥', text: fieldData.textResub     || 'RESUBSCRIPTION'  },
+    giftsub:   { icon: fieldData.iconGiftSub   || '🎁', text: fieldData.textGiftSub   || 'GIFT SUB'        },
     donation:  { icon: fieldData.iconDonation  || '💎', text: fieldData.textDonation  || 'DONATION'        },
-    raid:      { icon: fieldData.iconRaid      || '⚔️', text: fieldData.textRaid      || 'RAID INCOMING'   },
+    raid:      { icon: fieldData.iconRaid      || '⚔️',  text: fieldData.textRaid      || 'RAID INCOMING'   },
     cheer:     { icon: fieldData.iconCheer     || '🎉', text: fieldData.textCheer     || 'BITS'            },
     hypetrain: { icon: fieldData.iconHypeTrain || '🚂', text: fieldData.textHypeTrain || 'HYPE TRAIN 🔥'  }
   };
@@ -204,14 +202,12 @@ function _playAlert(type, username, message, amount, emotes) {
     messageEl.textContent = message || '';
   }
 
-  // Retirer toutes les classes d'animation précédentes
   alertEl.className = alertEl.className
     .split(' ')
-    .filter(c => !c.startsWith('anim-in-') && !c.startsWith('anim-out-') && c !== 'show' && c !== 'hide')
+    .filter(c => !c.startsWith('anim-in-') && !c.startsWith('anim-out-'))
     .join(' ');
   void alertEl.offsetWidth;
 
-  // Appliquer l'animation d'entrée
   alertEl.classList.add(getAnimInClass());
   createParticles();
   playSound(type);
@@ -222,8 +218,6 @@ function _playAlert(type, username, message, amount, emotes) {
   if (hideTimer) clearTimeout(hideTimer);
   hideTimer = setTimeout(() => {
     progressEl && progressEl.classList.remove('active');
-
-    // Retirer l'animation d'entrée, appliquer celle de sortie
     alertEl.classList.remove(getAnimInClass());
     void alertEl.offsetWidth;
     alertEl.classList.add(getAnimOutClass());
@@ -268,12 +262,22 @@ window.addEventListener('onEventReceived', function (obj) {
     }
   }
 
+  // Gift Sub — listener dédié SE
+  if (listener === 'subscriber-gifted-latest' && fieldData.showGiftSub) {
+    const qty     = data.amount || data.quantity || 1;
+    const gifted  = data.recipientDisplayName || data.recipient || '';
+    const message = qty > 1
+      ? `offre ${qty} subs !`
+      : gifted ? `offre 1 sub à ${gifted} !` : 'offre un sub !';
+    showAlert('giftsub', data.name, message, '', []);
+  }
+
   if (listener === 'tip-latest' && fieldData.showDonation) {
     showAlert('donation', data.name, data.message || '', data.amount + ' €', emotes);
   }
 
   if (listener === 'raid-latest' && fieldData.showRaid) {
-    showAlert('raid', data.name, `avec ${data.amount} viewers !`, '', []);
+    showAlert('raid', data.name, `avec ${data.amount} viewers !`, '', []);
   }
 
   if (listener === 'cheer-latest' && fieldData.showCheer) {
@@ -282,7 +286,7 @@ window.addEventListener('onEventReceived', function (obj) {
 
   if ((listener === 'hype-train-start' || listener === 'hype-train-end') && fieldData.showHypeTrain) {
     const level  = data.level || data.current || '';
-    const suffix = listener === 'hype-train-end' ? 'TERMINÉ !' : `Niveau ${level}`;
+    const suffix = listener === 'hype-train-end' ? 'TERMINÉ !' : `Niveau ${level}`;
     showAlert('hypetrain', 'HYPE TRAIN', suffix, '', []);
   }
 });
@@ -293,7 +297,7 @@ window.testAlert = function(type = 'follow', name = 'TestUser') {
 };
 
 window.testQueue = function() {
-  ['follow', 'sub', 'donation', 'raid', 'cheer', 'hypetrain'].forEach((t, i) => {
+  ['follow', 'sub', 'giftsub', 'donation', 'raid', 'cheer', 'hypetrain'].forEach((t, i) => {
     setTimeout(() => showAlert(t, 'User_' + t, 'Test queue', t === 'donation' ? '10 €' : ''), i * 200);
   });
 };
