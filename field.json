@@ -39,15 +39,50 @@
     "max": 0.9,
     "step": 0.05
   },
+  "themePreset": {
+    "type": "dropdown",
+    "label": "Preset de thème",
+    "value": "custom",
+    "options": [
+      { "label": "Personnalisé", "value": "custom" },
+      { "label": "Neon Cyan (défaut)", "value": "neon-cyan" },
+      { "label": "Gold", "value": "gold" },
+      { "label": "Purple Storm", "value": "purple-storm" },
+      { "label": "Minimal White", "value": "minimal-white" },
+      { "label": "Green Matrix", "value": "green-matrix" }
+    ]
+  },
   "primaryColor": {
     "type": "colorpicker",
-    "label": "Couleur principale",
+    "label": "Couleur principale (si Personnalisé)",
     "value": "#00f5ff"
   },
   "accentColor": {
     "type": "colorpicker",
-    "label": "Couleur d'accent",
+    "label": "Couleur d'accent (si Personnalisé)",
     "value": "#ff2ec4"
+  },
+  "glowIntensity": {
+    "type": "number",
+    "label": "Intensité du glow (px)",
+    "value": 20,
+    "min": 0,
+    "max": 60,
+    "step": 2
+  },
+  "widgetPosition": {
+    "type": "dropdown",
+    "label": "Position du widget",
+    "value": "center",
+    "options": [
+      { "label": "Centre",         "value": "center" },
+      { "label": "Haut gauche",    "value": "top-left" },
+      { "label": "Haut centre",    "value": "top-center" },
+      { "label": "Haut droite",    "value": "top-right" },
+      { "label": "Bas gauche",     "value": "bottom-left" },
+      { "label": "Bas centre",     "value": "bottom-center" },
+      { "label": "Bas droite",     "value": "bottom-right" }
+    ]
   },
   "iconSize": {
     "type": "number",
@@ -89,6 +124,11 @@
     "max": 50,
     "step": 1
   },
+  "showAvatar": {
+    "type": "checkbox",
+    "label": "Afficher l'avatar Twitch",
+    "value": false
+  },
   "showParticles": {
     "type": "checkbox",
     "label": "Afficher les particules",
@@ -101,6 +141,14 @@
     "min": 10,
     "max": 100,
     "step": 5
+  },
+  "soundVolume": {
+    "type": "slider",
+    "label": "Volume des sons",
+    "value": 0.7,
+    "min": 0,
+    "max": 1,
+    "step": 0.05
   },
   "showFollow": {
     "type": "checkbox",
@@ -127,54 +175,27 @@
     "label": "Afficher les Raids",
     "value": true
   },
-  "iconFollow": {
-    "type": "text",
-    "label": "Icône Follow",
-    "value": "❤️"
+  "showCheer": {
+    "type": "checkbox",
+    "label": "Afficher les Cheers / Bits",
+    "value": true
   },
-  "iconSub": {
-    "type": "text",
-    "label": "Icône Sub",
-    "value": "⭐"
-  },
-  "iconResub": {
-    "type": "text",
-    "label": "Icône Resub",
-    "value": "🔥"
-  },
-  "iconDonation": {
-    "type": "text",
-    "label": "Icône Donation",
-    "value": "💎"
-  },
-  "iconRaid": {
-    "type": "text",
-    "label": "Icône Raid",
-    "value": "⚔️"
-  },
-  "textFollow": {
-    "type": "text",
-    "label": "Texte Follow",
-    "value": "NOUVEAU FOLLOW"
-  },
-  "textSub": {
-    "type": "text",
-    "label": "Texte Sub",
-    "value": "NOUVELLE SUB"
-  },
-  "textResub": {
-    "type": "text",
-    "label": "Texte Resub",
-    "value": "RESUBSCRIPTION"
-  },
-  "textDonation": {
-    "type": "text",
-    "label": "Texte Donation",
-    "value": "DONATION"
-  },
-  "textRaid": {
-    "type": "text",
-    "label": "Texte Raid",
-    "value": "RAID INCOMING"
-  }
+  "iconFollow":   { "type": "text", "label": "Icône Follow",   "value": "❤️" },
+  "iconSub":      { "type": "text", "label": "Icône Sub",      "value": "⭐" },
+  "iconResub":    { "type": "text", "label": "Icône Resub",    "value": "🔥" },
+  "iconDonation": { "type": "text", "label": "Icône Donation", "value": "💎" },
+  "iconRaid":     { "type": "text", "label": "Icône Raid",     "value": "⚔️" },
+  "iconCheer":    { "type": "text", "label": "Icône Cheer",    "value": "🎉" },
+  "textFollow":   { "type": "text", "label": "Texte Follow",   "value": "NOUVEAU FOLLOW" },
+  "textSub":      { "type": "text", "label": "Texte Sub",      "value": "NOUVELLE SUB" },
+  "textResub":    { "type": "text", "label": "Texte Resub",    "value": "RESUBSCRIPTION" },
+  "textDonation": { "type": "text", "label": "Texte Donation", "value": "DONATION" },
+  "textRaid":     { "type": "text", "label": "Texte Raid",     "value": "RAID INCOMING" },
+  "textCheer":    { "type": "text", "label": "Texte Cheer",    "value": "BITS" },
+  "soundFollow":   { "type": "text", "label": "Son Follow (URL MP3)",   "value": "" },
+  "soundSub":      { "type": "text", "label": "Son Sub (URL MP3)",      "value": "" },
+  "soundResub":    { "type": "text", "label": "Son Resub (URL MP3)",    "value": "" },
+  "soundDonation": { "type": "text", "label": "Son Donation (URL MP3)", "value": "" },
+  "soundRaid":     { "type": "text", "label": "Son Raid (URL MP3)",     "value": "" },
+  "soundCheer":    { "type": "text", "label": "Son Cheer (URL MP3)",    "value": "" }
 }
