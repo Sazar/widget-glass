@@ -70,11 +70,13 @@
   "showParticles":     { "type": "checkbox",    "label": "Particules",             "value": true,       "group": "🎨 Apparence" },
   "particleCount":     { "type": "slider",      "label": "Nombre de particules",   "value": 55,   "min": 10,  "max": 100, "step": 5,    "group": "🎨 Apparence" },
 
-  "iconSize":     { "type": "slider", "label": "🔸 Icône — taille emoji (px)",                  "value": 56,   "min": 24,  "max": 90,  "step": 2,   "group": "🔤 Typographie" },
-  "typeSize":     { "type": "slider", "label": "🏷️ Type d'alerte — ex: NOUVEAU FOLLOW (px)",  "value": 15.5, "min": 10,  "max": 28,  "step": 0.5, "group": "🔤 Typographie" },
-  "usernameSize": { "type": "slider", "label": "👤 Pseudo — nom du viewer (px)",               "value": 49,   "min": 24,  "max": 80,  "step": 1,   "group": "🔤 Typographie" },
-  "messageSize":  { "type": "slider", "label": "💬 Message — texte du viewer (px)",             "value": 23,   "min": 14,  "max": 40,  "step": 1,   "group": "🔤 Typographie" },
-  "amountSize":   { "type": "slider", "label": "💰 Montant — € / bits / nb viewers raid (px)",  "value": 35,   "min": 18,  "max": 60,  "step": 1,   "group": "🔤 Typographie" },
+  "iconSize":      { "type": "slider",      "label": "🔸 Icône — taille emoji (px)",                 "value": 56,   "min": 24,  "max": 90,  "step": 2,   "group": "🔤 Typographie" },
+  "typeSize":      { "type": "slider",      "label": "🏷️ Type d'alerte — ex: NOUVEAU FOLLOW (px)",  "value": 15.5, "min": 10,  "max": 60,  "step": 0.5, "group": "🔤 Typographie" },
+  "typeColor":     { "type": "colorpicker", "label": "🏷️ Type d'alerte — couleur",                  "value": "#00f5ff",     "group": "🔤 Typographie" },
+  "usernameSize":  { "type": "slider",      "label": "👤 Pseudo — nom du viewer (px)",              "value": 49,   "min": 24,  "max": 80,  "step": 1,   "group": "🔤 Typographie" },
+  "usernameColor": { "type": "colorpicker", "label": "👤 Pseudo — couleur",                         "value": "#ffffff",     "group": "🔤 Typographie" },
+  "messageSize":   { "type": "slider",      "label": "💬 Message — texte du viewer (px)",           "value": 23,   "min": 14,  "max": 40,  "step": 1,   "group": "🔤 Typographie" },
+  "amountSize":    { "type": "slider",      "label": "💰 Montant — € / bits / nb viewers raid (px)", "value": 35,   "min": 18,  "max": 60,  "step": 1,   "group": "🔤 Typographie" },
 
   "showFollow":    { "type": "checkbox", "label": "Follow",       "value": true, "group": "📡 Événements actifs" },
   "showSub":       { "type": "checkbox", "label": "Sub",          "value": true, "group": "📡 Événements actifs" },
