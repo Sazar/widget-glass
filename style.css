@@ -17,7 +17,7 @@ body {
   padding: 20px;
 }
 
-/* ── Widget principal ────────────────────────────────────────────────── */
+/* ── Widget principal ─────────────────────────────────────────────────────── */
 .alert {
   display: none;
   width: var(--widget-width, 660px);
@@ -35,41 +35,225 @@ body {
   border: 1px solid var(--primary-color, rgba(0, 245, 255, 0.35));
 }
 
-/* ── Entrée ──────────────────────────────────────────────────────────── */
-.alert.show {
+/* Toute classe anim-in-* ou anim-out-* rend le widget visible */
+[class*="anim-in-"],
+[class*="anim-out-"] {
   display: block;
-  animation: popIn 0.7s cubic-bezier(0.23, 1, 0.32, 1) forwards;
 }
 
-/* ── Sortie — FIX : display:block obligatoire sinon l'animation ne joue pas */
-.alert.hide {
-  display: block;
-  animation: popOut 0.5s cubic-bezier(0.55, 0, 1, 0.45) forwards;
+/* ── Variables de durée ───────────────────────────────────────────────────── */
+:root {
+  --anim-duration-in:  600ms;
+  --anim-duration-out: 500ms;
+  --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-in-expo:  cubic-bezier(0.7, 0, 0.84, 0);
+  --ease-bounce:   cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 
-@keyframes popIn {
-  from {
-    transform: scale(0.65) translateY(120px);
-    opacity: 0;
-  }
-  to {
-    transform: scale(1) translateY(0);
-    opacity: 1;
-  }
+/* ══════════════════════════════════════════════════════════════════════════ */
+/* ANIMATIONS D'ENTRÉE                                                        */
+/* ══════════════════════════════════════════════════════════════════════════ */
+
+/* Pop (scale + fade) */
+.anim-in-popIn {
+  animation: kf-popIn var(--anim-duration-in) var(--ease-out-expo) forwards;
+}
+@keyframes kf-popIn {
+  from { transform: scale(0.65) translateY(80px); opacity: 0; }
+  to   { transform: scale(1)    translateY(0);    opacity: 1; }
 }
 
-@keyframes popOut {
-  from {
-    transform: scale(1) translateY(0);
-    opacity: 1;
-  }
-  to {
-    transform: scale(0.85) translateY(60px);
-    opacity: 0;
-  }
+/* Glissement bas → haut */
+.anim-in-slideUp {
+  animation: kf-slideUp var(--anim-duration-in) var(--ease-out-expo) forwards;
+}
+@keyframes kf-slideUp {
+  from { transform: translateY(120px); opacity: 0; }
+  to   { transform: translateY(0);     opacity: 1; }
 }
 
-/* ── Pseudo-éléments glass ───────────────────────────────────────────── */
+/* Glissement haut → bas */
+.anim-in-slideDown {
+  animation: kf-slideDown var(--anim-duration-in) var(--ease-out-expo) forwards;
+}
+@keyframes kf-slideDown {
+  from { transform: translateY(-120px); opacity: 0; }
+  to   { transform: translateY(0);      opacity: 1; }
+}
+
+/* Glissement droite → gauche */
+.anim-in-slideLeft {
+  animation: kf-slideLeft var(--anim-duration-in) var(--ease-out-expo) forwards;
+}
+@keyframes kf-slideLeft {
+  from { transform: translateX(160px); opacity: 0; }
+  to   { transform: translateX(0);     opacity: 1; }
+}
+
+/* Glissement gauche → droite */
+.anim-in-slideRight {
+  animation: kf-slideRight var(--anim-duration-in) var(--ease-out-expo) forwards;
+}
+@keyframes kf-slideRight {
+  from { transform: translateX(-160px); opacity: 0; }
+  to   { transform: translateX(0);      opacity: 1; }
+}
+
+/* Fondu simple */
+.anim-in-fadeIn {
+  animation: kf-fadeIn var(--anim-duration-in) ease forwards;
+}
+@keyframes kf-fadeIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+/* Flip 3D */
+.anim-in-flipIn {
+  animation: kf-flipIn var(--anim-duration-in) var(--ease-out-expo) forwards;
+  transform-style: preserve-3d;
+  backface-visibility: hidden;
+}
+@keyframes kf-flipIn {
+  from { transform: perspective(600px) rotateX(-80deg); opacity: 0; }
+  to   { transform: perspective(600px) rotateX(0deg);   opacity: 1; }
+}
+
+/* Rebond */
+.anim-in-bounceIn {
+  animation: kf-bounceIn var(--anim-duration-in) var(--ease-bounce) forwards;
+}
+@keyframes kf-bounceIn {
+  0%   { transform: scale(0.4); opacity: 0; }
+  60%  { transform: scale(1.1); opacity: 1; }
+  80%  { transform: scale(0.95); }
+  100% { transform: scale(1); }
+}
+
+/* Zoom avant */
+.anim-in-zoomIn {
+  animation: kf-zoomIn var(--anim-duration-in) var(--ease-out-expo) forwards;
+}
+@keyframes kf-zoomIn {
+  from { transform: scale(1.35); opacity: 0; }
+  to   { transform: scale(1);    opacity: 1; }
+}
+
+/* Glitch */
+.anim-in-glitchIn {
+  animation: kf-glitchIn var(--anim-duration-in) steps(1) forwards;
+}
+@keyframes kf-glitchIn {
+  0%   { transform: translate(-6px, 0) skewX(-10deg); opacity: 0;   clip-path: inset(40% 0 40% 0); }
+  15%  { transform: translate(6px, 0)  skewX(10deg);  opacity: 0.5; clip-path: inset(10% 0 70% 0); }
+  30%  { transform: translate(-4px, 0) skewX(-5deg);  opacity: 0.4; clip-path: inset(60% 0 10% 0); }
+  50%  { transform: translate(4px, 0)  skewX(5deg);   opacity: 0.7; clip-path: inset(20% 0 50% 0); }
+  70%  { transform: translate(-2px, 0) skewX(-2deg);  opacity: 0.9; clip-path: inset(5% 0 5% 0);  }
+  100% { transform: translate(0, 0)    skewX(0deg);   opacity: 1;   clip-path: inset(0% 0 0% 0);  }
+}
+
+/* ══════════════════════════════════════════════════════════════════════════ */
+/* ANIMATIONS DE SORTIE                                                       */
+/* ══════════════════════════════════════════════════════════════════════════ */
+
+/* Pop sortie */
+.anim-out-popOut {
+  animation: kf-popOut var(--anim-duration-out) var(--ease-in-expo) forwards;
+}
+@keyframes kf-popOut {
+  from { transform: scale(1)    translateY(0);   opacity: 1; }
+  to   { transform: scale(0.75) translateY(60px); opacity: 0; }
+}
+
+/* Glissement haut → bas (inverse de slideUp entrée) */
+.anim-out-slideUpOut {
+  animation: kf-slideUpOut var(--anim-duration-out) var(--ease-in-expo) forwards;
+}
+@keyframes kf-slideUpOut {
+  from { transform: translateY(0);      opacity: 1; }
+  to   { transform: translateY(-120px); opacity: 0; }
+}
+
+/* Glissement bas → haut */
+.anim-out-slideDownOut {
+  animation: kf-slideDownOut var(--anim-duration-out) var(--ease-in-expo) forwards;
+}
+@keyframes kf-slideDownOut {
+  from { transform: translateY(0);    opacity: 1; }
+  to   { transform: translateY(120px); opacity: 0; }
+}
+
+/* Glissement gauche → droite */
+.anim-out-slideLeftOut {
+  animation: kf-slideLeftOut var(--anim-duration-out) var(--ease-in-expo) forwards;
+}
+@keyframes kf-slideLeftOut {
+  from { transform: translateX(0);      opacity: 1; }
+  to   { transform: translateX(-160px); opacity: 0; }
+}
+
+/* Glissement droite → gauche */
+.anim-out-slideRightOut {
+  animation: kf-slideRightOut var(--anim-duration-out) var(--ease-in-expo) forwards;
+}
+@keyframes kf-slideRightOut {
+  from { transform: translateX(0);    opacity: 1; }
+  to   { transform: translateX(160px); opacity: 0; }
+}
+
+/* Fondu simple */
+.anim-out-fadeOut {
+  animation: kf-fadeOut var(--anim-duration-out) ease forwards;
+}
+@keyframes kf-fadeOut {
+  from { opacity: 1; }
+  to   { opacity: 0; }
+}
+
+/* Flip 3D */
+.anim-out-flipOut {
+  animation: kf-flipOut var(--anim-duration-out) var(--ease-in-expo) forwards;
+  transform-style: preserve-3d;
+  backface-visibility: hidden;
+}
+@keyframes kf-flipOut {
+  from { transform: perspective(600px) rotateX(0deg);   opacity: 1; }
+  to   { transform: perspective(600px) rotateX(80deg);  opacity: 0; }
+}
+
+/* Rebond sortie */
+.anim-out-bounceOut {
+  animation: kf-bounceOut var(--anim-duration-out) ease forwards;
+}
+@keyframes kf-bounceOut {
+  0%   { transform: scale(1);    opacity: 1; }
+  25%  { transform: scale(1.08); }
+  100% { transform: scale(0.3);  opacity: 0; }
+}
+
+/* Zoom arrière */
+.anim-out-zoomOut {
+  animation: kf-zoomOut var(--anim-duration-out) var(--ease-in-expo) forwards;
+}
+@keyframes kf-zoomOut {
+  from { transform: scale(1);    opacity: 1; }
+  to   { transform: scale(1.4);  opacity: 0; }
+}
+
+/* Glitch sortie */
+.anim-out-glitchOut {
+  animation: kf-glitchOut var(--anim-duration-out) steps(1) forwards;
+}
+@keyframes kf-glitchOut {
+  0%   { transform: translate(0, 0)    skewX(0deg);   opacity: 1;   clip-path: inset(0% 0 0% 0);  }
+  20%  { transform: translate(6px, 0)  skewX(8deg);   opacity: 0.9; clip-path: inset(15% 0 55% 0); }
+  40%  { transform: translate(-6px, 0) skewX(-8deg);  opacity: 0.7; clip-path: inset(50% 0 15% 0); }
+  60%  { transform: translate(4px, 0)  skewX(4deg);   opacity: 0.5; clip-path: inset(5% 0 70% 0);  }
+  80%  { transform: translate(-4px, 0) skewX(-4deg);  opacity: 0.3; clip-path: inset(65% 0 5% 0);  }
+  100% { transform: translate(0, 0)    skewX(0deg);   opacity: 0;   clip-path: inset(50% 0 50% 0); }
+}
+
+/* ── Pseudo-éléments glass ────────────────────────────────────────────────── */
 .alert::before,
 .alert::after {
   content: '';
@@ -105,7 +289,7 @@ body {
   50%       { opacity: 0.75; }
 }
 
-/* ── Amélioration #3 — Barre de progression ──────────────────────────── */
+/* ── Barre de progression ─────────────────────────────────────────────────── */
 .progress-bar {
   display: none;
   position: absolute;
@@ -139,23 +323,11 @@ body {
   display: block;
 }
 
-/* ── Layout header ───────────────────────────────────────────────────── */
+/* ── Layout header ────────────────────────────────────────────────────────── */
 .alert-header {
   display: flex;
   align-items: center;
   gap: 26px;
-}
-
-/* Amélioration — avatar Twitch */
-.avatar {
-  display: none;
-  width: 72px;
-  height: 72px;
-  border-radius: 50%;
-  object-fit: cover;
-  border: 2px solid var(--primary-color, #7cfcff);
-  box-shadow: 0 0 16px var(--primary-color, #7cfcff);
-  flex-shrink: 0;
 }
 
 .icon {
@@ -166,7 +338,7 @@ body {
   flex-shrink: 0;
 }
 
-.alert.show .icon {
+[class*="anim-in-"] .icon {
   transform: scale(1.15);
 }
 
@@ -175,7 +347,7 @@ body {
   min-width: 0;
 }
 
-/* ── Textes ───────────────────────────────────────────────────────────── */
+/* ── Textes ───────────────────────────────────────────────────────────────── */
 .type {
   font-size: var(--type-size, 15.5px);
   font-weight: 600;
@@ -218,7 +390,7 @@ body {
   text-shadow: 0 0 12px rgba(255, 46, 196, 0.5);
 }
 
-/* ── Particules ──────────────────────────────────────────────────────── */
+/* ── Particules ───────────────────────────────────────────────────────────── */
 .particles {
   position: absolute;
   top: 0; left: 0; right: 0; bottom: 0;
@@ -234,7 +406,7 @@ body {
   }
 }
 
-/* ── Fallback backdrop-filter ────────────────────────────────────────── */
+/* ── Fallback backdrop-filter ─────────────────────────────────────────────── */
 @supports not (backdrop-filter: blur(1px)) {
   .alert {
     background: rgba(10, 10, 20, 0.88);
