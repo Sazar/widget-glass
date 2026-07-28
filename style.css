@@ -35,14 +35,10 @@ body {
   border: 1px solid var(--primary-color, rgba(0, 245, 255, 0.35));
 }
 
-.alert[aria-live] {
-  speak: normal;
-}
+.alert[aria-live] { speak: normal; }
 
 [class*="anim-in-"],
-[class*="anim-out-"] {
-  display: block;
-}
+[class*="anim-out-"] { display: block; }
 
 /* ── Variables de durée ─────────────────────────────────────────────────── */
 :root {
@@ -268,9 +264,7 @@ body {
   to   { transform: scaleX(0); }
 }
 
-.progress-bar.active {
-  display: block;
-}
+.progress-bar.active { display: block; }
 
 /* ── Layout header : icône à gauche, textes centrés ──────────────────────────────────── */
 .alert-header {
@@ -287,9 +281,7 @@ body {
   flex-shrink: 0;
 }
 
-[class*="anim-in-"] .icon {
-  transform: scale(1.15);
-}
+[class*="anim-in-"] .icon { transform: scale(1.15); }
 
 .info {
   flex: 1;
@@ -314,9 +306,9 @@ body {
   font-family: 'Space Grotesk', 'Inter', sans-serif;
   font-size: var(--username-size, 49px);
   font-weight: 700;
-  line-height: 1.1;
+  line-height: 1;             /* réduit de 1.1 à 1 : supprime l'espace sous-gl. */
   margin-top: 14px;
-  margin-bottom: 0;           /* le message gère sa propre distance */
+  margin-bottom: 0;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -330,20 +322,22 @@ body {
 
 .message {
   font-size: var(--message-size, 23px);
-  margin-top: 2px;            /* ⬆ 14px → 2px : collé au pseudo */
+  margin-top: 0;              /* 0 : le line-height du pseudo suffit à l'espace */
   opacity: 0.92;
   font-weight: 500;
+  line-height: 1.2;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
   color: rgba(255,255,255,0.9);
-  transition: opacity 0.2s ease, max-height 0.2s ease;
+  transition: opacity 0.2s ease;
 }
 
 /* Masquage propre : pas de margin résiduel quand le message est caché */
 .message[style*="display: none"],
 .message[style*="display:none"] {
   margin-top: 0;
+  line-height: 0;
 }
 
 .amount {
@@ -372,7 +366,5 @@ body {
 
 /* ── Fallback backdrop-filter ────────────────────────────────────────────────────────────── */
 @supports not (backdrop-filter: blur(1px)) {
-  .alert {
-    background: rgba(10, 10, 20, 0.88);
-  }
+  .alert { background: rgba(10, 10, 20, 0.88); }
 }
