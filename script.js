@@ -1,30 +1,75 @@
-// ─── State ───────────────────────────────────────────────────────────────────
-let fieldData  = {};
-let alertQueue = [];
-let isPlaying  = false;
-let hideTimer  = null;
+// ─── Defaults ─────────────────────────────────────────────────────────────────
+var DEFAULTS = {
+  widgetWidth:    660,
+  borderRadius:   28,
+  blurIntensity:  28,
+  glassOpacity:   0.45,
+  primaryColor:   '#00f5ff',
+  accentColor:    '#ff2ec4',
+  iconSize:       56,
+  typeSize:       15.5,
+  usernameSize:   49,
+  messageSize:    23,
+  amountSize:     35,
+  glowIntensity:  20,
+  widgetPosition: 'center',
+  themePreset:    'custom',
+  duration:       7000,
+  showParticles:  true,
+  particleCount:  55,
+  showAvatar:     false,
+  showFollow:     true,
+  showSub:        true,
+  showResub:      true,
+  showDonation:   true,
+  showRaid:       true,
+  showCheer:      true,
+  iconFollow:     '❤️',
+  iconSub:        '⭐',
+  iconResub:      '🔥',
+  iconDonation:   '💎',
+  iconRaid:       '⚔️',
+  iconCheer:      '🎉',
+  textFollow:     'NOUVEAU FOLLOW',
+  textSub:        'NOUVELLE SUB',
+  textResub:      'RESUBSCRIPTION',
+  textDonation:   'DONATION',
+  textRaid:       'RAID INCOMING',
+  textCheer:      'BITS',
+  soundVolume:    0.7
+};
 
-// Déduplication via _id SE natif.
-// PAS de flag isLoading — il bloquerait tout si onWidgetLoad
-// ne se déclenche pas (mode éditeur / preview SE).
-const seenEventIds = new Set();
+// ─── State ───────────────────────────────────────────────────────────────────
+var fieldData  = {};
+var alertQueue = [];
+var isPlaying  = false;
+var hideTimer  = null;
+var seenEventIds = new Set();
 
 // ─── DOM refs ────────────────────────────────────────────────────────────────
-const alertEl    = document.getElementById('alert');
-const iconEl     = document.getElementById('icon');
-const typeEl     = document.getElementById('type');
-const usernameEl = document.getElementById('username');
-const messageEl  = document.getElementById('message');
-const amountEl   = document.getElementById('amount');
-const avatarEl   = document.getElementById('avatar');
+var alertEl    = document.getElementById('alert');
+var iconEl     = document.getElementById('icon');
+var typeEl     = document.getElementById('type');
+var usernameEl = document.getElementById('username');
+var messageEl  = document.getElementById('message');
+var amountEl   = document.getElementById('amount');
+var avatarEl   = document.getElementById('avatar');
+
+// ─── Init immédiat — applique les defaults dès le chargement du DOM ─────────────────
+// Garantit que les CSS variables sont initialisées même si onWidgetLoad
+// ne se déclenche pas (mode éditeur SE, preview, OBS sans internet).
+document.addEventListener('DOMContentLoaded', function() {
+  fieldData = Object.assign({}, DEFAULTS);
+  applySettings();
+});
 
 // ─── StreamElements load ─────────────────────────────────────────────────────
-window.addEventListener('onWidgetLoad', function (obj) {
-  fieldData = obj.detail.fieldData;
+window.addEventListener('onWidgetLoad', function(obj) {
+  // Fusionner les defaults avec les valeurs de l'utilisateur
+  fieldData = Object.assign({}, DEFAULTS, obj.detail.fieldData);
   applySettings();
 
-  // SE rejoue le dernier event quelques ms après onWidgetLoad.
-  // On pré-enregistre les _id des recentEvents pour les neutraliser.
+  // PRÉ-ENREGISTRER les recentEvents pour éviter le replay de SE au démarrage
   var recent = obj.detail && obj.detail.channel && obj.detail.channel.recentEvents;
   if (Array.isArray(recent)) {
     recent.forEach(function(ev) {
@@ -33,7 +78,7 @@ window.addEventListener('onWidgetLoad', function (obj) {
   }
 });
 
-// ─── Apply CSS variables from fields ─────────────────────────────────────────
+// ─── Apply CSS variables ────────────────────────────────────────────────────
 function applySettings() {
   var root = document.documentElement;
   root.style.setProperty('--widget-width',   fieldData.widgetWidth   + 'px');
@@ -47,13 +92,12 @@ function applySettings() {
   root.style.setProperty('--username-size',  fieldData.usernameSize  + 'px');
   root.style.setProperty('--message-size',   fieldData.messageSize   + 'px');
   root.style.setProperty('--amount-size',    fieldData.amountSize    + 'px');
-  root.style.setProperty('--glow-intensity', (fieldData.glowIntensity || 20) + 'px');
-
+  root.style.setProperty('--glow-intensity', fieldData.glowIntensity + 'px');
   root.style.setProperty('--primary-color-soft', hexToRgba(fieldData.primaryColor, 0.25));
   root.style.setProperty('--accent-color-soft',  hexToRgba(fieldData.accentColor,  0.18));
 
   applyPosition(fieldData.widgetPosition || 'center');
-  applyThemePreset(fieldData.themePreset || 'custom');
+  applyThemePreset(fieldData.themePreset  || 'custom');
 }
 
 // ─── hexToRgba robuste ────────────────────────────────────────────────────────
@@ -207,8 +251,7 @@ window.addEventListener('onEventReceived', function(obj) {
   var listener = obj.detail.listener;
   var data     = obj.detail.event;
 
-  // Déduplication par _id SE natif.
-  // Les events sans _id (tests console) passent toujours.
+  // Déduplication par _id SE natif
   var rawId = data._id || data.activityId;
   if (rawId) {
     if (seenEventIds.has(rawId)) return;
@@ -219,7 +262,6 @@ window.addEventListener('onEventReceived', function(obj) {
   if (listener === 'follower-latest' && fieldData.showFollow) {
     showAlert('follow', data.name, data.message || '');
   }
-
   if (listener === 'subscriber-latest') {
     if (data.amount > 1 && fieldData.showResub) {
       showAlert('resub', data.name, 'x' + data.amount + ' mois');
@@ -227,15 +269,12 @@ window.addEventListener('onEventReceived', function(obj) {
       showAlert('sub', data.name, data.message || '');
     }
   }
-
   if (listener === 'tip-latest' && fieldData.showDonation) {
     showAlert('donation', data.name, data.message || '', data.amount + ' €');
   }
-
   if (listener === 'raid-latest' && fieldData.showRaid) {
     showAlert('raid', data.name, 'avec ' + data.amount + ' viewers !');
   }
-
   if (listener === 'cheer-latest' && fieldData.showCheer) {
     showAlert('cheer', data.name, data.message || '', data.amount + ' bits');
   }
@@ -250,8 +289,7 @@ window.testAlert = function(type, name) {
 };
 
 window.testQueue = function() {
-  var types = ['follow', 'sub', 'donation', 'raid', 'cheer'];
-  types.forEach(function(t, i) {
+  ['follow', 'sub', 'donation', 'raid', 'cheer'].forEach(function(t, i) {
     setTimeout(function() {
       showAlert(t, 'User_' + t, 'Test queue', t === 'donation' ? '10 €' : '');
     }, i * 200);
