@@ -45,7 +45,7 @@ body {
   display: block;
 }
 
-/* ── Variables de durée ──────────────────────────────────────────────── */
+/* ── Variables de durée ─────────────────────────────────────────────────── */
 :root {
   --anim-duration-in:  600ms;
   --anim-duration-out: 500ms;
@@ -56,9 +56,9 @@ body {
   --progress-color-2: #ff2ec4;
 }
 
-/* ════════════════════════════════════════════════════════════════════════ */
+/* ════════════════════════════════════════════════════════════════════════════ */
 /* ANIMATIONS D'ENTRÉE                                                       */
-/* ════════════════════════════════════════════════════════════════════════ */
+/* ════════════════════════════════════════════════════════════════════════════ */
 
 .anim-in-popIn { animation: kf-popIn var(--anim-duration-in) var(--ease-out-expo) forwards; }
 @keyframes kf-popIn {
@@ -130,9 +130,9 @@ body {
   100% { transform: translate(0, 0)    skewX(0deg);   opacity: 1;   clip-path: inset(0%  0 0%  0); }
 }
 
-/* ════════════════════════════════════════════════════════════════════════ */
+/* ════════════════════════════════════════════════════════════════════════════ */
 /* ANIMATIONS DE SORTIE                                                      */
-/* ════════════════════════════════════════════════════════════════════════ */
+/* ════════════════════════════════════════════════════════════════════════════ */
 
 .anim-out-popOut { animation: kf-popOut var(--anim-duration-out) var(--ease-in-expo) forwards; }
 @keyframes kf-popOut {
@@ -203,7 +203,7 @@ body {
   100% { transform: translate(0, 0)    skewX(0deg);  opacity: 0;   clip-path: inset(50% 0 50% 0); }
 }
 
-/* ── Pseudo-éléments glass ────────────────────────────────────────────────────── */
+/* ── Pseudo-éléments glass ───────────────────────────────────────────────────────── */
 .alert::before,
 .alert::after {
   content: '';
@@ -239,7 +239,7 @@ body {
   50%       { opacity: 0.75; }
 }
 
-/* ── Barre de progression ────────────────────────────────────────────────────── */
+/* ── Barre de progression ──────────────────────────────────────────────────────── */
 .progress-bar {
   display: none;
   position: absolute;
@@ -273,7 +273,7 @@ body {
   display: block;
 }
 
-/* ── Layout header : icône à gauche, textes centrés ──────────────────────────── */
+/* ── Layout header : icône à gauche, textes centrés ──────────────────────────────────── */
 .alert-header {
   display: flex;
   align-items: center;
@@ -301,7 +301,7 @@ body {
   align-items: center;
 }
 
-/* ── Textes ────────────────────────────────────────────────────────────────────── */
+/* ── Textes ───────────────────────────────────────────────────────────────────────────── */
 .type {
   font-size: var(--type-size, 15.5px);
   font-weight: 600;
@@ -316,7 +316,7 @@ body {
   font-size: var(--username-size, 49px);
   font-weight: 700;
   line-height: 1.1;
-  margin-top: 4px;
+  margin-top: 14px;  /* ⬆ 4px → 14px : pseudo descendu */
   margin-bottom: 6px;
   white-space: nowrap;
   overflow: hidden;
@@ -356,7 +356,7 @@ body {
   text-shadow: 0 0 12px rgba(255, 46, 196, 0.5);
 }
 
-/* ── Particules ─────────────────────────────────────────────────────────────────── */
+/* ── Particules ───────────────────────────────────────────────────────────────────────────── */
 .particles {
   position: absolute;
   top: 0; left: 0; right: 0; bottom: 0;
@@ -372,7 +372,7 @@ body {
   }
 }
 
-/* ── Fallback backdrop-filter ──────────────────────────────────────────────────── */
+/* ── Fallback backdrop-filter ────────────────────────────────────────────────────────────── */
 @supports not (backdrop-filter: blur(1px)) {
   .alert {
     background: rgba(10, 10, 20, 0.88);
