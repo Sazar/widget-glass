@@ -264,7 +264,7 @@
   },
   "showDonation": {
     "type": "checkbox",
-    "label": "Donation",
+    "label": "Donation / Tips",
     "value": true,
     "group": "📡 Événements actifs"
   },
@@ -286,21 +286,9 @@
     "value": true,
     "group": "📡 Événements actifs"
   },
-  "showMessageSub": {
+  "showViewerMessage": {
     "type": "checkbox",
-    "label": "💬 Afficher le message des Subs",
-    "value": true,
-    "group": "📡 Événements actifs"
-  },
-  "showMessageDonation": {
-    "type": "checkbox",
-    "label": "💬 Afficher le message des Tips / Donations",
-    "value": true,
-    "group": "📡 Événements actifs"
-  },
-  "showMessageCheer": {
-    "type": "checkbox",
-    "label": "💬 Afficher le message des Cheers / Bits",
+    "label": "💬 Afficher les messages des viewers (Subs, Tips, Bits)",
     "value": true,
     "group": "📡 Événements actifs"
   },
