@@ -1,12 +1,13 @@
 // ─── State ───────────────────────────────────────────────────────────────────
-let fieldData = {};
+let fieldData  = {};
 let alertQueue = [];
-let isPlaying = false;
-let hideTimer = null;
+let isPlaying  = false;
+let hideTimer  = null;
 
-// FIX double-event — garde de déduplication
-let isLoading = true;           // true pendant le onWidgetLoad initial
-const seenEventIds = new Set(); // stocke les IDs déjà traités
+// Déduplication via _id SE natif.
+// PAS de flag isLoading — il bloquerait tout si onWidgetLoad
+// ne se déclenche pas (mode éditeur / preview SE).
+const seenEventIds = new Set();
 
 // ─── DOM refs ────────────────────────────────────────────────────────────────
 const alertEl    = document.getElementById('alert');
@@ -21,14 +22,20 @@ const avatarEl   = document.getElementById('avatar');
 window.addEventListener('onWidgetLoad', function (obj) {
   fieldData = obj.detail.fieldData;
   applySettings();
-  // SE rejoue le dernier event juste après onWidgetLoad — on ignore tout
-  // ce qui arrive dans les 500ms suivant le chargement
-  setTimeout(() => { isLoading = false; }, 500);
+
+  // SE rejoue le dernier event quelques ms après onWidgetLoad.
+  // On pré-enregistre les _id des recentEvents pour les neutraliser.
+  var recent = obj.detail && obj.detail.channel && obj.detail.channel.recentEvents;
+  if (Array.isArray(recent)) {
+    recent.forEach(function(ev) {
+      if (ev && ev._id) seenEventIds.add(ev._id);
+    });
+  }
 });
 
 // ─── Apply CSS variables from fields ─────────────────────────────────────────
 function applySettings() {
-  const root = document.documentElement;
+  var root = document.documentElement;
   root.style.setProperty('--widget-width',   fieldData.widgetWidth   + 'px');
   root.style.setProperty('--border-radius',  fieldData.borderRadius  + 'px');
   root.style.setProperty('--blur-intensity', fieldData.blurIntensity + 'px');
@@ -51,22 +58,17 @@ function applySettings() {
 
 // ─── hexToRgba robuste ────────────────────────────────────────────────────────
 function hexToRgba(hex, alpha) {
-  if (!hex || typeof hex !== 'string') return `rgba(0,245,255,${alpha})`;
+  if (!hex || typeof hex !== 'string') return 'rgba(0,245,255,' + alpha + ')';
   hex = hex.trim();
-  if (/^#[0-9a-fA-F]{3}$/.test(hex)) {
+  if (/^#[0-9a-fA-F]{3}$/.test(hex))
     hex = '#' + hex[1]+hex[1] + hex[2]+hex[2] + hex[3]+hex[3];
-  }
-  if (!/^#[0-9a-fA-F]{6}$/.test(hex)) return `rgba(0,245,255,${alpha})`;
-  const r = parseInt(hex.slice(1, 3), 16);
-  const g = parseInt(hex.slice(3, 5), 16);
-  const b = parseInt(hex.slice(5, 7), 16);
-  return `rgba(${r},${g},${b},${alpha})`;
+  if (!/^#[0-9a-fA-F]{6}$/.test(hex)) return 'rgba(0,245,255,' + alpha + ')';
+  return 'rgba(' + parseInt(hex.slice(1,3),16) + ',' + parseInt(hex.slice(3,5),16) + ',' + parseInt(hex.slice(5,7),16) + ',' + alpha + ')';
 }
 
 // ─── Position du widget ───────────────────────────────────────────────────────
 function applyPosition(pos) {
-  const body = document.body;
-  const map = {
+  var map = {
     'top-left':      ['flex-start', 'flex-start'],
     'top-center':    ['flex-start', 'center'],
     'top-right':     ['flex-start', 'flex-end'],
@@ -75,13 +77,13 @@ function applyPosition(pos) {
     'bottom-center': ['flex-end',   'center'],
     'bottom-right':  ['flex-end',   'flex-end']
   };
-  const [align, justify] = map[pos] || ['center', 'center'];
-  body.style.alignItems     = align;
-  body.style.justifyContent = justify;
+  var coords = map[pos] || ['center', 'center'];
+  document.body.style.alignItems     = coords[0];
+  document.body.style.justifyContent = coords[1];
 }
 
 // ─── Presets de thème ─────────────────────────────────────────────────────────
-const THEME_PRESETS = {
+var THEME_PRESETS = {
   'neon-cyan':     { primary: '#00f5ff', accent: '#ff2ec4' },
   'gold':          { primary: '#ffd700', accent: '#ff8c00' },
   'purple-storm':  { primary: '#b44fff', accent: '#ff4fa3' },
@@ -91,9 +93,9 @@ const THEME_PRESETS = {
 };
 
 function applyThemePreset(preset) {
-  const theme = THEME_PRESETS[preset];
+  var theme = THEME_PRESETS[preset];
   if (!theme) return;
-  const root = document.documentElement;
+  var root = document.documentElement;
   root.style.setProperty('--primary-color',      theme.primary);
   root.style.setProperty('--accent-color',       theme.accent);
   root.style.setProperty('--primary-color-soft', hexToRgba(theme.primary, 0.25));
@@ -102,24 +104,23 @@ function applyThemePreset(preset) {
 
 // ─── Particules ───────────────────────────────────────────────────────────────
 function createParticles() {
-  const container = document.getElementById('particles');
+  var container = document.getElementById('particles');
   container.innerHTML = '';
   if (!fieldData.showParticles) return;
-
-  const count = parseInt(fieldData.particleCount, 10) || 55;
-  for (let i = 0; i < count; i++) {
-    const p    = document.createElement('div');
-    const size = Math.random() * 5 + 3 + 'px';
+  var count = parseInt(fieldData.particleCount, 10) || 55;
+  for (var i = 0; i < count; i++) {
+    var p    = document.createElement('div');
+    var size = (Math.random() * 5 + 3) + 'px';
     p.style.cssText = [
       'position:absolute',
-      `width:${size}`,
-      `height:${size}`,
-      `background:${i % 3 === 0 ? fieldData.accentColor : fieldData.primaryColor}`,
+      'width:'  + size,
+      'height:' + size,
+      'background:' + (i % 3 === 0 ? fieldData.accentColor : fieldData.primaryColor),
       'border-radius:50%',
-      `left:${Math.random() * 100}%`,
-      `bottom:${Math.random() * 80}%`,
-      `opacity:${Math.random() * 0.65 + 0.35}`,
-      `animation:floatParticle ${2.5 + Math.random() * 4}s linear forwards`
+      'left:'   + (Math.random() * 100) + '%',
+      'bottom:' + (Math.random() * 80)  + '%',
+      'opacity:'+ (Math.random() * 0.65 + 0.35),
+      'animation:floatParticle ' + (2.5 + Math.random() * 4) + 's linear forwards'
     ].join(';');
     container.appendChild(p);
   }
@@ -127,12 +128,11 @@ function createParticles() {
 
 // ─── Sons ─────────────────────────────────────────────────────────────────────
 function playSound(type) {
-  const key = 'sound' + type.charAt(0).toUpperCase() + type.slice(1);
-  const url = fieldData[key];
-  if (!url || url.trim() === '') return;
-  const audio = new Audio(url);
-  audio.volume = Math.min(1, Math.max(0, parseFloat(fieldData.soundVolume) || 0.7));
-  audio.play().catch(() => {});
+  var url = fieldData['sound' + type.charAt(0).toUpperCase() + type.slice(1)];
+  if (!url || !url.trim()) return;
+  var a = new Audio(url);
+  a.volume = Math.min(1, Math.max(0, parseFloat(fieldData.soundVolume) || 0.7));
+  a.play().catch(function() {});
 }
 
 // ─── Avatar Twitch ────────────────────────────────────────────────────────────
@@ -140,35 +140,35 @@ function loadAvatar(username) {
   if (!avatarEl) return;
   if (!fieldData.showAvatar) { avatarEl.style.display = 'none'; return; }
   avatarEl.style.display = 'block';
-  avatarEl.src = `https://decapi.me/twitch/avatar/${encodeURIComponent(username)}`;
-  avatarEl.onerror = () => { avatarEl.style.display = 'none'; };
+  avatarEl.src     = 'https://decapi.me/twitch/avatar/' + encodeURIComponent(username);
+  avatarEl.onerror = function() { avatarEl.style.display = 'none'; };
 }
 
 // ─── File d'attente ───────────────────────────────────────────────────────────
 function enqueueAlert(type, username, message, amount) {
-  alertQueue.push({ type, username, message, amount });
+  alertQueue.push({ type: type, username: username, message: message, amount: amount });
   if (!isPlaying) processQueue();
 }
 
 function processQueue() {
   if (alertQueue.length === 0) { isPlaying = false; return; }
   isPlaying = true;
-  const item = alertQueue.shift();
+  var item = alertQueue.shift();
   _playAlert(item.type, item.username, item.message, item.amount);
 }
 
 // ─── Lecture d'une alerte ─────────────────────────────────────────────────────
 function _playAlert(type, username, message, amount) {
-  const types = {
-    follow:   { icon: fieldData.iconFollow   || '❤️',  text: fieldData.textFollow   || 'NOUVEAU FOLLOW' },
-    sub:      { icon: fieldData.iconSub      || '⭐',  text: fieldData.textSub      || 'NOUVELLE SUB'   },
-    resub:    { icon: fieldData.iconResub    || '🔥',  text: fieldData.textResub    || 'RESUBSCRIPTION' },
-    donation: { icon: fieldData.iconDonation || '💎',  text: fieldData.textDonation || 'DONATION'       },
-    raid:     { icon: fieldData.iconRaid     || '⚔️',  text: fieldData.textRaid     || 'RAID INCOMING'  },
-    cheer:    { icon: fieldData.iconCheer    || '🎉',  text: fieldData.textCheer    || 'BITS'           }
+  var types = {
+    follow:   { icon: fieldData.iconFollow   || '❤️', text: fieldData.textFollow   || 'NOUVEAU FOLLOW' },
+    sub:      { icon: fieldData.iconSub      || '⭐', text: fieldData.textSub      || 'NOUVELLE SUB'   },
+    resub:    { icon: fieldData.iconResub    || '🔥', text: fieldData.textResub    || 'RESUBSCRIPTION' },
+    donation: { icon: fieldData.iconDonation || '💎', text: fieldData.textDonation || 'DONATION'       },
+    raid:     { icon: fieldData.iconRaid     || '⚔️', text: fieldData.textRaid     || 'RAID INCOMING'  },
+    cheer:    { icon: fieldData.iconCheer    || '🎉', text: fieldData.textCheer    || 'BITS'           }
   };
+  var t = types[type] || types.follow;
 
-  const t = types[type] || types.follow;
   iconEl.textContent     = t.icon;
   typeEl.textContent     = t.text;
   usernameEl.textContent = username;
@@ -183,12 +183,12 @@ function _playAlert(type, username, message, amount) {
   createParticles();
   playSound(type);
 
-  const duration = parseInt(fieldData.duration, 10) || 7000;
+  var duration = parseInt(fieldData.duration, 10) || 7000;
   if (hideTimer) clearTimeout(hideTimer);
-  hideTimer = setTimeout(() => {
+  hideTimer = setTimeout(function() {
     alertEl.classList.remove('show');
     alertEl.classList.add('hide');
-    setTimeout(() => {
+    setTimeout(function() {
       alertEl.classList.remove('hide');
       processQueue();
     }, 500);
@@ -196,27 +196,25 @@ function _playAlert(type, username, message, amount) {
 }
 
 // ─── API publique ─────────────────────────────────────────────────────────────
-function showAlert(type, username, message = '', amount = '') {
-  enqueueAlert(type, username, message, amount);
+function showAlert(type, username, message, amount) {
+  enqueueAlert(type, username, message || '', amount || '');
 }
 
 // ─── StreamElements Events ────────────────────────────────────────────────────
-window.addEventListener('onEventReceived', function (obj) {
+window.addEventListener('onEventReceived', function(obj) {
   if (!obj.detail || !obj.detail.event) return;
 
-  // FIX double-event — bloquer le replay initial de SE au chargement
-  if (isLoading) return;
+  var listener = obj.detail.listener;
+  var data     = obj.detail.event;
 
-  const listener = obj.detail.listener;
-  const data     = obj.detail.event;
-
-  // FIX double-event — déduplication par identifiant unique
-  // SE peut émettre le même event deux fois (bulk update + individual)
-  const eventId = `${listener}_${data.name}_${data._id || data.createdAt || Date.now()}`;
-  if (seenEventIds.has(eventId)) return;
-  seenEventIds.add(eventId);
-  // Nettoyer le Set après 10s pour ne pas grossir indéfiniment
-  setTimeout(() => seenEventIds.delete(eventId), 10000);
+  // Déduplication par _id SE natif.
+  // Les events sans _id (tests console) passent toujours.
+  var rawId = data._id || data.activityId;
+  if (rawId) {
+    if (seenEventIds.has(rawId)) return;
+    seenEventIds.add(rawId);
+    setTimeout(function() { seenEventIds.delete(rawId); }, 30000);
+  }
 
   if (listener === 'follower-latest' && fieldData.showFollow) {
     showAlert('follow', data.name, data.message || '');
@@ -224,7 +222,7 @@ window.addEventListener('onEventReceived', function (obj) {
 
   if (listener === 'subscriber-latest') {
     if (data.amount > 1 && fieldData.showResub) {
-      showAlert('resub', data.name, `x${data.amount} mois`);
+      showAlert('resub', data.name, 'x' + data.amount + ' mois');
     } else if (fieldData.showSub) {
       showAlert('sub', data.name, data.message || '');
     }
@@ -235,7 +233,7 @@ window.addEventListener('onEventReceived', function (obj) {
   }
 
   if (listener === 'raid-latest' && fieldData.showRaid) {
-    showAlert('raid', data.name, `avec ${data.amount} viewers !`);
+    showAlert('raid', data.name, 'avec ' + data.amount + ' viewers !');
   }
 
   if (listener === 'cheer-latest' && fieldData.showCheer) {
@@ -244,12 +242,18 @@ window.addEventListener('onEventReceived', function (obj) {
 });
 
 // ─── Fonctions de test ────────────────────────────────────────────────────────
-window.testAlert = function(type = 'follow', name = 'TestUser') {
-  showAlert(type, name, 'Message de test', type === 'donation' ? '25 €' : type === 'cheer' ? '500 bits' : '');
+window.testAlert = function(type, name) {
+  type = type || 'follow';
+  name = name || 'TestUser';
+  var amount = type === 'donation' ? '25 €' : type === 'cheer' ? '500 bits' : '';
+  showAlert(type, name, 'Message de test', amount);
 };
 
 window.testQueue = function() {
-  ['follow', 'sub', 'donation', 'raid', 'cheer'].forEach((t, i) => {
-    setTimeout(() => showAlert(t, 'User_' + t, 'Test queue', t === 'donation' ? '10 €' : ''), i * 200);
+  var types = ['follow', 'sub', 'donation', 'raid', 'cheer'];
+  types.forEach(function(t, i) {
+    setTimeout(function() {
+      showAlert(t, 'User_' + t, 'Test queue', t === 'donation' ? '10 €' : '');
+    }, i * 200);
   });
 };
