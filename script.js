@@ -206,6 +206,16 @@ function resolveTemplate(template, vars) {
     .replace(/\{recipient\}/gi, vars.recipient || '');
 }
 
+// ─── Masquage conditionnel du message selon le type ───────────────────────────
+// Retourne true si le message doit être affiché pour ce type d'alerte.
+function shouldShowMessage(type) {
+  if (type === 'sub'      || type === 'resub')   return fieldData.showMessageSub      !== false;
+  if (type === 'donation')                       return fieldData.showMessageDonation !== false;
+  if (type === 'cheer')                          return fieldData.showMessageCheer    !== false;
+  // follow, giftsub, raid, hypetrain → toujours affichés (pas d'option dédiée)
+  return true;
+}
+
 // ─── File d'attente ───────────────────────────────────────────────────────────
 function enqueueAlert(type, username, message, amount, emotes) {
   alertQueue.push({ type, username, message, amount, emotes: emotes || [] });
@@ -259,13 +269,28 @@ function _playAlert(type, username, message, amount, emotes) {
     vars.months = amount;
   }
 
-  if (template && template.trim() !== '') {
-    messageEl.textContent = resolveTemplate(template, vars);
+  // ── Affichage conditionnel du message ──────────────────────────────────────
+  if (shouldShowMessage(type)) {
+    if (template && template.trim() !== '') {
+      messageEl.textContent = resolveTemplate(template, vars);
+    } else {
+      const emoteHtml = renderEmotes(message, emotes);
+      if (emoteHtml !== null) messageEl.innerHTML  = emoteHtml;
+      else                    messageEl.textContent = message || '';
+    }
   } else {
-    const emoteHtml = renderEmotes(message, emotes);
-    if (emoteHtml !== null) messageEl.innerHTML  = emoteHtml;
-    else                    messageEl.textContent = message || '';
+    // Message masqué : on affiche quand même le template sans la partie {message}
+    // pour garder le texte de résumé (ex: "{username} vient de s'abonner !")
+    if (template && template.trim() !== '') {
+      messageEl.textContent = resolveTemplate(template, { ...vars, message: '' });
+    }
+    // Sinon : messageEl reste vide (reset fait en début de fonction)
   }
+
+  // Masquer visuellement le bloc .message si vide
+  messageEl.style.display = messageEl.textContent.trim() === '' && !messageEl.innerHTML.trim()
+    ? 'none'
+    : '';
 
   // Nettoyer les classes d'animation précédentes
   alertEl.className = alertEl.className
@@ -401,8 +426,8 @@ window.addEventListener('onEventReceived', function (obj) {
 window.testAlert = function(type = 'follow', name = 'TestUser') {
   const testData = {
     follow:    { msg: '',          amount: '' },
-    sub:       { msg: '',          amount: '' },
-    resub:     { msg: '',          amount: '3' },
+    sub:       { msg: 'Super stream !', amount: '' },
+    resub:     { msg: 'Fidèle depuis le début !', amount: '3' },
     giftsub:   { msg: 'DestUser',  amount: '5' },
     donation:  { msg: 'Merci !',   amount: '10 €' },
     raid:      { msg: '',          amount: '42' },

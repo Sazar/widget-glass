@@ -286,6 +286,24 @@
     "value": true,
     "group": "📡 Événements actifs"
   },
+  "showMessageSub": {
+    "type": "checkbox",
+    "label": "💬 Afficher le message des Subs",
+    "value": true,
+    "group": "📡 Événements actifs"
+  },
+  "showMessageDonation": {
+    "type": "checkbox",
+    "label": "💬 Afficher le message des Tips / Donations",
+    "value": true,
+    "group": "📡 Événements actifs"
+  },
+  "showMessageCheer": {
+    "type": "checkbox",
+    "label": "💬 Afficher le message des Cheers / Bits",
+    "value": true,
+    "group": "📡 Événements actifs"
+  },
   "iconFollow": {
     "type": "text",
     "label": "Icône Follow",

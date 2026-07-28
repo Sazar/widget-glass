@@ -338,6 +338,14 @@ body {
   overflow: hidden;
   text-overflow: ellipsis;
   color: rgba(255,255,255,0.9);
+  /* Transition douce pour le show/hide conditionnel */
+  transition: opacity 0.2s ease, max-height 0.2s ease;
+}
+
+/* Masquage propre : pas de margin résiduel quand le message est caché */
+.message[style*="display: none"],
+.message[style*="display:none"] {
+  margin-top: 0;
 }
 
 .amount {
