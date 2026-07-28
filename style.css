@@ -21,7 +21,8 @@ body {
 .alert {
   display: none;
   width: var(--widget-width, 660px);
-  background: rgba(20, 20, 35, var(--glass-opacity, 0.45));
+  /* FIX #1: --glass-bg est calculé entièrement en JS (rgba() n'accepte pas var() comme alpha) */
+  background: var(--glass-bg, rgba(20, 20, 35, 0.45));
   backdrop-filter: blur(var(--blur-intensity, 28px));
   -webkit-backdrop-filter: blur(var(--blur-intensity, 28px));
   border-radius: var(--border-radius, 28px);
@@ -35,7 +36,6 @@ body {
   border: 1px solid var(--primary-color, rgba(0, 245, 255, 0.35));
 }
 
-/* AMÉLIORATION: aria-live pour accessibilité lecteurs d'écran */
 .alert[aria-live] {
   speak: normal;
 }
@@ -292,7 +292,6 @@ body {
   transform: scale(1.15);
 }
 
-/* FIX: flexbox colonne sur .info pour que margin-top/bottom sur les enfants soit effectif */
 .info {
   flex: 1;
   min-width: 0;
@@ -312,13 +311,12 @@ body {
   text-shadow: 0 0 10px rgba(0, 245, 255, 0.6);
 }
 
-/* Couleur pleine — aucun dégradé, uniquement --username-color */
 .username {
   font-family: 'Space Grotesk', 'Inter', sans-serif;
   font-size: var(--username-size, 49px);
   font-weight: 700;
   line-height: 1.1;
-  margin-top: 4px;   /* ← ajuste cette valeur pour monter/descendre le pseudo */
+  margin-top: 4px;
   margin-bottom: 6px;
   white-space: nowrap;
   overflow: hidden;
@@ -359,7 +357,6 @@ body {
   border-radius: var(--border-radius, 28px);
 }
 
-/* AMÉLIORATION: translateY variable via custom property --travel-y injectée par JS */
 @keyframes floatParticle {
   to {
     transform: translateY(var(--travel-y, -280px));

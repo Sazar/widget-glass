@@ -3,8 +3,9 @@ let fieldData = {};
 let alertQueue = [];
 let isPlaying = false;
 let hideTimer = null;
+let _fallbackTimer = null; // FIX #2: timer secours si animationend ne se déclenche pas
 let isLoading = true;
-let _hideEndListener = null; // FIX: référence au listener pour cleanup
+let _hideEndListener = null;
 
 // FIX: Set borné (max 200 entrées) pour éviter la fuite mémoire sur stream long
 const seenEventIds = new Set();
@@ -32,7 +33,9 @@ function applySettings() {
   root.style.setProperty('--widget-width',      (fieldData.widgetWidth   || 660)  + 'px');
   root.style.setProperty('--border-radius',     (fieldData.borderRadius  || 28)   + 'px');
   root.style.setProperty('--blur-intensity',    (fieldData.blurIntensity || 28)   + 'px');
-  root.style.setProperty('--glass-opacity',      fieldData.glassOpacity  || 0.45);
+  // FIX #1: rgba() n'accepte pas une CSS custom property comme alpha → calculer en JS
+  const opacity = parseFloat(fieldData.glassOpacity) || 0.45;
+  root.style.setProperty('--glass-bg', `rgba(20,20,35,${opacity})`);
   root.style.setProperty('--primary-color',      fieldData.primaryColor  || '#00f5ff');
   root.style.setProperty('--accent-color',       fieldData.accentColor   || '#ff2ec4');
   root.style.setProperty('--icon-size',         (fieldData.iconSize      || 56)   + 'px');
@@ -43,7 +46,6 @@ function applySettings() {
   root.style.setProperty('--message-size',      (fieldData.messageSize   || 23)   + 'px');
   root.style.setProperty('--amount-size',       (fieldData.amountSize    || 35)   + 'px');
   root.style.setProperty('--glow-intensity',    (fieldData.glowIntensity || 20)   + 'px');
-  // FIX: valider duration côté JS (min 1000ms, max 60000ms)
   const dur = Math.min(60000, Math.max(1000, parseInt(fieldData.duration, 10) || 7000));
   root.style.setProperty('--duration', dur + 'ms');
   root.style.setProperty('--anim-duration-in',  (parseInt(fieldData.animDurationIn,  10) || 600)  + 'ms');
@@ -58,19 +60,13 @@ function applySettings() {
 }
 
 // ─── hexToRgba robuste ─────────────────────────────────────────────────────────
-// FIX: gère aussi les formats rgb() et rgba() renvoyés par certains navigateurs
 function hexToRgba(hex, alpha) {
   if (!hex || typeof hex !== 'string') return `rgba(0,245,255,${alpha})`;
   hex = hex.trim();
-
-  // Cas rgb(r, g, b) ou rgba(r, g, b, a)
   const rgbMatch = hex.match(/^rgba?\((\d+),\s*(\d+),\s*(\d+)/);
   if (rgbMatch) return `rgba(${rgbMatch[1]},${rgbMatch[2]},${rgbMatch[3]},${alpha})`;
-
-  // Expand shorthand #abc → #aabbcc
   if (/^#[0-9a-fA-F]{3}$/.test(hex))
     hex = '#' + hex[1]+hex[1] + hex[2]+hex[2] + hex[3]+hex[3];
-
   if (!/^#[0-9a-fA-F]{6}$/.test(hex)) return `rgba(0,245,255,${alpha})`;
   const r = parseInt(hex.slice(1, 3), 16);
   const g = parseInt(hex.slice(3, 5), 16);
@@ -95,9 +91,6 @@ function applyPosition(pos) {
 }
 
 // ─── Presets de thème ──────────────────────────────────────────────────────────
-// Chaque preset définit primary, accent, typeColor ET usernameColor.
-// Quand un preset est actif, ces 4 valeurs écrasent les colorpickers manuels.
-// En mode 'custom', rien n'est écrasé : les colorpickers s'appliquent librement.
 const THEME_PRESETS = {
   'neon-cyan':     { primary: '#00f5ff', accent: '#ff2ec4', typeColor: '#00f5ff', usernameColor: '#ffffff' },
   'gold':          { primary: '#ffd700', accent: '#ff8c00', typeColor: '#ffd700', usernameColor: '#fff8dc' },
@@ -109,14 +102,12 @@ const THEME_PRESETS = {
 
 function applyThemePreset(preset) {
   const theme = THEME_PRESETS[preset];
-  // 'custom' ou preset inconnu → on ne touche à rien, les colorpickers restent actifs
   if (!theme) return;
   const root = document.documentElement;
   root.style.setProperty('--primary-color',      theme.primary);
   root.style.setProperty('--accent-color',       theme.accent);
   root.style.setProperty('--primary-color-soft', hexToRgba(theme.primary, 0.25));
   root.style.setProperty('--accent-color-soft',  hexToRgba(theme.accent,  0.18));
-  // Écrase typeColor et usernameColor des colorpickers manuels
   root.style.setProperty('--type-color',     theme.typeColor);
   root.style.setProperty('--username-color', theme.usernameColor);
 }
@@ -126,7 +117,6 @@ function getAnimInClass()  { return 'anim-in-'  + (fieldData.animIn  || 'popIn')
 function getAnimOutClass() { return 'anim-out-' + (fieldData.animOut || 'popOut'); }
 
 // ─── Couleur de particule selon le type d'alerte ──────────────────────────────
-// AMÉLIORATION: chaque type a une couleur de particule thématique
 const PARTICLE_COLORS = {
   follow:    ['#ff6b8a', '#ff2ec4'],
   sub:       ['#ffd700', '#ffaa00'],
@@ -148,7 +138,6 @@ function createParticles(alertType) {
   for (let i = 0; i < count; i++) {
     const p    = document.createElement('div');
     const size = (Math.random() * 5 + 3) + 'px';
-    // AMÉLIORATION: translateY variable par particule via custom property inline
     const travelY = 200 + Math.floor(Math.random() * 160);
     p.style.cssText = [
       'position:absolute',
@@ -173,7 +162,6 @@ function playSound(type) {
   if (!url || url.trim() === '') return;
   const audio = new Audio(url);
   audio.volume = Math.min(1, Math.max(0, parseFloat(fieldData.soundVolume) || 0.7));
-  // AMÉLIORATION: log debug en cas d'erreur de chargement du son
   audio.play().catch(err => {
     console.warn(`[widget-glass] Son "${type}" inaccessible (${url}):`, err.message);
   });
@@ -183,10 +171,9 @@ function playSound(type) {
 function startProgressBar(duration) {
   if (!progressEl) return;
   if (!fieldData.showProgressBar) { progressEl.classList.remove('active'); return; }
-  // FIX: forcer display:block avant le reflow trick pour garantir le reset de l'animation
   progressEl.style.display = 'block';
   progressEl.classList.remove('active');
-  void progressEl.offsetWidth; // force reflow
+  void progressEl.offsetWidth;
   document.documentElement.style.setProperty('--duration', duration + 'ms');
   progressEl.classList.add('active');
 }
@@ -234,6 +221,10 @@ function processQueue() {
 
 // ─── Lecture d'une alerte ─────────────────────────────────────────────────────
 function _playAlert(type, username, message, amount, emotes) {
+  // FIX #3: reset explicite pour éviter l'affichage résiduel entre alertes
+  messageEl.textContent = '';
+  amountEl.textContent  = '';
+
   const types = {
     follow:    { icon: fieldData.iconFollow    || '❤️',  text: fieldData.textFollow    || 'NOUVEAU FOLLOW'  },
     sub:       { icon: fieldData.iconSub       || '⭐',  text: fieldData.textSub       || 'NOUVELLE SUB'    },
@@ -249,15 +240,12 @@ function _playAlert(type, username, message, amount, emotes) {
   iconEl.textContent     = t.icon;
   typeEl.textContent     = t.text;
   usernameEl.textContent = username;
-  // AMÉLIORATION: title attribute pour afficher le nom complet si tronqué (ellipsis)
   usernameEl.title       = username || '';
   amountEl.textContent   = amount || '';
 
   const templateKey = 'msg' + type.charAt(0).toUpperCase() + type.slice(1);
   const template    = fieldData[templateKey];
 
-  // FIX giftsub: recipient est passé directement via le paramètre message (3e arg),
-  // pas besoin de regex sur une chaîne déjà construite
   const vars = {
     username:  username || '',
     amount:    amount   || '',
@@ -287,18 +275,18 @@ function _playAlert(type, username, message, amount, emotes) {
   void alertEl.offsetWidth;
 
   alertEl.classList.add(getAnimInClass());
-  createParticles(type); // AMÉLIORATION: passe le type pour la couleur des particules
+  createParticles(type);
   playSound(type);
 
   const duration = Math.min(60000, Math.max(1000, parseInt(fieldData.duration, 10) || 7000));
   startProgressBar(duration);
 
-  // FIX: retirer l'ancien listener animationend avant d'en créer un nouveau
   if (_hideEndListener) {
     alertEl.removeEventListener('animationend', _hideEndListener);
     _hideEndListener = null;
   }
-  if (hideTimer) clearTimeout(hideTimer);
+  if (hideTimer)    clearTimeout(hideTimer);
+  if (_fallbackTimer) clearTimeout(_fallbackTimer);
 
   hideTimer = setTimeout(() => {
     if (progressEl) progressEl.classList.remove('active');
@@ -306,8 +294,21 @@ function _playAlert(type, username, message, amount, emotes) {
     void alertEl.offsetWidth;
     alertEl.classList.add(getAnimOutClass());
 
-    // FIX: { once: true } + référence stockée pour cleanup propre
+    const animOutDur = parseInt(fieldData.animDurationOut, 10) || 500;
+
+    // FIX #2: secours si animationend ne se déclenche pas (ex: glitchOut steps() dans OBS Browser)
+    _fallbackTimer = setTimeout(() => {
+      if (_hideEndListener) {
+        alertEl.removeEventListener('animationend', _hideEndListener);
+        _hideEndListener = null;
+      }
+      alertEl.classList.remove(getAnimOutClass());
+      processQueue();
+    }, animOutDur + 200);
+
     _hideEndListener = function onHideEnd() {
+      clearTimeout(_fallbackTimer);
+      _fallbackTimer = null;
       _hideEndListener = null;
       alertEl.classList.remove(getAnimOutClass());
       processQueue();
@@ -346,7 +347,6 @@ window.addEventListener('onEventReceived', function (obj) {
   const eventId = `${listener}_${data.name}_${data._id || data.createdAt || Date.now()}`;
   if (seenEventIds.has(eventId)) return;
 
-  // FIX: Set borné — supprimer la plus vieille entrée si on dépasse SEEN_MAX
   if (seenEventIds.size >= SEEN_MAX) {
     const oldest = seenEventIds.values().next().value;
     seenEventIds.delete(oldest);
@@ -373,7 +373,6 @@ window.addEventListener('onEventReceived', function (obj) {
     && fieldData.showGiftSub
   ) {
     const qty       = data.amount || data.quantity || data.count || 1;
-    // FIX: recipient passé directement comme 3e arg (message), pas besoin de regex
     const recipient = data.recipientDisplayName || data.recipient || data.gifted || '';
     const gifter    = data.name || data.sender   || data.gifter  || 'Anonyme';
     showAlert('giftsub', gifter, recipient, String(qty), []);

@@ -409,7 +409,7 @@
   "msgGiftSub": {
     "type": "text",
     "label": "Message Gift Sub",
-    "value": "{username} offre {count} sub(s) ! 🎁",
+    "value": "{username} offre {count} sub(s) à {recipient} ! 🎁",
     "group": "💬 Messages personnalisés"
   },
   "msgDonation": {
