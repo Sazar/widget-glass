@@ -1,4 +1,4 @@
-/* ─── Variables CSS ──────────────────────────────────────────────────────────── */
+/* ─── Variables CSS ────────────────────────────────────────────────────── */
 :root {
   --widget-width:       660px;
   --border-radius:      28px;
@@ -24,12 +24,14 @@
   /* Sous-message */
   --submsg-color:       #ffffff;
   --submsg-size:        22px;
+  /* Couleur glass calculée via JS pour éviter le bug rgba+var() */
+  --glass-bg:           rgba(255, 255, 255, 0.45);
 }
 
-/* ─── Reset ──────────────────────────────────────────────────────────────────── */
+/* ─── Reset ──────────────────────────────────────────────────────────────── */
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
-/* ─── Body ───────────────────────────────────────────────────────────────────── */
+/* ─── Body ───────────────────────────────────────────────────────────────── */
 body {
   display: flex;
   flex-direction: column;
@@ -41,37 +43,44 @@ body {
   gap: 14px;
 }
 
-/* ─── Widget principal ────────────────────────────────────────────────────────── */
+/* ─── Widget principal (.alert) ───────────────────────────────────────────── */
 .alert {
   position: relative;
-  display: none;
-  flex-direction: row;
-  align-items: center;
-  gap: 18px;
+  display: none;          /* visible via .anim-in-* uniquement */
+  flex-direction: column;
   width: var(--widget-width);
-  padding: 18px 28px;
+  padding: 18px 28px 22px;
   border-radius: var(--border-radius);
   backdrop-filter: blur(var(--blur-intensity)) saturate(1.6);
   -webkit-backdrop-filter: blur(var(--blur-intensity)) saturate(1.6);
-  background: rgba(255, 255, 255, var(--glass-opacity));
+  /* --glass-bg est injecté en JS pour contourner rgba+var() */
+  background: var(--glass-bg, rgba(255, 255, 255, 0.45));
   border: 1px solid rgba(255, 255, 255, 0.38);
   box-shadow:
     0 8px 32px rgba(0, 0, 0, 0.22),
     0 0 var(--glow-intensity) var(--primary-color-soft),
     inset 0 1px 0 rgba(255, 255, 255, 0.55);
-  z-index: 10;
+  overflow: hidden;       /* garde #progressBar/particles dans les arrondis */
 }
 
-/* ─── Icône ──────────────────────────────────────────────────────────────────── */
-.alert-icon {
+/* ─── En-tête de l'alerte (icône + textes) ──────────────────────────────── */
+.alert-header {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 18px;
+}
+
+/* ─── Icône emoji ───────────────────────────────────────────────────────────── */
+.icon {
   font-size: var(--icon-size);
   line-height: 1;
   flex-shrink: 0;
   filter: drop-shadow(0 0 8px var(--primary-color-soft));
 }
 
-/* ─── Bloc texte principal ───────────────────────────────────────────────────── */
-.alert-content {
+/* ─── Bloc texte (type + username + amount) ──────────────────────────────── */
+.info {
   display: flex;
   flex-direction: column;
   align-items: flex-start;
@@ -80,7 +89,7 @@ body {
   min-width: 0;
 }
 
-.alert-type {
+.type {
   font-family: 'Space Grotesk', sans-serif;
   font-size: var(--type-size);
   font-weight: 700;
@@ -90,7 +99,7 @@ body {
   text-shadow: 0 0 10px var(--primary-color-soft);
 }
 
-.alert-username {
+.username {
   font-family: 'Space Grotesk', sans-serif;
   font-size: var(--username-size);
   font-weight: 800;
@@ -102,11 +111,10 @@ body {
   line-height: 1.1;
   text-shadow:
     0 0 18px var(--primary-color-soft),
-    0 2px 8px rgba(0,0,0,0.3);
+    0 2px 8px rgba(0, 0, 0, 0.3);
 }
 
-/* ─── Montant ────────────────────────────────────────────────────────────────── */
-.alert-amount {
+.amount {
   font-family: 'Space Grotesk', sans-serif;
   font-size: var(--amount-size);
   font-weight: 800;
@@ -116,36 +124,14 @@ body {
   text-shadow: 0 0 14px var(--primary-color-soft);
 }
 
-/* ─── Sous-message (sous le widget) ──────────────────────────────────────────── */
-.alert-submessage {
-  display: none;                        /* masqué par défaut                   */
-  width: var(--widget-width);
-  max-width: var(--widget-width);
-  text-align: center;
-  font-family: 'Space Grotesk', sans-serif;
-  font-size: var(--submsg-size);
-  font-weight: 500;
-  color: var(--submsg-color);
-  line-height: 1.4;
-  opacity: 0;
-  transition: opacity 0.3s ease;
-  text-shadow: 0 1px 8px rgba(0,0,0,0.55);
-  word-break: break-word;
-  padding: 0 8px;
-}
-
-.alert-submessage.visible {
-  display: block;
-  opacity: 1;
-}
-
-/* ─── Particules ─────────────────────────────────────────────────────────────── */
-#particles {
+/* ─── Particules ────────────────────────────────────────────────────────── */
+.particles {
   position: absolute;
   inset: 0;
   pointer-events: none;
   overflow: hidden;
   border-radius: var(--border-radius);
+  z-index: 0;
 }
 
 @keyframes floatParticle {
@@ -153,8 +139,8 @@ body {
   100% { transform: var(--travel-y, translateY(-250px)) scale(0.3); opacity: 0; }
 }
 
-/* ─── Barre de progression ───────────────────────────────────────────────────── */
-#progressBar {
+/* ─── Barre de progression ─────────────────────────────────────────────── */
+.progress-bar {
   position: absolute;
   bottom: 0;
   left: 0;
@@ -165,9 +151,10 @@ body {
   transform-origin: left center;
   transform: scaleX(0);
   display: none;
+  z-index: 2;
 }
 
-#progressBar.active {
+.progress-bar.active {
   display: block;
   animation: progressShrink var(--duration) linear forwards;
 }
@@ -177,50 +164,42 @@ body {
   to   { transform: scaleX(0); }
 }
 
-/* ─── Animations ENTRÉE ──────────────────────────────────────────────────────── */
-.anim-in-popIn {
-  display: flex !important;
-  animation: popIn var(--anim-duration-in) cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
-}
-.anim-in-fadeIn {
-  display: flex !important;
-  animation: fadeIn var(--anim-duration-in) ease forwards;
-}
-.anim-in-slideUp {
-  display: flex !important;
-  animation: slideUp var(--anim-duration-in) cubic-bezier(0.16, 1, 0.3, 1) forwards;
-}
-.anim-in-slideDown {
-  display: flex !important;
-  animation: slideDown var(--anim-duration-in) cubic-bezier(0.16, 1, 0.3, 1) forwards;
-}
-.anim-in-slideLeft {
-  display: flex !important;
-  animation: slideLeft var(--anim-duration-in) cubic-bezier(0.16, 1, 0.3, 1) forwards;
-}
-.anim-in-slideRight {
-  display: flex !important;
-  animation: slideRight var(--anim-duration-in) cubic-bezier(0.16, 1, 0.3, 1) forwards;
-}
-.anim-in-flipIn {
-  display: flex !important;
-  animation: flipIn var(--anim-duration-in) ease forwards;
-  transform-style: preserve-3d;
-}
-.anim-in-bounceIn {
-  display: flex !important;
-  animation: bounceIn var(--anim-duration-in) ease forwards;
-}
-.anim-in-zoomIn {
-  display: flex !important;
-  animation: zoomIn var(--anim-duration-in) cubic-bezier(0.16, 1, 0.3, 1) forwards;
-}
-.anim-in-glitchIn {
-  display: flex !important;
-  animation: glitchIn var(--anim-duration-in) steps(10) forwards;
+/* ─── Sous-message (hors widget, juste en dessous) ──────────────────────── */
+.alert-submessage {
+  display: none;
+  width: var(--widget-width);
+  max-width: var(--widget-width);
+  text-align: center;
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: var(--submsg-size);
+  font-weight: 500;
+  color: var(--submsg-color);
+  line-height: 1.4;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  text-shadow: 0 1px 8px rgba(0, 0, 0, 0.55);
+  word-break: break-word;
+  padding: 0 8px;
 }
 
-/* ─── Animations SORTIE ──────────────────────────────────────────────────────── */
+.alert-submessage.visible {
+  display: block;
+  opacity: 1;
+}
+
+/* ─── Animations ENTRÉE ────────────────────────────────────────────────── */
+.anim-in-popIn    { display: flex !important; animation: popIn    var(--anim-duration-in) cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards; }
+.anim-in-fadeIn   { display: flex !important; animation: fadeIn   var(--anim-duration-in) ease forwards; }
+.anim-in-slideUp  { display: flex !important; animation: slideUp  var(--anim-duration-in) cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+.anim-in-slideDown{ display: flex !important; animation: slideDown var(--anim-duration-in) cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+.anim-in-slideLeft{ display: flex !important; animation: slideLeft var(--anim-duration-in) cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+.anim-in-slideRight{display: flex !important; animation: slideRight var(--anim-duration-in) cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+.anim-in-flipIn   { display: flex !important; animation: flipIn   var(--anim-duration-in) ease forwards; transform-style: preserve-3d; }
+.anim-in-bounceIn { display: flex !important; animation: bounceIn var(--anim-duration-in) ease forwards; }
+.anim-in-zoomIn   { display: flex !important; animation: zoomIn   var(--anim-duration-in) cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+.anim-in-glitchIn { display: flex !important; animation: glitchIn var(--anim-duration-in) steps(10) forwards; }
+
+/* ─── Animations SORTIE ────────────────────────────────────────────────── */
 .anim-out-popOut    { animation: popOut    var(--anim-duration-out) ease-in forwards; }
 .anim-out-fadeOut   { animation: fadeOut   var(--anim-duration-out) ease-in forwards; }
 .anim-out-slideUpOut    { animation: slideUpOut    var(--anim-duration-out) ease-in forwards; }
@@ -232,28 +211,28 @@ body {
 .anim-out-zoomOut   { animation: zoomOut   var(--anim-duration-out) ease-in forwards; }
 .anim-out-glitchOut { animation: glitchOut var(--anim-duration-out) steps(10) forwards; }
 
-/* ─── Keyframes ──────────────────────────────────────────────────────────────── */
+/* ─── Keyframes ──────────────────────────────────────────────────────────── */
 @keyframes popIn     { from { opacity:0; transform:scale(0.7); }  to { opacity:1; transform:scale(1); } }
 @keyframes popOut    { from { opacity:1; transform:scale(1); }    to { opacity:0; transform:scale(0.7); } }
 @keyframes fadeIn    { from { opacity:0; } to { opacity:1; } }
 @keyframes fadeOut   { from { opacity:1; } to { opacity:0; } }
-@keyframes slideUp   { from { opacity:0; transform:translateY(60px); }  to { opacity:1; transform:translateY(0); } }
-@keyframes slideDown { from { opacity:0; transform:translateY(-60px); } to { opacity:1; transform:translateY(0); } }
-@keyframes slideLeft { from { opacity:0; transform:translateX(80px); }  to { opacity:1; transform:translateX(0); } }
-@keyframes slideRight{ from { opacity:0; transform:translateX(-80px); } to { opacity:1; transform:translateX(0); } }
-@keyframes slideUpOut    { from { opacity:1; transform:translateY(0); }    to { opacity:0; transform:translateY(-60px); } }
-@keyframes slideDownOut  { from { opacity:1; transform:translateY(0); }    to { opacity:0; transform:translateY(60px); } }
-@keyframes slideLeftOut  { from { opacity:1; transform:translateX(0); }    to { opacity:0; transform:translateX(-80px); } }
-@keyframes slideRightOut { from { opacity:1; transform:translateX(0); }    to { opacity:0; transform:translateX(80px); } }
+@keyframes slideUp   { from { opacity:0; transform:translateY(60px); }   to { opacity:1; transform:translateY(0); } }
+@keyframes slideDown { from { opacity:0; transform:translateY(-60px); }  to { opacity:1; transform:translateY(0); } }
+@keyframes slideLeft { from { opacity:0; transform:translateX(80px); }   to { opacity:1; transform:translateX(0); } }
+@keyframes slideRight{ from { opacity:0; transform:translateX(-80px); }  to { opacity:1; transform:translateX(0); } }
+@keyframes slideUpOut    { from { opacity:1; transform:translateY(0); }   to { opacity:0; transform:translateY(-60px); } }
+@keyframes slideDownOut  { from { opacity:1; transform:translateY(0); }   to { opacity:0; transform:translateY(60px); } }
+@keyframes slideLeftOut  { from { opacity:1; transform:translateX(0); }   to { opacity:0; transform:translateX(-80px); } }
+@keyframes slideRightOut { from { opacity:1; transform:translateX(0); }   to { opacity:0; transform:translateX(80px); } }
 @keyframes flipIn    { from { opacity:0; transform:rotateX(-90deg); } to { opacity:1; transform:rotateX(0); } }
 @keyframes flipOut   { from { opacity:1; transform:rotateX(0); }      to { opacity:0; transform:rotateX(90deg); } }
 @keyframes bounceIn  { 0%{opacity:0;transform:scale(0.3)} 60%{transform:scale(1.1)} 80%{transform:scale(0.95)} 100%{opacity:1;transform:scale(1)} }
 @keyframes bounceOut { 0%{opacity:1;transform:scale(1)}   40%{transform:scale(1.1)} 100%{opacity:0;transform:scale(0.3)} }
 @keyframes zoomIn    { from { opacity:0; transform:scale(1.4); } to { opacity:1; transform:scale(1); } }
 @keyframes zoomOut   { from { opacity:1; transform:scale(1); }   to { opacity:0; transform:scale(1.4); } }
-@keyframes glitchIn  {
+@keyframes glitchIn {
   0%  { opacity:0; transform:translateX(-6px) skewX(-5deg); }
-  30% { opacity:1; transform:translateX(4px)  skewX(3deg);  }
+  30% { opacity:1; transform:translateX(4px)  skewX(3deg); }
   60% { transform:translateX(-2px) skewX(-2deg); }
   100%{ opacity:1; transform:translateX(0)    skewX(0); }
 }
