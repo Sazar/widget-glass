@@ -3,7 +3,6 @@ let fieldData = {};
 let alertQueue = [];
 let isPlaying = false;
 let hideTimer = null;
-
 let isLoading = true;
 const seenEventIds = new Set();
 
@@ -26,23 +25,28 @@ window.addEventListener('onWidgetLoad', function (obj) {
 // ─── Apply CSS variables from fields ─────────────────────────────────────────
 function applySettings() {
   const root = document.documentElement;
-  root.style.setProperty('--widget-width',      fieldData.widgetWidth   + 'px');
-  root.style.setProperty('--border-radius',     fieldData.borderRadius  + 'px');
-  root.style.setProperty('--blur-intensity',    fieldData.blurIntensity + 'px');
-  root.style.setProperty('--glass-opacity',     fieldData.glassOpacity);
-  root.style.setProperty('--primary-color',     fieldData.primaryColor);
-  root.style.setProperty('--accent-color',      fieldData.accentColor);
-  root.style.setProperty('--icon-size',         fieldData.iconSize      + 'px');
-  root.style.setProperty('--type-size',         fieldData.typeSize      + 'px');
-  root.style.setProperty('--username-size',     fieldData.usernameSize  + 'px');
-  root.style.setProperty('--message-size',      fieldData.messageSize   + 'px');
-  root.style.setProperty('--amount-size',       fieldData.amountSize    + 'px');
-  root.style.setProperty('--glow-intensity',    (fieldData.glowIntensity || 20) + 'px');
+  root.style.setProperty('--widget-width',      (fieldData.widgetWidth   || 660)  + 'px');
+  root.style.setProperty('--border-radius',     (fieldData.borderRadius  || 28)   + 'px');
+  root.style.setProperty('--blur-intensity',    (fieldData.blurIntensity || 28)   + 'px');
+  root.style.setProperty('--glass-opacity',      fieldData.glassOpacity  || 0.45);
+  root.style.setProperty('--primary-color',      fieldData.primaryColor  || '#00f5ff');
+  root.style.setProperty('--accent-color',       fieldData.accentColor   || '#ff2ec4');
+  root.style.setProperty('--icon-size',         (fieldData.iconSize      || 56)   + 'px');
+  root.style.setProperty('--type-size',         (fieldData.typeSize      || 15.5) + 'px');
+  root.style.setProperty('--username-size',     (fieldData.usernameSize  || 49)   + 'px');
+  root.style.setProperty('--message-size',      (fieldData.messageSize   || 23)   + 'px');
+  root.style.setProperty('--amount-size',       (fieldData.amountSize    || 35)   + 'px');
+  root.style.setProperty('--glow-intensity',    (fieldData.glowIntensity || 20)   + 'px');
   root.style.setProperty('--duration',          (parseInt(fieldData.duration, 10) || 7000) + 'ms');
-  root.style.setProperty('--anim-duration-in',  (parseInt(fieldData.animDurationIn,  10) || 600)  + 'ms');
-  root.style.setProperty('--anim-duration-out', (parseInt(fieldData.animDurationOut, 10) || 500)  + 'ms');
-  root.style.setProperty('--primary-color-soft', hexToRgba(fieldData.primaryColor, 0.25));
-  root.style.setProperty('--accent-color-soft',  hexToRgba(fieldData.accentColor,  0.18));
+  root.style.setProperty('--anim-duration-in',  (parseInt(fieldData.animDurationIn,  10)   || 600)  + 'ms');
+  root.style.setProperty('--anim-duration-out', (parseInt(fieldData.animDurationOut, 10)   || 500)  + 'ms');
+  root.style.setProperty('--primary-color-soft', hexToRgba(fieldData.primaryColor || '#00f5ff', 0.25));
+  root.style.setProperty('--accent-color-soft',  hexToRgba(fieldData.accentColor  || '#ff2ec4', 0.18));
+
+  // Couleurs dédiées de la barre de progression
+  root.style.setProperty('--progress-color-1',   fieldData.progressBarColor1 || fieldData.primaryColor || '#00f5ff');
+  root.style.setProperty('--progress-color-2',   fieldData.progressBarColor2 || fieldData.accentColor  || '#ff2ec4');
+
   applyPosition(fieldData.widgetPosition || 'center');
   applyThemePreset(fieldData.themePreset || 'custom');
 }
@@ -62,7 +66,6 @@ function hexToRgba(hex, alpha) {
 
 // ─── Position du widget ───────────────────────────────────────────────────────
 function applyPosition(pos) {
-  const body = document.body;
   const map = {
     'top-left':      ['flex-start', 'flex-start'],
     'top-center':    ['flex-start', 'center'],
@@ -73,8 +76,8 @@ function applyPosition(pos) {
     'bottom-right':  ['flex-end',   'flex-end']
   };
   const [align, justify] = map[pos] || ['center', 'center'];
-  body.style.alignItems     = align;
-  body.style.justifyContent = justify;
+  document.body.style.alignItems     = align;
+  document.body.style.justifyContent = justify;
 }
 
 // ─── Presets de thème ─────────────────────────────────────────────────────────
@@ -95,6 +98,7 @@ function applyThemePreset(preset) {
   root.style.setProperty('--accent-color',       theme.accent);
   root.style.setProperty('--primary-color-soft', hexToRgba(theme.primary, 0.25));
   root.style.setProperty('--accent-color-soft',  hexToRgba(theme.accent,  0.18));
+  // Un preset ne touche PAS les couleurs de barre — elles restent indépendantes
 }
 
 // ─── Animations entrée / sortie ───────────────────────────────────────────────
@@ -109,12 +113,12 @@ function createParticles() {
   const count = parseInt(fieldData.particleCount, 10) || 55;
   for (let i = 0; i < count; i++) {
     const p    = document.createElement('div');
-    const size = Math.random() * 5 + 3 + 'px';
+    const size = (Math.random() * 5 + 3) + 'px';
     p.style.cssText = [
       'position:absolute',
       `width:${size}`,
       `height:${size}`,
-      `background:${i % 3 === 0 ? fieldData.accentColor : fieldData.primaryColor}`,
+      `background:${i % 3 === 0 ? (fieldData.accentColor || '#ff2ec4') : (fieldData.primaryColor || '#00f5ff')}`,
       'border-radius:50%',
       `left:${Math.random() * 100}%`,
       `bottom:${Math.random() * 80}%`,
@@ -140,7 +144,7 @@ function startProgressBar(duration) {
   if (!progressEl) return;
   if (!fieldData.showProgressBar) { progressEl.classList.remove('active'); return; }
   progressEl.classList.remove('active');
-  void progressEl.offsetWidth;
+  void progressEl.offsetWidth; // force reflow pour relancer l'animation
   document.documentElement.style.setProperty('--duration', duration + 'ms');
   progressEl.classList.add('active');
 }
@@ -154,13 +158,11 @@ function renderEmotes(text, emotes) {
   });
   if (!Object.keys(dict).length) return null;
   const safe = text.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
-  const html = safe.replace(/\b(\S+)\b/g, (match) => {
-    if (dict[match]) {
-      return `<img src="${dict[match]}" alt="${match}" title="${match}" style="height:1.2em;vertical-align:middle;display:inline;" loading="lazy">`;
-    }
-    return match;
-  });
-  return html;
+  return safe.replace(/\b(\S+)\b/g, match =>
+    dict[match]
+      ? `<img src="${dict[match]}" alt="${match}" title="${match}" style="height:1.2em;vertical-align:middle;display:inline;" loading="lazy">`
+      : match
+  );
 }
 
 // ─── File d'attente ───────────────────────────────────────────────────────────
@@ -196,12 +198,10 @@ function _playAlert(type, username, message, amount, emotes) {
   amountEl.textContent   = amount || '';
 
   const emoteHtml = renderEmotes(message, emotes);
-  if (emoteHtml !== null) {
-    messageEl.innerHTML = emoteHtml;
-  } else {
-    messageEl.textContent = message || '';
-  }
+  if (emoteHtml !== null) messageEl.innerHTML  = emoteHtml;
+  else                    messageEl.textContent = message || '';
 
+  // Nettoyer les classes d'anim précédentes
   alertEl.className = alertEl.className
     .split(' ')
     .filter(c => !c.startsWith('anim-in-') && !c.startsWith('anim-out-'))
@@ -217,7 +217,7 @@ function _playAlert(type, username, message, amount, emotes) {
 
   if (hideTimer) clearTimeout(hideTimer);
   hideTimer = setTimeout(() => {
-    progressEl && progressEl.classList.remove('active');
+    if (progressEl) progressEl.classList.remove('active');
     alertEl.classList.remove(getAnimInClass());
     void alertEl.offsetWidth;
     alertEl.classList.add(getAnimOutClass());
@@ -262,14 +262,13 @@ window.addEventListener('onEventReceived', function (obj) {
     }
   }
 
-  // Gift Sub — listener dédié SE
   if (listener === 'subscriber-gifted-latest' && fieldData.showGiftSub) {
-    const qty     = data.amount || data.quantity || 1;
-    const gifted  = data.recipientDisplayName || data.recipient || '';
-    const message = qty > 1
+    const qty    = data.amount || data.quantity || 1;
+    const gifted = data.recipientDisplayName || data.recipient || '';
+    const msg    = qty > 1
       ? `offre ${qty} subs !`
       : gifted ? `offre 1 sub à ${gifted} !` : 'offre un sub !';
-    showAlert('giftsub', data.name, message, '', []);
+    showAlert('giftsub', data.name, msg, '', []);
   }
 
   if (listener === 'tip-latest' && fieldData.showDonation) {
