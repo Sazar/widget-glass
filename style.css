@@ -313,7 +313,9 @@ body {
   font-family: 'Space Grotesk', 'Inter', sans-serif;
   font-size: var(--username-size, 49px);
   font-weight: 700;
-  line-height: 1.05;
+  line-height: 1.1;
+  margin-top: 4px;
+  margin-bottom: 6px;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -322,13 +324,12 @@ body {
   -webkit-background-clip: unset;
   -webkit-text-fill-color: unset;
   background-clip: unset;
-  /* AMÉLIORATION: curseur pointer pour indiquer que le title est lisible */
   cursor: default;
 }
 
 .message {
   font-size: var(--message-size, 23px);
-  margin-top: 8px;
+  margin-top: 14px;
   opacity: 0.92;
   font-weight: 500;
   white-space: nowrap;
@@ -341,7 +342,7 @@ body {
   font-size: var(--amount-size, 35px);
   font-weight: 700;
   color: var(--accent-color, #ff2ec4);
-  margin-top: 6px;
+  margin-top: 10px;
   text-shadow: 0 0 12px rgba(255, 46, 196, 0.5);
 }
 
