@@ -40,10 +40,10 @@ var DEFAULTS = {
 };
 
 // ─── State ───────────────────────────────────────────────────────────────────
-var fieldData  = {};
-var alertQueue = [];
-var isPlaying  = false;
-var hideTimer  = null;
+var fieldData    = {};
+var alertQueue   = [];
+var isPlaying    = false;
+var hideTimer    = null;
 var seenEventIds = new Set();
 
 // ─── DOM refs ────────────────────────────────────────────────────────────────
@@ -55,21 +55,19 @@ var messageEl  = document.getElementById('message');
 var amountEl   = document.getElementById('amount');
 var avatarEl   = document.getElementById('avatar');
 
-// ─── Init immédiat — applique les defaults dès le chargement du DOM ─────────────────
-// Garantit que les CSS variables sont initialisées même si onWidgetLoad
-// ne se déclenche pas (mode éditeur SE, preview, OBS sans internet).
-document.addEventListener('DOMContentLoaded', function() {
-  fieldData = Object.assign({}, DEFAULTS);
-  applySettings();
-});
+// ─── Init immédiat — appel direct, sans DOMContentLoaded ───────────────────────
+// SE injecte le JS dans une iframe dont le DOM est DEJA pret.
+// DOMContentLoaded ne se declenche jamais -> appel direct obligatoire.
+fieldData = Object.assign({}, DEFAULTS);
+applySettings();
 
 // ─── StreamElements load ─────────────────────────────────────────────────────
 window.addEventListener('onWidgetLoad', function(obj) {
-  // Fusionner les defaults avec les valeurs de l'utilisateur
+  // Fusionner defaults + valeurs utilisateur
   fieldData = Object.assign({}, DEFAULTS, obj.detail.fieldData);
   applySettings();
 
-  // PRÉ-ENREGISTRER les recentEvents pour éviter le replay de SE au démarrage
+  // Pre-enregistrer les recentEvents pour eviter le replay SE au demarrage
   var recent = obj.detail && obj.detail.channel && obj.detail.channel.recentEvents;
   if (Array.isArray(recent)) {
     recent.forEach(function(ev) {
@@ -81,21 +79,20 @@ window.addEventListener('onWidgetLoad', function(obj) {
 // ─── Apply CSS variables ────────────────────────────────────────────────────
 function applySettings() {
   var root = document.documentElement;
-  root.style.setProperty('--widget-width',   fieldData.widgetWidth   + 'px');
-  root.style.setProperty('--border-radius',  fieldData.borderRadius  + 'px');
-  root.style.setProperty('--blur-intensity', fieldData.blurIntensity + 'px');
-  root.style.setProperty('--glass-opacity',  fieldData.glassOpacity);
-  root.style.setProperty('--primary-color',  fieldData.primaryColor);
-  root.style.setProperty('--accent-color',   fieldData.accentColor);
-  root.style.setProperty('--icon-size',      fieldData.iconSize      + 'px');
-  root.style.setProperty('--type-size',      fieldData.typeSize      + 'px');
-  root.style.setProperty('--username-size',  fieldData.usernameSize  + 'px');
-  root.style.setProperty('--message-size',   fieldData.messageSize   + 'px');
-  root.style.setProperty('--amount-size',    fieldData.amountSize    + 'px');
-  root.style.setProperty('--glow-intensity', fieldData.glowIntensity + 'px');
-  root.style.setProperty('--primary-color-soft', hexToRgba(fieldData.primaryColor, 0.25));
-  root.style.setProperty('--accent-color-soft',  hexToRgba(fieldData.accentColor,  0.18));
-
+  root.style.setProperty('--widget-width',        fieldData.widgetWidth   + 'px');
+  root.style.setProperty('--border-radius',       fieldData.borderRadius  + 'px');
+  root.style.setProperty('--blur-intensity',      fieldData.blurIntensity + 'px');
+  root.style.setProperty('--glass-opacity',       fieldData.glassOpacity);
+  root.style.setProperty('--primary-color',       fieldData.primaryColor);
+  root.style.setProperty('--accent-color',        fieldData.accentColor);
+  root.style.setProperty('--icon-size',           fieldData.iconSize      + 'px');
+  root.style.setProperty('--type-size',           fieldData.typeSize      + 'px');
+  root.style.setProperty('--username-size',       fieldData.usernameSize  + 'px');
+  root.style.setProperty('--message-size',        fieldData.messageSize   + 'px');
+  root.style.setProperty('--amount-size',         fieldData.amountSize    + 'px');
+  root.style.setProperty('--glow-intensity',      fieldData.glowIntensity + 'px');
+  root.style.setProperty('--primary-color-soft',  hexToRgba(fieldData.primaryColor, 0.25));
+  root.style.setProperty('--accent-color-soft',   hexToRgba(fieldData.accentColor,  0.18));
   applyPosition(fieldData.widgetPosition || 'center');
   applyThemePreset(fieldData.themePreset  || 'custom');
 }
@@ -126,7 +123,7 @@ function applyPosition(pos) {
   document.body.style.justifyContent = coords[1];
 }
 
-// ─── Presets de thème ─────────────────────────────────────────────────────────
+// ─── Presets de theme ─────────────────────────────────────────────────────────
 var THEME_PRESETS = {
   'neon-cyan':     { primary: '#00f5ff', accent: '#ff2ec4' },
   'gold':          { primary: '#ffd700', accent: '#ff8c00' },
@@ -205,11 +202,11 @@ function processQueue() {
 function _playAlert(type, username, message, amount) {
   var types = {
     follow:   { icon: fieldData.iconFollow   || '❤️', text: fieldData.textFollow   || 'NOUVEAU FOLLOW' },
-    sub:      { icon: fieldData.iconSub      || '⭐', text: fieldData.textSub      || 'NOUVELLE SUB'   },
-    resub:    { icon: fieldData.iconResub    || '🔥', text: fieldData.textResub    || 'RESUBSCRIPTION' },
-    donation: { icon: fieldData.iconDonation || '💎', text: fieldData.textDonation || 'DONATION'       },
-    raid:     { icon: fieldData.iconRaid     || '⚔️', text: fieldData.textRaid     || 'RAID INCOMING'  },
-    cheer:    { icon: fieldData.iconCheer    || '🎉', text: fieldData.textCheer    || 'BITS'           }
+    sub:      { icon: fieldData.iconSub      || '⭐',     text: fieldData.textSub      || 'NOUVELLE SUB'   },
+    resub:    { icon: fieldData.iconResub    || '🔥',     text: fieldData.textResub    || 'RESUBSCRIPTION' },
+    donation: { icon: fieldData.iconDonation || '💎',     text: fieldData.textDonation || 'DONATION'       },
+    raid:     { icon: fieldData.iconRaid     || '⚔️',     text: fieldData.textRaid     || 'RAID INCOMING'  },
+    cheer:    { icon: fieldData.iconCheer    || '🎉',     text: fieldData.textCheer    || 'BITS'           }
   };
   var t = types[type] || types.follow;
 
@@ -222,7 +219,7 @@ function _playAlert(type, username, message, amount) {
   loadAvatar(username);
 
   alertEl.classList.remove('show', 'hide');
-  void alertEl.offsetWidth;
+  void alertEl.offsetWidth; // force reflow pour relancer l'animation
   alertEl.classList.add('show');
   createParticles();
   playSound(type);
@@ -251,7 +248,7 @@ window.addEventListener('onEventReceived', function(obj) {
   var listener = obj.detail.listener;
   var data     = obj.detail.event;
 
-  // Déduplication par _id SE natif
+  // Deduplication par _id SE natif
   var rawId = data._id || data.activityId;
   if (rawId) {
     if (seenEventIds.has(rawId)) return;
@@ -280,7 +277,7 @@ window.addEventListener('onEventReceived', function(obj) {
   }
 });
 
-// ─── Fonctions de test ────────────────────────────────────────────────────────
+// ─── Fonctions de test (console SE) ────────────────────────────────────────────
 window.testAlert = function(type, name) {
   type = type || 'follow';
   name = name || 'TestUser';
