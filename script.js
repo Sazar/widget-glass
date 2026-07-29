@@ -80,22 +80,32 @@ function applySettings() {
   root.style.setProperty('--username-size',     (fieldData.usernameSize  || 49)   + 'px');
   root.style.setProperty('--username-color',     fieldData.usernameColor || '#ffffff');
 
-  // ── Glow : désactivé par la checkbox enableGlow → force 0px ──────────────
-  // Tous les effets glow du widget (.icon filter, .type text-shadow) lisent
-  // --glow-intensity. Mettre à 0px les désactive tous en une seule variable.
+  // ── Glow ──────────────────────────────────────────────────────────────────
+  // glowEnabled contrôle TOUS les effets de lumière :
+  //   1. --glow-intensity  → drop-shadow(.icon) + text-shadow(.type)
+  //   2. --primary-color-soft / --accent-color-soft → dégradé ::before (fond coloré animé)
+  // Si false : les deux variables de couleur soft sont forcées à transparent
+  // pour supprimer le glow de fond, même si un preset de thème est actif.
   const glowEnabled = parseBool(fieldData.enableGlow !== undefined ? fieldData.enableGlow : true);
   const glowValue   = glowEnabled ? (parseInt(fieldData.glowIntensity, 10) || 20) : 0;
   root.style.setProperty('--glow-intensity', glowValue + 'px');
+
+  if (glowEnabled) {
+    root.style.setProperty('--primary-color-soft', hexToRgba(fieldData.primaryColor || '#00f5ff', 0.25));
+    root.style.setProperty('--accent-color-soft',  'rgba(255,0,204,0.18)');
+  } else {
+    root.style.setProperty('--primary-color-soft', 'transparent');
+    root.style.setProperty('--accent-color-soft',  'transparent');
+  }
 
   const dur = Math.min(60000, Math.max(1000, parseInt(fieldData.duration, 10) || 7000));
   root.style.setProperty('--duration', dur + 'ms');
   root.style.setProperty('--anim-duration-in',  (parseInt(fieldData.animDurationIn,  10) || 600)  + 'ms');
   root.style.setProperty('--anim-duration-out', (parseInt(fieldData.animDurationOut, 10) || 500)  + 'ms');
-  root.style.setProperty('--primary-color-soft', hexToRgba(fieldData.primaryColor || '#00f5ff', 0.25));
   root.style.setProperty('--progress-color-1',   fieldData.progressBarColor1 || fieldData.primaryColor || '#00f5ff');
   root.style.setProperty('--progress-color-2',   fieldData.progressBarColor2 || fieldData.primaryColor || '#00f5ff');
   applyPosition(fieldData.widgetPosition || 'center');
-  applyThemePreset(fieldData.themePreset || 'custom');
+  applyThemePreset(fieldData.themePreset || 'custom', glowEnabled);
 }
 
 // ─── hexToRgba robuste ────────────────────────────────────────────────────────────────────────
@@ -139,12 +149,18 @@ const THEME_PRESETS = {
   'custom': null
 };
 
-function applyThemePreset(preset) {
+// glowEnabled est passé en paramètre pour que le preset ne ré-écrive pas
+// --primary-color-soft avec une couleur opaque quand le glow est désactivé.
+function applyThemePreset(preset, glowEnabled) {
   const theme = THEME_PRESETS[preset];
   if (!theme) return;
   const root = document.documentElement;
-  root.style.setProperty('--primary-color',      theme.primary);
-  root.style.setProperty('--primary-color-soft', hexToRgba(theme.primary, 0.25));
+  root.style.setProperty('--primary-color', theme.primary);
+  // On ne touche à --primary-color-soft que si le glow est actif ;
+  // applySettings() l'a déjà forcé à transparent si glowEnabled === false.
+  if (glowEnabled !== false) {
+    root.style.setProperty('--primary-color-soft', hexToRgba(theme.primary, 0.25));
+  }
   root.style.setProperty('--type-color',     theme.typeColor);
   root.style.setProperty('--username-color', theme.usernameColor);
 }
@@ -176,8 +192,6 @@ function createParticles(alertType) {
     const p       = document.createElement('div');
     const size    = (Math.random() * 5 + 3) + 'px';
     const travelY = 200 + Math.floor(Math.random() * 160);
-    // Délai aléatoire pour étaler le départ des particules dans le temps.
-    // Sans delay, toutes partent en même temps → effet de vague peu naturel.
     const delay   = (Math.random() * 2).toFixed(2) + 's';
     const opacity = (Math.random() * 0.65 + 0.35).toFixed(2);
     p.style.cssText = [
@@ -188,11 +202,8 @@ function createParticles(alertType) {
       'border-radius:50%',
       `left:${Math.random() * 100}%`,
       `bottom:${Math.random() * 80}%`,
-      // --particle-opacity lue par @keyframes floatParticle au keyframe 0%
       `--particle-opacity:${opacity}`,
       `--travel-y:-${travelY}px`,
-      // infinite : les particules bouclent pendant toute la durée de l'alerte
-      // au lieu de se figer (fill-mode:forwards) puis de "réapparaître" visuellement
       `animation:floatParticle ${2.5 + Math.random() * 4}s ${delay} linear infinite`
     ].join(';');
     container.appendChild(p);
@@ -357,7 +368,6 @@ function _playAlert(type, username, message, amount, emotes) {
     void alertEl.offsetWidth;
     alertEl.classList.add(getAnimOutClass());
 
-    // Vider les particules dès la sortie du widget
     const particlesEl = document.getElementById('particles');
     if (particlesEl) particlesEl.innerHTML = '';
 
