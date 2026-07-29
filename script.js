@@ -11,7 +11,7 @@ let _hideEndListener = null;
 const seenEventIds = new Set();
 const SEEN_MAX = 200;
 
-// ─── Map statique type → clés fieldData ────────────────────────────────────────────────────────────────────────
+// ─── Map statique type → clés fieldData ──────────────────────────────────────────────────────
 const TYPE_FIELD_KEYS = {
   follow:    { template: 'msgFollow',    sound: 'soundFollow'    },
   sub:       { template: 'msgSub',       sound: 'soundSub'       },
@@ -23,22 +23,22 @@ const TYPE_FIELD_KEYS = {
   hypetrain: { template: 'msgHypeTrain', sound: 'soundHypeTrain' }
 };
 
-// ─── DOM refs ───────────────────────────────────────────────────────────────────────────────
+// ─── DOM refs ─────────────────────────────────────────────────────────────────────────────────
 const alertEl       = document.getElementById('alert');
 const iconEl        = document.getElementById('icon');
 const typeEl        = document.getElementById('type');
 const usernameEl    = document.getElementById('username');
-const templateMsgEl = document.getElementById('templateMsg');  // dans le widget, à côté du pseudo
-const messageEl     = document.getElementById('message');      // .viewer-message-bubble, en dessous
+const templateMsgEl = document.getElementById('templateMsg');
+const messageEl     = document.getElementById('message');
 const progressEl    = document.getElementById('progressBar');
 
-// ─── Helpers template (dans le widget) ─────────────────────────────────────────────────────────────────
+// ─── Helpers template (dans le widget) ───────────────────────────────────────────────────────
 function setTemplateMsg(text) {
   if (!templateMsgEl) return;
   templateMsgEl.textContent = text || '';
 }
 
-// ─── Helpers bulle message viewer (en dessous du widget) ──────────────────────────────────
+// ─── Helpers bulle message viewer (en dessous du widget) ─────────────────────────────────────
 function showBubble(html, isHtml) {
   if (!messageEl) return;
   messageEl.classList.remove('hiding');
@@ -58,14 +58,14 @@ function hideBubble() {
   }, { once: true });
 }
 
-// ─── StreamElements load ─────────────────────────────────────────────────────────────────────────
+// ─── StreamElements load ──────────────────────────────────────────────────────────────────────
 window.addEventListener('onWidgetLoad', function (obj) {
   fieldData = obj.detail.fieldData;
   applySettings();
   setTimeout(() => { isLoading = false; }, 500);
 });
 
-// ─── Apply CSS variables from fields ──────────────────────────────────────────────────────────────
+// ─── Apply CSS variables from fields ─────────────────────────────────────────────────────────
 function applySettings() {
   const root = document.documentElement;
   root.style.setProperty('--widget-width',      (fieldData.widgetWidth   || 660)  + 'px');
@@ -80,7 +80,9 @@ function applySettings() {
   root.style.setProperty('--username-size',     (fieldData.usernameSize  || 49)   + 'px');
   root.style.setProperty('--username-color',     fieldData.usernameColor || '#ffffff');
 
-  // ── Glow : désactivé par la checkbox enableGlow → force 0px ──────────────────────────
+  // ── Glow : désactivé par la checkbox enableGlow → force 0px ──────────────
+  // Tous les effets glow du widget (.icon filter, .type text-shadow) lisent
+  // --glow-intensity. Mettre à 0px les désactive tous en une seule variable.
   const glowEnabled = parseBool(fieldData.enableGlow !== undefined ? fieldData.enableGlow : true);
   const glowValue   = glowEnabled ? (parseInt(fieldData.glowIntensity, 10) || 20) : 0;
   root.style.setProperty('--glow-intensity', glowValue + 'px');
@@ -96,7 +98,7 @@ function applySettings() {
   applyThemePreset(fieldData.themePreset || 'custom');
 }
 
-// ─── hexToRgba robuste ────────────────────────────────────────────────────────────────────────────────────
+// ─── hexToRgba robuste ────────────────────────────────────────────────────────────────────────
 function hexToRgba(hex, alpha) {
   if (!hex || typeof hex !== 'string') return `rgba(0,245,255,${alpha})`;
   hex = hex.trim();
@@ -111,7 +113,7 @@ function hexToRgba(hex, alpha) {
   return `rgba(${r},${g},${b},${alpha})`;
 }
 
-// ─── Position du widget ────────────────────────────────────────────────────────────────────────────────
+// ─── Position du widget ──────────────────────────────────────────────────────────────────────
 function applyPosition(pos) {
   const map = {
     'top-left':      ['flex-start', 'flex-start'],
@@ -127,7 +129,7 @@ function applyPosition(pos) {
   document.body.style.justifyContent = justify;
 }
 
-// ─── Presets de thème ─────────────────────────────────────────────────────────────────────────────────
+// ─── Presets de thème ────────────────────────────────────────────────────────────────────────
 const THEME_PRESETS = {
   'neon-cyan':     { primary: '#00f5ff', typeColor: '#00f5ff', usernameColor: '#ffffff' },
   'gold':          { primary: '#ffd700', typeColor: '#ffd700', usernameColor: '#fff8dc' },
@@ -147,11 +149,11 @@ function applyThemePreset(preset) {
   root.style.setProperty('--username-color', theme.usernameColor);
 }
 
-// ─── Animations entrée / sortie ──────────────────────────────────────────────────────────────────────────────
+// ─── Animations entrée / sortie ──────────────────────────────────────────────────────────────
 function getAnimInClass()  { return 'anim-in-'  + (fieldData.animIn  || 'popIn');  }
 function getAnimOutClass() { return 'anim-out-' + (fieldData.animOut || 'popOut'); }
 
-// ─── Couleur de particule selon le type d'alerte ───────────────────────────────────────────────
+// ─── Couleur de particule selon le type d'alerte ─────────────────────────────────────────────
 const PARTICLE_COLORS = {
   follow:    ['#ff6b8a', '#ff2ec4'],
   sub:       ['#ffd700', '#ffaa00'],
@@ -163,7 +165,7 @@ const PARTICLE_COLORS = {
   hypetrain: ['#ffd700', '#ff6600']
 };
 
-// ─── Particules ───────────────────────────────────────────────────────────────────────────────────────────
+// ─── Particules ───────────────────────────────────────────────────────────────────────────────
 function createParticles(alertType) {
   const container = document.getElementById('particles');
   container.innerHTML = '';
@@ -171,9 +173,13 @@ function createParticles(alertType) {
   const count  = parseInt(fieldData.particleCount, 10) || 55;
   const colors = PARTICLE_COLORS[alertType] || [fieldData.primaryColor || '#00f5ff', fieldData.primaryColor || '#00f5ff'];
   for (let i = 0; i < count; i++) {
-    const p    = document.createElement('div');
-    const size = (Math.random() * 5 + 3) + 'px';
+    const p       = document.createElement('div');
+    const size    = (Math.random() * 5 + 3) + 'px';
     const travelY = 200 + Math.floor(Math.random() * 160);
+    // Délai aléatoire pour étaler le départ des particules dans le temps.
+    // Sans delay, toutes partent en même temps → effet de vague peu naturel.
+    const delay   = (Math.random() * 2).toFixed(2) + 's';
+    const opacity = (Math.random() * 0.65 + 0.35).toFixed(2);
     p.style.cssText = [
       'position:absolute',
       `width:${size}`,
@@ -182,15 +188,18 @@ function createParticles(alertType) {
       'border-radius:50%',
       `left:${Math.random() * 100}%`,
       `bottom:${Math.random() * 80}%`,
-      `opacity:${Math.random() * 0.65 + 0.35}`,
+      // --particle-opacity lue par @keyframes floatParticle au keyframe 0%
+      `--particle-opacity:${opacity}`,
       `--travel-y:-${travelY}px`,
-      `animation:floatParticle ${2.5 + Math.random() * 4}s linear forwards`
+      // infinite : les particules bouclent pendant toute la durée de l'alerte
+      // au lieu de se figer (fill-mode:forwards) puis de "réapparaître" visuellement
+      `animation:floatParticle ${2.5 + Math.random() * 4}s ${delay} linear infinite`
     ].join(';');
     container.appendChild(p);
   }
 }
 
-// ─── Sons ───────────────────────────────────────────────────────────────────────────────────────────────────────
+// ─── Sons ─────────────────────────────────────────────────────────────────────────────────────
 function playSound(type) {
   const keys = TYPE_FIELD_KEYS[type];
   const url  = keys ? fieldData[keys.sound] : '';
@@ -206,7 +215,7 @@ function playSound(type) {
   });
 }
 
-// ─── Barre de progression ─────────────────────────────────────────────────────────────────────────────────
+// ─── Barre de progression ────────────────────────────────────────────────────────────────────
 function startProgressBar(duration) {
   if (!progressEl) return;
   if (!parseBool(fieldData.showProgressBar)) { progressEl.classList.remove('active'); return; }
@@ -217,7 +226,7 @@ function startProgressBar(duration) {
   progressEl.classList.add('active');
 }
 
-// ─── Emotes Twitch dans le message ───────────────────────────────────────────────────────────────────────────
+// ─── Emotes Twitch dans le message ───────────────────────────────────────────────────────────
 function renderEmotes(text, emotes) {
   if (!emotes || !emotes.length || !text) return null;
   const dict = {};
@@ -233,7 +242,7 @@ function renderEmotes(text, emotes) {
   );
 }
 
-// ─── Résolution des templates ──────────────────────────────────────────────────────────────────────────────
+// ─── Résolution des templates ─────────────────────────────────────────────────────────────────
 function resolveTemplate(template, vars) {
   if (!template) return '';
   return template
@@ -245,17 +254,17 @@ function resolveTemplate(template, vars) {
     .replace(/\{recipient\}/gi, vars.recipient || '');
 }
 
-// ─── Parse booléen robuste ────────────────────────────────────────────────────────────────────────────────────
+// ─── Parse booléen robuste ────────────────────────────────────────────────────────────────────
 function parseBool(val) {
   if (typeof val === 'boolean') return val;
   if (typeof val === 'string')  return val.trim().toLowerCase() !== 'false';
   return !!val;
 }
 
-// ─── Types concernés par l'option "afficher message viewer" ──────────────────────────────────────────
+// ─── Types concernés par l'option "afficher message viewer" ──────────────────────────────────
 const VIEWER_MSG_TYPES = ['sub', 'resub', 'donation', 'cheer'];
 
-// ─── File d'attente ────────────────────────────────────────────────────────────────────────────────────────────────────
+// ─── File d'attente ───────────────────────────────────────────────────────────────────────────
 function enqueueAlert(type, username, message, amount, emotes) {
   alertQueue.push({ type, username, message, amount, emotes: emotes || [] });
   if (!isPlaying) processQueue();
@@ -268,9 +277,8 @@ function processQueue() {
   _playAlert(item.type, item.username, item.message, item.amount, item.emotes || []);
 }
 
-// ─── Lecture d'une alerte ────────────────────────────────────────────────────────────────────────────────────────
+// ─── Lecture d'une alerte ─────────────────────────────────────────────────────────────────────
 function _playAlert(type, username, message, amount, emotes) {
-  // Reset propre des deux zones
   setTemplateMsg('');
   if (messageEl) {
     messageEl.classList.remove('visible', 'hiding');
@@ -310,25 +318,18 @@ function _playAlert(type, username, message, amount, emotes) {
     recipient: type === 'giftsub' ? viewerMessage : ''
   };
 
-  // ── 1. Template perso → dans le widget (à côté du pseudo) ─────────────────────────────
   if (template.trim() !== '') {
-    // On supprime {username} du template car le pseudo est déjà affiché dans .username
     const templateWithoutUsername = template.replace(/\{username\}\s*/gi, '').trim();
     const resolved = resolveTemplate(templateWithoutUsername, vars).trim();
     if (resolved) setTemplateMsg(resolved);
   }
 
-  // ── 2. Message brut du viewer → en dessous du widget seulement ────────────────────────
   if (showViewerMsg && viewerMessage && type !== 'giftsub') {
     const emoteHtml = renderEmotes(viewerMessage, emotes);
-    if (emoteHtml !== null) {
-      showBubble(emoteHtml, true);
-    } else {
-      showBubble(viewerMessage, false);
-    }
+    if (emoteHtml !== null) showBubble(emoteHtml, true);
+    else                    showBubble(viewerMessage, false);
   }
 
-  // ── Animation du widget ──────────────────────────────────────────────────────────────────────
   alertEl.className = alertEl.className
     .split(' ')
     .filter(c => !c.startsWith('anim-in-') && !c.startsWith('anim-out-'))
@@ -356,6 +357,10 @@ function _playAlert(type, username, message, amount, emotes) {
     void alertEl.offsetWidth;
     alertEl.classList.add(getAnimOutClass());
 
+    // Vider les particules dès la sortie du widget
+    const particlesEl = document.getElementById('particles');
+    if (particlesEl) particlesEl.innerHTML = '';
+
     const animOutDur = parseInt(fieldData.animDurationOut, 10) || 500;
 
     _fallbackTimer = setTimeout(() => {
@@ -378,12 +383,12 @@ function _playAlert(type, username, message, amount, emotes) {
   }, duration);
 }
 
-// ─── API publique ───────────────────────────────────────────────────────────────────────────────────────────────────────────
+// ─── API publique ─────────────────────────────────────────────────────────────────────────────
 function showAlert(type, username, message, amount, emotes) {
   enqueueAlert(type, username, message || '', amount || '', emotes || []);
 }
 
-// ─── Détection gift sub ─────────────────────────────────────────────────────────────────────────────────────────────────────
+// ─── Détection gift sub ───────────────────────────────────────────────────────────────────────
 function isGiftSub(data) {
   return !!(
     data.isCommunityGift ||
@@ -394,7 +399,7 @@ function isGiftSub(data) {
   );
 }
 
-// ─── StreamElements Events ───────────────────────────────────────────────────────────────────────────────────────
+// ─── StreamElements Events ────────────────────────────────────────────────────────────────────
 window.addEventListener('onEventReceived', function (obj) {
   if (!obj.detail || !obj.detail.event) return;
   if (isLoading) return;
@@ -459,7 +464,7 @@ window.addEventListener('onEventReceived', function (obj) {
   }
 });
 
-// ─── Fonctions de test console ─────────────────────────────────────────────────────────────────────────────────────────────
+// ─── Fonctions de test console ────────────────────────────────────────────────────────────────
 window.testAlert = function(type = 'follow', name = 'TestUser') {
   const testData = {
     follow:    { msg: '',                         amount: '' },
