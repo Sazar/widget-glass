@@ -20,7 +20,10 @@ body {
 /* ── Widget principal ────────────────────────────────────────────────────── */
 .alert {
   display: none;
-  width: var(--widget-width, 660px);
+  /* Largeur fluide : s'adapte au contenu entre min et max */
+  width: fit-content;
+  min-width: var(--widget-width-min, 400px);
+  max-width: var(--widget-width, 660px);
   background: var(--glass-bg, rgba(20, 20, 35, 0.45));
   backdrop-filter: blur(var(--blur-intensity, 28px));
   -webkit-backdrop-filter: blur(var(--blur-intensity, 28px));
@@ -299,7 +302,8 @@ body {
   align-items: baseline;
   justify-content: center;
   gap: 10px;
-  min-width: 0;
+  /* Wrapping naturel si le contenu dépasse */
+  flex-wrap: wrap;
   max-width: 100%;
 }
 
@@ -320,33 +324,37 @@ body {
   line-height: 1;
   margin-top: 14px;
   margin-bottom: 0;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+  /* Suppression du clip : le texte peut s'étaler ou passer à la ligne */
+  white-space: normal;
+  overflow-wrap: break-word;
+  word-break: break-word;
   color: var(--username-color, #ffffff);
   background: none;
   -webkit-background-clip: unset;
   -webkit-text-fill-color: unset;
   background-clip: unset;
   cursor: default;
-  flex-shrink: 0;
+  /* flex-shrink autorisé pour ne pas forcer l'élargissement indéfini */
+  flex-shrink: 1;
+  min-width: 0;
 }
 
 /* Le message hérite exactement de la taille et couleur du pseudo */
 .message {
   font-family: 'Space Grotesk', 'Inter', sans-serif;
-  font-size: var(--username-size, 49px);   /* ← même variable que .username  */
+  font-size: var(--username-size, 49px);
   font-weight: 700;
   line-height: 1;
-  margin-top: 14px;                         /* aligne sur la baseline du pseudo */
+  margin-top: 14px;
   margin-bottom: 0;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  color: var(--username-color, #ffffff);   /* ← même variable que .username  */
+  white-space: normal;
+  overflow-wrap: break-word;
+  word-break: break-word;
+  color: var(--username-color, #ffffff);
   opacity: 0.92;
   transition: opacity 0.2s ease;
   min-width: 0;
+  flex-shrink: 1;
 }
 
 /* Masquage propre quand vide ou caché */
@@ -354,20 +362,6 @@ body {
 .message[style*="display: none"],
 .message[style*="display:none"] {
   display: none !important;
-}
-
-.amount {
-  font-size: var(--amount-size, 35px);
-  font-weight: 700;
-  color: var(--accent-color, #ff2ec4);
-  margin-top: 14px;                         /* aligne sur la baseline du pseudo */
-  text-shadow: 0 0 12px rgba(255, 46, 196, 0.5);
-  line-height: 1;
-}
-
-/* Masquage propre quand vide */
-.amount:empty {
-  display: none;
 }
 
 /* ── Particules ──────────────────────────────────────────────────────────── */
