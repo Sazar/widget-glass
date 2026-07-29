@@ -248,10 +248,6 @@ body {
 }
 
 /* ── Pseudo-éléments glass ──────────────────────────────────────────────── */
-/*
-  filter:blur retiré de ::before — il était hardcodé et ignorait enableGlow.
-  L'animation liquidFlow est conservée pour l'effet de dégradé animé en fond.
-*/
 .alert::before,
 .alert::after {
   content: '';
@@ -326,10 +322,6 @@ body {
 }
 
 /* ── Icône emoji ────────────────────────────────────────────────────────── */
-/*
-  Fallback 0px (et non 20px) : si onWidgetLoad n'a pas encore tiré,
-  aucun glow parasite n'apparaît. applySettings() écrase toujours cette valeur.
-*/
 .icon {
   font-size: var(--icon-size, 56px);
   line-height: 1;
@@ -350,9 +342,6 @@ body {
 }
 
 /* ── Type d'alerte ──────────────────────────────────────────────────────── */
-/*
-  Fallback 0px : même raison que .icon ci-dessus.
-*/
 .type {
   font-size: var(--type-size, 15.5px);
   font-weight: 600;
@@ -419,4 +408,46 @@ body {
 /* ── Fallback backdrop-filter ────────────────────────────────────────────── */
 @supports not (backdrop-filter: blur(1px)) {
   .alert { background: rgba(10, 10, 20, 0.88); }
+}
+
+/* ── AMÉLIORATION : prefers-reduced-motion ───────────────────────────────── */
+/*
+  Respecte le choix système de l'utilisateur (accessibilité).
+  Dans le contexte OBS/StreamElements, cela affecte surtout les previews
+  StreamElements et les tests en navigateur.
+  Les animations d'entrée/sortie passent à un simple fade, les particules
+  et effets de fond sont désactivés.
+*/
+@media (prefers-reduced-motion: reduce) {
+  /* Remplace toutes les animations entrée par un fadeIn simple */
+  [class*="anim-in-"] {
+    animation: kf-fadeIn var(--anim-duration-in) ease forwards !important;
+  }
+  /* Remplace toutes les animations sortie par un fadeOut simple */
+  [class*="anim-out-"] {
+    animation: kf-fadeOut var(--anim-duration-out) ease forwards !important;
+  }
+  /* Désactive l'animation de fond liquidFlow et highlight */
+  .alert::before,
+  .alert::after {
+    animation: none !important;
+  }
+  /* Désactive les particules visuellement (elles restent dans le DOM) */
+  .particles {
+    display: none !important;
+  }
+  /* Désactive les animations de la bulle message */
+  .viewer-message-bubble.visible {
+    animation: none !important;
+    opacity: 1;
+    transform: none;
+  }
+  .viewer-message-bubble.hiding {
+    animation: none !important;
+    opacity: 0;
+  }
+  /* Désactive la transition de l'icône */
+  .icon {
+    transition: none !important;
+  }
 }
