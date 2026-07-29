@@ -28,8 +28,28 @@ const alertEl    = document.getElementById('alert');
 const iconEl     = document.getElementById('icon');
 const typeEl     = document.getElementById('type');
 const usernameEl = document.getElementById('username');
-const messageEl  = document.getElementById('message');
+const messageEl  = document.getElementById('message');   // .viewer-message-bubble
 const progressEl = document.getElementById('progressBar');
+
+// ─── Helpers bulle message viewer ───────────────────────────────────────────────────────────────
+function showBubble(html, isHtml) {
+  if (!messageEl) return;
+  messageEl.classList.remove('hiding');
+  if (isHtml) messageEl.innerHTML   = html;
+  else        messageEl.textContent = html;
+  messageEl.classList.add('visible');
+}
+
+function hideBubble() {
+  if (!messageEl) return;
+  if (!messageEl.classList.contains('visible')) return;
+  messageEl.classList.add('hiding');
+  messageEl.addEventListener('animationend', () => {
+    messageEl.classList.remove('visible', 'hiding');
+    messageEl.textContent = '';
+    messageEl.innerHTML   = '';
+  }, { once: true });
+}
 
 // ─── StreamElements load ───────────────────────────────────────────────────────────────────────
 window.addEventListener('onWidgetLoad', function (obj) {
@@ -238,9 +258,12 @@ function processQueue() {
 
 // ─── Lecture d'une alerte ──────────────────────────────────────────────────────────────────────────────────────────
 function _playAlert(type, username, message, amount, emotes) {
-  messageEl.textContent   = '';
-  messageEl.innerHTML     = '';
-  messageEl.style.display = '';
+  // Cacher la bulle précédente immédiatement (sans animation) pour repartir propre
+  if (messageEl) {
+    messageEl.classList.remove('visible', 'hiding');
+    messageEl.textContent = '';
+    messageEl.innerHTML   = '';
+  }
 
   const types = {
     follow:    { icon: fieldData.iconFollow    || '\u2764\ufe0f',  text: fieldData.textFollow    || 'NOUVEAU FOLLOW'  },
@@ -263,7 +286,6 @@ function _playAlert(type, username, message, amount, emotes) {
   const template    = fieldData[keys.template] || '';
   const hasTemplate = template.trim() !== '';
 
-  // Indique si le streamer veut voir les messages tapés par les viewers
   const showViewerMsg = VIEWER_MSG_TYPES.includes(type) && parseBool(fieldData.showViewerMessage);
   const viewerMessage = (message || '').trim();
 
@@ -276,40 +298,38 @@ function _playAlert(type, username, message, amount, emotes) {
     recipient: type === 'giftsub' ? viewerMessage : ''
   };
 
+  // ── Calcul du contenu de la bulle ──────────────────────────────────────────
+  let bubbleText   = '';
+  let bubbleIsHtml = false;
+
   if (type === 'giftsub') {
-    // Gift sub : toujours afficher le template (contient {recipient})
     if (hasTemplate) {
-      const resolved = resolveTemplate(template, vars);
-      messageEl.textContent = resolved.trim() || '';
-      if (!resolved.trim()) messageEl.style.display = 'none';
-    } else {
-      const recipient = viewerMessage;
-      if (recipient) messageEl.textContent = recipient;
-      else           messageEl.style.display = 'none';
+      bubbleText = resolveTemplate(template, vars).trim();
+    } else if (viewerMessage) {
+      bubbleText = viewerMessage;
     }
   } else if (hasTemplate) {
-    // Template personnalisé : résoudre les balises
-    // Si le viewer a tapé un message ET la checkbox est cochée, on l'ajoute après le template
-    const resolved = resolveTemplate(template, vars);
-    let finalText = resolved.trim();
+    let finalText = resolveTemplate(template, vars).trim();
     if (showViewerMsg && viewerMessage && !template.includes('{message}')) {
       finalText = finalText ? finalText + ' — ' + viewerMessage : viewerMessage;
     }
-    if (finalText) {
-      messageEl.textContent = finalText;
-    } else {
-      messageEl.style.display = 'none';
-    }
+    bubbleText = finalText;
   } else if (showViewerMsg && viewerMessage) {
-    // Pas de template : afficher le message brut du viewer avec emotes
     const emoteHtml = renderEmotes(viewerMessage, emotes);
-    if (emoteHtml !== null) messageEl.innerHTML   = emoteHtml;
-    else                    messageEl.textContent = viewerMessage;
-  } else {
-    // Pas de message viewer à afficher
-    messageEl.style.display = 'none';
+    if (emoteHtml !== null) {
+      bubbleText   = emoteHtml;
+      bubbleIsHtml = true;
+    } else {
+      bubbleText = viewerMessage;
+    }
   }
 
+  // Afficher la bulle uniquement si on a du contenu
+  if (bubbleText) {
+    showBubble(bubbleText, bubbleIsHtml);
+  }
+
+  // ── Animation du widget ────────────────────────────────────────────────────
   alertEl.className = alertEl.className
     .split(' ')
     .filter(c => !c.startsWith('anim-in-') && !c.startsWith('anim-out-'))
@@ -331,6 +351,9 @@ function _playAlert(type, username, message, amount, emotes) {
   if (_fallbackTimer) clearTimeout(_fallbackTimer);
 
   hideTimer = setTimeout(() => {
+    // Cacher la bulle avec animation dès que le widget commence à sortir
+    hideBubble();
+
     if (progressEl) progressEl.classList.remove('active');
     alertEl.classList.remove(getAnimInClass());
     void alertEl.offsetWidth;
