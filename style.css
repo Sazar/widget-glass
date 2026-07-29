@@ -341,7 +341,7 @@ body {
   margin-bottom: 10px;
 }
 
-/* ── Pseudo ──────────────────────────────────────────────────────────────── */
+/* ── Ligne pseudo + template ─────────────────────────────────────────────────────── */
 .username-row {
   display: block;
   text-align: center;
@@ -349,7 +349,8 @@ body {
   line-height: 1.2;
 }
 
-.username {
+.username,
+.template-msg {
   font-family: 'Space Grotesk', 'Inter', sans-serif;
   font-size: var(--username-size, 49px);
   font-weight: 700;
@@ -361,6 +362,13 @@ body {
   word-break: break-word;
   vertical-align: baseline;
 }
+
+/* Espace automatique entre pseudo et template quand les deux sont présents */
+.username:not(:empty) + .template-msg:not(:empty)::before {
+  content: '\00A0';
+}
+
+.template-msg:empty { display: none; }
 
 /* ── Particules ──────────────────────────────────────────────────────────── */
 .particles {
