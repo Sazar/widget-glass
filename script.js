@@ -10,7 +10,7 @@ let _hideEndListener = null;
 const seenEventIds = new Set();
 const SEEN_MAX = 200;
 
-// ─── Map statique type → clés fieldData ────────────────────────────────────────────────────────────────────
+// ─── Map statique type → clés fieldData ─────────────────────────────────────────────────────────
 const TYPE_FIELD_KEYS = {
   follow:    { template: 'msgFollow',    sound: 'soundFollow'    },
   sub:       { template: 'msgSub',       sound: 'soundSub'       },
@@ -22,22 +22,22 @@ const TYPE_FIELD_KEYS = {
   hypetrain: { template: 'msgHypeTrain', sound: 'soundHypeTrain' }
 };
 
-// ─── Map statique type → icône + label (avoid recréation à chaque alerte) ────────────────────────────────────────────
+// ─── Map statique type → icône + label ──────────────────────────────────────────────────────────
 const ALERT_TYPES_META = {
-  follow:    { iconKey: 'iconFollow',    textKey: 'textFollow',    iconDefault: '\u2764\ufe0f', textDefault: 'NOUVEAU FOLLOW'         },
-  sub:       { iconKey: 'iconSub',       textKey: 'textSub',       iconDefault: '\u2b50',       textDefault: 'NOUVELLE SUB'           },
-  resub:     { iconKey: 'iconResub',     textKey: 'textResub',     iconDefault: '\ud83d\udd25', textDefault: 'RESUBSCRIPTION'         },
-  giftsub:   { iconKey: 'iconGiftSub',   textKey: 'textGiftSub',   iconDefault: '\ud83c\udf81', textDefault: 'GIFT SUB'               },
-  donation:  { iconKey: 'iconDonation',  textKey: 'textDonation',  iconDefault: '\ud83d\udc8e', textDefault: 'DONATION'               },
-  raid:      { iconKey: 'iconRaid',      textKey: 'textRaid',      iconDefault: '\u2694\ufe0f', textDefault: 'RAID INCOMING'          },
-  cheer:     { iconKey: 'iconCheer',     textKey: 'textCheer',     iconDefault: '\ud83c\udf89', textDefault: 'BITS'                   },
-  hypetrain: { iconKey: 'iconHypeTrain', textKey: 'textHypeTrain', iconDefault: '\ud83d\ude82', textDefault: 'HYPE TRAIN \ud83d\udd25' }
+  follow:    { iconKey: 'iconFollow',    textKey: 'textFollow',    iconDefault: '❤️', textDefault: 'NOUVEAU FOLLOW'      },
+  sub:       { iconKey: 'iconSub',       textKey: 'textSub',       iconDefault: '⭐',  textDefault: 'NOUVELLE SUB'        },
+  resub:     { iconKey: 'iconResub',     textKey: 'textResub',     iconDefault: '🔥', textDefault: 'RESUBSCRIPTION'      },
+  giftsub:   { iconKey: 'iconGiftSub',   textKey: 'textGiftSub',   iconDefault: '🎁', textDefault: 'GIFT SUB'            },
+  donation:  { iconKey: 'iconDonation',  textKey: 'textDonation',  iconDefault: '💎', textDefault: 'DONATION'            },
+  raid:      { iconKey: 'iconRaid',      textKey: 'textRaid',      iconDefault: '⚔️', textDefault: 'RAID INCOMING'       },
+  cheer:     { iconKey: 'iconCheer',     textKey: 'textCheer',     iconDefault: '🎉', textDefault: 'BITS'                },
+  hypetrain: { iconKey: 'iconHypeTrain', textKey: 'textHypeTrain', iconDefault: '🚂', textDefault: 'HYPE TRAIN 🔥'       }
 };
 
-// ─── Types d'alertes prioritaires (passent devant les follows dans la file) ────────────────────────────────────────────
+// ─── Types prioritaires (raid/hypetrain passent devant les follows) ──────────────────────────────
 const HIGH_PRIORITY_TYPES = new Set(['raid', 'hypetrain']);
 
-// ─── DOM refs ─────────────────────────────────────────────────────────────────────────────────────────
+// ─── DOM refs ────────────────────────────────────────────────────────────────────────────────────
 const alertEl       = document.getElementById('alert');
 const iconEl        = document.getElementById('icon');
 const typeEl        = document.getElementById('type');
@@ -46,13 +46,13 @@ const templateMsgEl = document.getElementById('templateMsg');
 const messageEl     = document.getElementById('message');
 const progressEl    = document.getElementById('progressBar');
 
-// ─── Helpers template ─────────────────────────────────────────────────────────────────────────────────────
+// ─── Template msg ────────────────────────────────────────────────────────────────────────────────
 function setTemplateMsg(text) {
   if (!templateMsgEl) return;
   templateMsgEl.textContent = text || '';
 }
 
-// ─── Helpers bulle message viewer ─────────────────────────────────────────────────────────────────────────────────
+// ─── Bulle message viewer ────────────────────────────────────────────────────────────────────────
 function showBubble(html, isHtml) {
   if (!messageEl) return;
   if (messageEl._hideListener) {
@@ -82,24 +82,24 @@ function hideBubble() {
   messageEl.addEventListener('animationend', messageEl._hideListener, { once: true });
 }
 
-// ─── StreamElements load ───────────────────────────────────────────────────────────────────────────────────
+// ─── onWidgetLoad ────────────────────────────────────────────────────────────────────────────────
 window.addEventListener('onWidgetLoad', function (obj) {
   fieldData = obj.detail.fieldData;
   applySettings();
   setTimeout(() => {
     isLoading = false;
-    const urlParams = new URLSearchParams(window.location.search);
+    const urlParams   = new URLSearchParams(window.location.search);
     const previewType = urlParams.get('preview');
     if (previewType && ALERT_TYPES_META[previewType]) {
       const previewData = {
-        follow:    { msg: '',                          amount: '' },
-        sub:       { msg: 'Super stream !',            amount: '' },
-        resub:     { msg: 'Fid\u00e8le depuis le d\u00e9but !',  amount: '6' },
-        giftsub:   { msg: 'DestUser',                  amount: '5' },
-        donation:  { msg: 'Continue comme \u00e7a !',         amount: '10 \u20ac' },
-        raid:      { msg: '',                          amount: '87' },
-        cheer:     { msg: 'HYPE !',                    amount: '1000' },
-        hypetrain: { msg: 'Niveau 3',                  amount: '3' }
+        follow:    { msg: '',                         amount: ''     },
+        sub:       { msg: 'Super stream !',           amount: ''     },
+        resub:     { msg: 'Fidèle depuis le début !', amount: '6'    },
+        giftsub:   { msg: 'DestUser',                 amount: '5'    },
+        donation:  { msg: 'Continue comme ça !',      amount: '10 €' },
+        raid:      { msg: '',                         amount: '87'   },
+        cheer:     { msg: 'HYPE !',                   amount: '1000' },
+        hypetrain: { msg: 'Niveau 3',                 amount: '3'    }
       };
       const d = previewData[previewType] || previewData.follow;
       showAlert(previewType, 'PreviewUser', d.msg, d.amount);
@@ -108,15 +108,13 @@ window.addEventListener('onWidgetLoad', function (obj) {
 });
 
 window.addEventListener('onSessionUpdate', function (obj) {
-  if (obj && obj.detail && obj.detail.session) {
-    if (obj.detail.session.fieldData) {
-      fieldData = { ...fieldData, ...obj.detail.session.fieldData };
-      applySettings();
-    }
+  if (obj && obj.detail && obj.detail.session && obj.detail.session.fieldData) {
+    fieldData = { ...fieldData, ...obj.detail.session.fieldData };
+    applySettings();
   }
 });
 
-// ─── Apply CSS variables from fields ─────────────────────────────────────────────────────────────────────────────────
+// ─── applySettings ───────────────────────────────────────────────────────────────────────────────
 function applySettings() {
   const root = document.documentElement;
   root.style.setProperty('--widget-width',      (fieldData.widgetWidth   || 660)  + 'px');
@@ -145,7 +143,7 @@ function applySettings() {
   }
 
   const dur = Math.min(60000, Math.max(1000, parseInt(fieldData.duration, 10) || 7000));
-  root.style.setProperty('--duration', dur + 'ms');
+  root.style.setProperty('--duration',           dur + 'ms');
   root.style.setProperty('--anim-duration-in',  (parseInt(fieldData.animDurationIn,  10) || 600)  + 'ms');
   root.style.setProperty('--anim-duration-out', (parseInt(fieldData.animDurationOut, 10) || 500)  + 'ms');
   root.style.setProperty('--progress-color-1',   fieldData.progressBarColor1 || fieldData.primaryColor || '#00f5ff');
@@ -154,7 +152,7 @@ function applySettings() {
   applyThemePreset(fieldData.themePreset || 'custom', glowBgEnabled);
 }
 
-// ─── hexToRgba robuste ────────────────────────────────────────────────────────────────────────────────────────────
+// ─── hexToRgba ───────────────────────────────────────────────────────────────────────────────────
 function hexToRgba(hex, alpha) {
   if (!hex || typeof hex !== 'string') return `rgba(0,245,255,${alpha})`;
   hex = hex.trim();
@@ -169,7 +167,7 @@ function hexToRgba(hex, alpha) {
   return `rgba(${r},${g},${b},${alpha})`;
 }
 
-// ─── Position du widget ────────────────────────────────────────────────────────────────────────────────────────────
+// ─── Position ────────────────────────────────────────────────────────────────────────────────────
 function applyPosition(pos) {
   const map = {
     'top-left':      ['flex-start', 'flex-start'],
@@ -185,7 +183,7 @@ function applyPosition(pos) {
   document.body.style.justifyContent = justify;
 }
 
-// ─── Presets de thème ────────────────────────────────────────────────────────────────────────────────────────────
+// ─── Presets de thème ────────────────────────────────────────────────────────────────────────────
 const THEME_PRESETS = {
   'neon-cyan':     { primary: '#00f5ff', typeColor: '#00f5ff', usernameColor: '#ffffff' },
   'gold':          { primary: '#ffd700', typeColor: '#ffd700', usernameColor: '#fff8dc' },
@@ -200,18 +198,17 @@ function applyThemePreset(preset, glowBgEnabled) {
   if (!theme) return;
   const root = document.documentElement;
   root.style.setProperty('--primary-color', theme.primary);
-  if (glowBgEnabled !== false) {
+  if (glowBgEnabled !== false)
     root.style.setProperty('--primary-color-soft', hexToRgba(theme.primary, 0.25));
-  }
   root.style.setProperty('--type-color',     theme.typeColor);
   root.style.setProperty('--username-color', theme.usernameColor);
 }
 
-// ─── Animations entrée / sortie ──────────────────────────────────────────────────────────────────────────────────────
+// ─── Animations ──────────────────────────────────────────────────────────────────────────────────
 function getAnimInClass()  { return 'anim-in-'  + (fieldData.animIn  || 'popIn');  }
 function getAnimOutClass() { return 'anim-out-' + (fieldData.animOut || 'popOut'); }
 
-// ─── Couleur de particule selon le type d'alerte ───────────────────────────────────────────────────────────────────
+// ─── Particules ──────────────────────────────────────────────────────────────────────────────────
 const PARTICLE_COLORS = {
   follow:    ['#ff6b8a', '#ff2ec4'],
   sub:       ['#ffd700', '#ffaa00'],
@@ -223,7 +220,6 @@ const PARTICLE_COLORS = {
   hypetrain: ['#ffd700', '#ff6600']
 };
 
-// ─── Particules ─────────────────────────────────────────────────────────────────────────────────────────────────────
 function createParticles(alertType, container) {
   container.innerHTML = '';
   if (!parseBool(fieldData.showParticles)) return;
@@ -251,23 +247,22 @@ function createParticles(alertType, container) {
   }
 }
 
-// ─── Sons ───────────────────────────────────────────────────────────────────────────────────────────────────────────────
+// ─── Sons ────────────────────────────────────────────────────────────────────────────────────────
 function playSound(type) {
   const keys = TYPE_FIELD_KEYS[type];
   const url  = keys ? fieldData[keys.sound] : '';
   if (!url || url.trim() === '') return;
-  const audio = new Audio(url);
+  const audio  = new Audio(url);
   const rawVol = parseFloat(fieldData.soundVolume);
-  const vol    = Number.isFinite(rawVol)
+  audio.volume = Number.isFinite(rawVol)
     ? Math.min(1, Math.max(0, rawVol > 1 ? rawVol / 100 : rawVol))
     : 0.7;
-  audio.volume = vol;
-  audio.play().catch(err => {
-    console.warn(`[widget-glass] Son "${type}" inaccessible (${url}):`, err.message);
-  });
+  audio.play().catch(err =>
+    console.warn(`[widget-glass] Son "${type}" inaccessible (${url}):`, err.message)
+  );
 }
 
-// ─── Barre de progression ────────────────────────────────────────────────────────────────────────────────────
+// ─── Barre de progression ────────────────────────────────────────────────────────────────────────
 function startProgressBar(duration) {
   if (!progressEl) return;
   if (!parseBool(fieldData.showProgressBar)) { progressEl.classList.remove('active'); return; }
@@ -284,7 +279,7 @@ function stopProgressBar() {
   progressEl.style.display = 'none';
 }
 
-// ─── Emotes Twitch ────────────────────────────────────────────────────────────────────────────────────────────────────
+// ─── Emotes ──────────────────────────────────────────────────────────────────────────────────────
 function renderEmotes(text, emotes) {
   if (!emotes || !emotes.length || !text) return null;
   const dict = {};
@@ -295,12 +290,12 @@ function renderEmotes(text, emotes) {
   const safe = text.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
   return safe.replace(/\b(\S+)\b/g, match => {
     if (!dict[match]) return match;
-    const escapedName = match.replace(/"/g, '&quot;').replace(/>/g, '&gt;');
-    return `<img src="${dict[match]}" alt="${escapedName}" title="${escapedName}" style="height:1.2em;vertical-align:middle;display:inline;" loading="lazy">`;
+    const n = match.replace(/"/g, '&quot;').replace(/>/g, '&gt;');
+    return `<img src="${dict[match]}" alt="${n}" title="${n}" style="height:1.2em;vertical-align:middle;display:inline;" loading="lazy">`;
   });
 }
 
-// ─── Résolution des templates ────────────────────────────────────────────────────────────────────────────────────────
+// ─── Templates ───────────────────────────────────────────────────────────────────────────────────
 function resolveTemplate(template, vars) {
   if (!template) return '';
   return template
@@ -312,7 +307,7 @@ function resolveTemplate(template, vars) {
     .replace(/\{recipient\}/gi, vars.recipient || '');
 }
 
-// ─── Parse booléen robuste ──────────────────────────────────────────────────────────────────────────────────────────
+// ─── parseBool ───────────────────────────────────────────────────────────────────────────────────
 function parseBool(val) {
   if (typeof val === 'boolean') return val;
   if (typeof val === 'string') {
@@ -324,7 +319,7 @@ function parseBool(val) {
 
 const VIEWER_MSG_TYPES = ['sub', 'resub', 'donation', 'cheer'];
 
-// ─── File d'attente avec priorité ────────────────────────────────────────────────────────────────────────────────────
+// ─── File d'attente avec priorité ────────────────────────────────────────────────────────────────
 function enqueueAlert(type, username, message, amount, emotes) {
   const item = { type, username, message, amount, emotes: emotes || [] };
   if (HIGH_PRIORITY_TYPES.has(type)) {
@@ -344,13 +339,12 @@ function processQueue() {
   _playAlert(item.type, item.username, item.message, item.amount, item.emotes || []);
 }
 
-// ─── Scale icône — piloté entièrement par JS ─────────────────────────────────────────────────────────────────────────
+// ─── Scale icône ─────────────────────────────────────────────────────────────────────────────────
 //
-// Principe : aucune règle CSS statique ne pilote transform sur .icon.
-// À l'entrée : on set scale(1.15) via iconEl.style.transform.
-// Au déclenchement de la sortie : on reset à scale(1) AVANT d'ajouter
-// la classe anim-out-, évitant tout snap visible au dernier frame.
-// Après la sortie complète : on vide iconEl.style.transform = ''.
+// RÈGLE : l'icône est mise à scale(1.15) à l'ENTRÉE et ne revient JAMAIS
+// à scale(1) de manière visible. Le reset se fait uniquement APRÈS que
+// le widget a disparu (animationend de sortie ou fallback timer).
+// Cela évite tout saut visuel pendant la sortie.
 //
 function setIconScale(scale) {
   if (iconEl) iconEl.style.transform = `scale(${scale})`;
@@ -359,7 +353,7 @@ function resetIconScale() {
   if (iconEl) iconEl.style.transform = '';
 }
 
-// ─── Lecture d'une alerte ───────────────────────────────────────────────────────────────────────────────────────────
+// ─── Lecture d'une alerte ────────────────────────────────────────────────────────────────────────
 function _playAlert(type, username, message, amount, emotes) {
   setTemplateMsg('');
   if (messageEl) {
@@ -394,8 +388,8 @@ function _playAlert(type, username, message, amount, emotes) {
   };
 
   if (template.trim() !== '') {
-    const templateWithoutUsername = template.replace(/\{username\}\s*/gi, '').trim();
-    const resolved = resolveTemplate(templateWithoutUsername, vars).trim();
+    const tpl      = template.replace(/\{username\}\s*/gi, '').trim();
+    const resolved = resolveTemplate(tpl, vars).trim();
     if (resolved) setTemplateMsg(resolved);
   }
 
@@ -405,13 +399,14 @@ function _playAlert(type, username, message, amount, emotes) {
     else                    showBubble(viewerMessage, false);
   }
 
+  // Nettoie les classes d'animation précédentes
   alertEl.className = alertEl.className
     .split(' ')
     .filter(c => !c.startsWith('anim-in-') && !c.startsWith('anim-out-'))
     .join(' ');
   void alertEl.offsetWidth;
 
-  // — Scale icône à 1.15 dès l'entrée
+  // Icône agrandie à l'entrée — restera à cette taille jusqu'à la FIN de la sortie
   setIconScale(1.15);
 
   alertEl.classList.add(getAnimInClass());
@@ -434,9 +429,12 @@ function _playAlert(type, username, message, amount, emotes) {
     hideBubble();
     stopProgressBar();
 
-    // — Reset icône à scale(1) AVANT d'ajouter anim-out-
-    //   évite tout snap visible au dernier frame
-    setIconScale(1);
+    // ─────────────────────────────────────────────────────────────────────
+    // PAS de setIconScale(1) ici.
+    // L'icône reste à scale(1.15) et disparaît avec le widget.
+    // Le reset se fait UNIQUEMENT dans onHideEnd / fallback, quand
+    // le widget est déjà invisible → zéro saut visuel.
+    // ─────────────────────────────────────────────────────────────────────
 
     alertEl.classList.remove(getAnimInClass());
     void alertEl.offsetWidth;
@@ -451,40 +449,34 @@ function _playAlert(type, username, message, amount, emotes) {
         alertEl.removeEventListener('animationend', _hideEndListener);
         _hideEndListener = null;
         alertEl.classList.remove(getAnimOutClass());
-        resetIconScale();
+        resetIconScale(); // reset APRÈS disparition
         processQueue();
       }
     }, animOutDur + 200);
 
     _hideEndListener = function onHideEnd() {
       clearTimeout(_fallbackTimer);
-      _fallbackTimer = null;
+      _fallbackTimer   = null;
       _hideEndListener = null;
       alertEl.classList.remove(getAnimOutClass());
-      resetIconScale();
+      resetIconScale(); // reset APRÈS disparition
       processQueue();
     };
     alertEl.addEventListener('animationend', _hideEndListener, { once: true });
   }, duration);
 }
 
-// ─── API publique ─────────────────────────────────────────────────────────────────────────────────────────────────
+// ─── API publique ────────────────────────────────────────────────────────────────────────────────
 function showAlert(type, username, message, amount, emotes) {
   enqueueAlert(type, username, message || '', amount || '', emotes || []);
 }
 
-// ─── Détection gift sub ────────────────────────────────────────────────────────────────────────────────────────────
+// ─── Détection gift sub ──────────────────────────────────────────────────────────────────────────
 function isGiftSub(data) {
-  return !!(
-    data.isCommunityGift ||
-    data.gifted          ||
-    data.isGift          ||
-    data.sender          ||
-    data.gifter
-  );
+  return !!(data.isCommunityGift || data.gifted || data.isGift || data.sender || data.gifter);
 }
 
-// ─── StreamElements Events ────────────────────────────────────────────────────────────────────────────────────────
+// ─── StreamElements Events ───────────────────────────────────────────────────────────────────────
 window.addEventListener('onEventReceived', function (obj) {
   if (!obj.detail || !obj.detail.event) return;
   if (isLoading) return;
@@ -499,22 +491,19 @@ window.addEventListener('onEventReceived', function (obj) {
   if (seenEventIds.has(eventId)) return;
 
   if (seenEventIds.size >= SEEN_MAX) {
-    const oldest = seenEventIds.values().next().value;
-    seenEventIds.delete(oldest);
+    seenEventIds.delete(seenEventIds.values().next().value);
   }
   seenEventIds.add(eventId);
   setTimeout(() => seenEventIds.delete(eventId), 10000);
 
-  if (listener === 'follower-latest' && parseBool(fieldData.showFollow)) {
+  if (listener === 'follower-latest' && parseBool(fieldData.showFollow))
     showAlert('follow', data.name, data.message || '', '', emotes);
-  }
 
   if (listener === 'subscriber-latest' && !isGiftSub(data)) {
-    if (data.amount > 1 && parseBool(fieldData.showResub)) {
+    if (data.amount > 1 && parseBool(fieldData.showResub))
       showAlert('resub', data.name, data.message || '', `${data.amount}`, emotes);
-    } else if (parseBool(fieldData.showSub)) {
+    else if (parseBool(fieldData.showSub))
       showAlert('sub', data.name, data.message || '', '', emotes);
-    }
   }
 
   if (
@@ -526,41 +515,39 @@ window.addEventListener('onEventReceived', function (obj) {
     const qty       = data.amount || data.quantity || data.count || 1;
     const giftedStr = typeof data.gifted === 'string' ? data.gifted : '';
     const recipient = data.recipientDisplayName || data.recipient || giftedStr || '';
-    const gifter    = data.name || data.sender   || data.gifter  || 'Anonyme';
+    const gifter    = data.name || data.sender || data.gifter || 'Anonyme';
     showAlert('giftsub', gifter, recipient, String(qty), []);
   }
 
   if (listener === 'tip-latest' && parseBool(fieldData.showDonation)) {
-    const currency = data.currency || fieldData.donationCurrency || '\u20ac';
+    const currency = data.currency || fieldData.donationCurrency || '€';
     showAlert('donation', data.name, data.message || '', `${data.amount} ${currency}`, emotes);
   }
 
-  if (listener === 'raid-latest' && parseBool(fieldData.showRaid)) {
+  if (listener === 'raid-latest' && parseBool(fieldData.showRaid))
     showAlert('raid', data.name, data.message || '', String(data.amount || ''), []);
-  }
 
-  if (listener === 'cheer-latest' && parseBool(fieldData.showCheer)) {
+  if (listener === 'cheer-latest' && parseBool(fieldData.showCheer))
     showAlert('cheer', data.name, data.message || '', String(data.amount || ''), emotes);
-  }
 
   if ((listener === 'hype-train-start' || listener === 'hype-train-end') && parseBool(fieldData.showHypeTrain)) {
     const level  = data.level || data.current || '';
-    const suffix = listener === 'hype-train-end' ? 'TERMIN\u00c9 !' : `Niveau ${level}`;
+    const suffix = listener === 'hype-train-end' ? 'TERMINÉ !' : `Niveau ${level}`;
     showAlert('hypetrain', 'HYPE TRAIN', suffix, String(level), []);
   }
 });
 
-// ─── Fonctions de test console ───────────────────────────────────────────────────────────────────────────────────────────
+// ─── Fonctions de test console ───────────────────────────────────────────────────────────────────
 window.testAlert = function(type = 'follow', name = 'TestUser') {
   const testData = {
-    follow:    { msg: '',                                    amount: '' },
-    sub:       { msg: 'Super stream !',                      amount: '' },
-    resub:     { msg: 'Fid\u00e8le depuis le d\u00e9but !', amount: '3' },
-    giftsub:   { msg: 'DestUser',                            amount: '5' },
-    donation:  { msg: 'Merci !',                             amount: '10 \u20ac' },
-    raid:      { msg: '',                                    amount: '42' },
-    cheer:     { msg: 'Hype !',                              amount: '500' },
-    hypetrain: { msg: 'Niveau 2',                            amount: '2' }
+    follow:    { msg: '',                         amount: ''     },
+    sub:       { msg: 'Super stream !',           amount: ''     },
+    resub:     { msg: 'Fidèle depuis le début !', amount: '3'    },
+    giftsub:   { msg: 'DestUser',                 amount: '5'    },
+    donation:  { msg: 'Merci !',                  amount: '10 €' },
+    raid:      { msg: '',                         amount: '42'   },
+    cheer:     { msg: 'Hype !',                   amount: '500'  },
+    hypetrain: { msg: 'Niveau 2',                 amount: '2'    }
   };
   const d = testData[type] || testData.follow;
   showAlert(type, name, d.msg, d.amount);
@@ -584,7 +571,6 @@ window.skipAlert = function() {
   stopProgressBar();
   const particlesContainer = document.getElementById('particles');
   if (particlesContainer) particlesContainer.innerHTML = '';
-  alertEl.classList.remove(getAnimInClass());
   alertEl.className = alertEl.className
     .split(' ')
     .filter(c => !c.startsWith('anim-in-') && !c.startsWith('anim-out-'))
@@ -592,10 +578,10 @@ window.skipAlert = function() {
   resetIconScale();
   isPlaying = false;
   processQueue();
-  console.log('[widget-glass] Alerte saut\u00e9e.');
+  console.log('[widget-glass] Alerte sautée.');
 };
 
 window.clearQueue = function() {
   alertQueue.length = 0;
-  console.log('[widget-glass] File vid\u00e9e.');
+  console.log('[widget-glass] File vidée.');
 };
