@@ -20,16 +20,17 @@ body {
 /* ── Widget principal ────────────────────────────────────────────────────── */
 .alert {
   display: none;
-  /* Largeur fluide : s'adapte au contenu entre min et max */
-  width: fit-content;
-  min-width: var(--widget-width-min, 400px);
-  max-width: var(--widget-width, 660px);
+  /* Largeur fixe définie par le champ widgetWidth — ne rétrécit jamais */
+  width: var(--widget-width, 660px);
+  /* Hauteur libre : grandit vers le bas si le texte est long */
+  height: auto;
   background: var(--glass-bg, rgba(20, 20, 35, 0.45));
   backdrop-filter: blur(var(--blur-intensity, 28px));
   -webkit-backdrop-filter: blur(var(--blur-intensity, 28px));
   border-radius: var(--border-radius, 28px);
   padding: 34px 44px;
   position: relative;
+  /* overflow visible pour que le contenu puisse pousser la hauteur */
   overflow: hidden;
   box-shadow:
     0 10px 50px rgba(0, 0, 0, 0.6),
@@ -295,16 +296,19 @@ body {
   align-items: center;
 }
 
-/* ── Ligne pseudo + message côte à côte ─────────────────────────────────── */
+/* ── Ligne pseudo + message : toujours sur la même ligne, wrap en hauteur ── */
 .username-row {
   display: flex;
   flex-direction: row;
   align-items: baseline;
   justify-content: center;
   gap: 10px;
-  /* Wrapping naturel si le contenu dépasse */
-  flex-wrap: wrap;
-  max-width: 100%;
+  /* PAS de flex-wrap : pseudo et message restent toujours côte à côte */
+  flex-wrap: nowrap;
+  /* La ligne peut dépasser la largeur du widget puis revient à la ligne
+     grâce au overflow-wrap sur les enfants */
+  width: 100%;
+  min-width: 0;
 }
 
 /* ── Textes ──────────────────────────────────────────────────────────────── */
@@ -321,22 +325,24 @@ body {
   font-family: 'Space Grotesk', 'Inter', sans-serif;
   font-size: var(--username-size, 49px);
   font-weight: 700;
-  line-height: 1;
+  line-height: 1.15;
   margin-top: 14px;
   margin-bottom: 0;
-  /* Suppression du clip : le texte peut s'étaler ou passer à la ligne */
+  /* Texte court : tient sur une ligne.
+     Texte long : se coupe proprement à la largeur disponible */
   white-space: normal;
   overflow-wrap: break-word;
   word-break: break-word;
+  /* Occupe au max la moitié de la ligne quand le message est présent */
+  flex: 1 1 0;
+  min-width: 0;
   color: var(--username-color, #ffffff);
   background: none;
   -webkit-background-clip: unset;
   -webkit-text-fill-color: unset;
   background-clip: unset;
   cursor: default;
-  /* flex-shrink autorisé pour ne pas forcer l'élargissement indéfini */
-  flex-shrink: 1;
-  min-width: 0;
+  text-align: right;
 }
 
 /* Le message hérite exactement de la taille et couleur du pseudo */
@@ -344,17 +350,29 @@ body {
   font-family: 'Space Grotesk', 'Inter', sans-serif;
   font-size: var(--username-size, 49px);
   font-weight: 700;
-  line-height: 1;
+  line-height: 1.15;
   margin-top: 14px;
   margin-bottom: 0;
   white-space: normal;
   overflow-wrap: break-word;
   word-break: break-word;
+  flex: 1 1 0;
+  min-width: 0;
   color: var(--username-color, #ffffff);
   opacity: 0.92;
   transition: opacity 0.2s ease;
-  min-width: 0;
-  flex-shrink: 1;
+  text-align: left;
+}
+
+/* Quand le message est absent : le pseudo reprend toute la largeur et se centre */
+.message:empty ~ .username,
+.username:only-child {
+  flex: unset;
+  text-align: center;
+}
+
+.username:only-child {
+  text-align: center;
 }
 
 /* Masquage propre quand vide ou caché */
@@ -362,6 +380,14 @@ body {
 .message[style*="display: none"],
 .message[style*="display:none"] {
   display: none !important;
+}
+
+/* Quand message masqué, le pseudo reprend toute la ligne centré */
+.username-row:has(.message[style*="display: none"]) .username,
+.username-row:has(.message:empty) .username {
+  flex: unset;
+  text-align: center;
+  width: 100%;
 }
 
 /* ── Particules ──────────────────────────────────────────────────────────── */
