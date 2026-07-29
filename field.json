@@ -364,12 +364,6 @@
     "value": "HYPE TRAIN 🔥",
     "group": "🏷️ Icônes & Textes"
   },
-  "_msgHint": {
-    "type": "text",
-    "label": "Balises : {username} {amount} {message} {months} {count} {recipient}",
-    "value": "",
-    "group": "💬 Messages personnalisés"
-  },
   "msgFollow": {
     "type": "text",
     "label": "Message Follow",
