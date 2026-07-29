@@ -289,6 +289,12 @@
     "value": "vient de s'abonner !",
     "group": "⭐ Sub"
   },
+  "showSubMessage": {
+    "type": "checkbox",
+    "label": "💬 Afficher le message du viewer",
+    "value": true,
+    "group": "⭐ Sub"
+  },
   "soundSub": {
     "type": "sound-input",
     "label": "Son",
@@ -326,6 +332,12 @@
     "type": "text",
     "label": "Template · ex : resub x{months} mois !",
     "value": "resub x{months} mois !",
+    "group": "🔥 Resub"
+  },
+  "showResubMessage": {
+    "type": "checkbox",
+    "label": "💬 Afficher le message du viewer",
+    "value": true,
     "group": "🔥 Resub"
   },
   "soundResub": {
@@ -406,6 +418,12 @@
     "value": "a donné {amount} !",
     "group": "💎 Donation"
   },
+  "showDonationMessage": {
+    "type": "checkbox",
+    "label": "💬 Afficher le message du viewer",
+    "value": true,
+    "group": "💎 Donation"
+  },
   "soundDonation": {
     "type": "sound-input",
     "label": "Son",
@@ -482,6 +500,12 @@
     "type": "text",
     "label": "Template · ex : a envoyé {amount} bits !",
     "value": "a envoyé {amount} bits !",
+    "group": "🎉 Cheer (Bits)"
+  },
+  "showCheerMessage": {
+    "type": "checkbox",
+    "label": "💬 Afficher le message du viewer",
+    "value": true,
     "group": "🎉 Cheer (Bits)"
   },
   "soundCheer": {
