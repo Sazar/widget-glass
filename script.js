@@ -11,6 +11,19 @@ let _hideEndListener = null;
 const seenEventIds = new Set();
 const SEEN_MAX = 200;
 
+// ─── Map statique type → clés fieldData ───────────────────────────────────────────────────────────────────
+// Évite les bugs de casse dynamique (ex: 'giftsub' → 'msgGiftsub' au lieu de 'msgGiftSub')
+const TYPE_FIELD_KEYS = {
+  follow:    { template: 'msgFollow',    sound: 'soundFollow'    },
+  sub:       { template: 'msgSub',       sound: 'soundSub'       },
+  resub:     { template: 'msgResub',     sound: 'soundResub'     },
+  giftsub:   { template: 'msgGiftSub',   sound: 'soundGiftSub'   },
+  donation:  { template: 'msgDonation',  sound: 'soundDonation'  },
+  raid:      { template: 'msgRaid',      sound: 'soundRaid'      },
+  cheer:     { template: 'msgCheer',     sound: 'soundCheer'     },
+  hypetrain: { template: 'msgHypeTrain', sound: 'soundHypeTrain' }
+};
+
 // ─── DOM refs ────────────────────────────────────────────────────────────────────────────────────
 const alertEl    = document.getElementById('alert');
 const iconEl     = document.getElementById('icon');
@@ -83,7 +96,7 @@ function applyPosition(pos) {
   document.body.style.justifyContent = justify;
 }
 
-// ─── Presets de thème ──────────────────────────────────────────────────────────────────────────────────────
+// ─── Presets de thème ─────────────────────────────────────────────────────────────────────────────────────
 const THEME_PRESETS = {
   'neon-cyan':     { primary: '#00f5ff', typeColor: '#00f5ff', usernameColor: '#ffffff' },
   'gold':          { primary: '#ffd700', typeColor: '#ffd700', usernameColor: '#fff8dc' },
@@ -148,8 +161,8 @@ function createParticles(alertType) {
 
 // ─── Sons ──────────────────────────────────────────────────────────────────────────────────────────────────
 function playSound(type) {
-  const key = 'sound' + type.charAt(0).toUpperCase() + type.slice(1);
-  const url = fieldData[key];
+  const keys = TYPE_FIELD_KEYS[type];
+  const url  = keys ? fieldData[keys.sound] : '';
   if (!url || url.trim() === '') return;
   const audio = new Audio(url);
   audio.volume = Math.min(1, Math.max(0, parseFloat(fieldData.soundVolume) || 0.7));
@@ -241,14 +254,15 @@ function _playAlert(type, username, message, amount, emotes) {
   usernameEl.textContent = username;
   usernameEl.title       = username || '';
 
-  const templateKey = 'msg' + type.charAt(0).toUpperCase() + type.slice(1);
-  const template    = fieldData[templateKey];
-  const hasTemplate = template && template.trim() !== '';
+  // Clé de template via map statique — évite les bugs de casse
+  const keys        = TYPE_FIELD_KEYS[type] || {};
+  const template    = fieldData[keys.template] || '';
+  const hasTemplate = template.trim() !== '';
 
   // Pour giftsub :
-  //   username  = le gifter (ex: "Swerkx")
+  //   username  = le gifter  (ex: "Swerkx")
   //   message   = le recipient (ex: "DestUser") — passé depuis le handler
-  //   amount    = la quantité (ex: "5")
+  //   amount    = la quantité  (ex: "5")
   const vars = {
     username:  username || '',
     amount:    amount   || '',
