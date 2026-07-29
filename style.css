@@ -296,9 +296,9 @@ body {
 .username-row {
   display: flex;
   flex-direction: row;
-  align-items: baseline;      /* alignement sur la ligne de base du texte    */
+  align-items: baseline;
   justify-content: center;
-  gap: 10px;                  /* espace entre pseudo et message               */
+  gap: 10px;
   min-width: 0;
   max-width: 100%;
 }
@@ -329,27 +329,28 @@ body {
   -webkit-text-fill-color: unset;
   background-clip: unset;
   cursor: default;
-  flex-shrink: 0;             /* le pseudo ne se réduit jamais                */
+  flex-shrink: 0;
 }
 
+/* Le message hérite exactement de la taille et couleur du pseudo */
 .message {
-  font-size: var(--message-size, 23px);
-  margin-top: 14px;           /* aligne verticalement avec le pseudo          */
-  opacity: 0.92;
-  font-weight: 500;
+  font-family: 'Space Grotesk', 'Inter', sans-serif;
+  font-size: var(--username-size, 49px);   /* ← même variable que .username  */
+  font-weight: 700;
   line-height: 1;
+  margin-top: 14px;                         /* aligne sur la baseline du pseudo */
+  margin-bottom: 0;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  color: rgba(255,255,255,0.9);
+  color: var(--username-color, #ffffff);   /* ← même variable que .username  */
+  opacity: 0.92;
   transition: opacity 0.2s ease;
   min-width: 0;
 }
 
-/* Quand le message est vide/caché, pas d'espace résiduel */
-.message:empty {
-  display: none;
-}
+/* Masquage propre quand vide ou caché */
+.message:empty,
 .message[style*="display: none"],
 .message[style*="display:none"] {
   display: none !important;
@@ -359,8 +360,14 @@ body {
   font-size: var(--amount-size, 35px);
   font-weight: 700;
   color: var(--accent-color, #ff2ec4);
-  margin-top: 10px;
+  margin-top: 14px;                         /* aligne sur la baseline du pseudo */
   text-shadow: 0 0 12px rgba(255, 46, 196, 0.5);
+  line-height: 1;
+}
+
+/* Masquage propre quand vide */
+.amount:empty {
+  display: none;
 }
 
 /* ── Particules ──────────────────────────────────────────────────────────── */
