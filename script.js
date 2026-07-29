@@ -1,4 +1,4 @@
-// ─── State ───────────────────────────────────────────────────────────────────────────────────
+// ─── State ───────────────────────────────────────────────────────────────────────────────────────
 let fieldData = {};
 let alertQueue = [];
 let isPlaying = false;
@@ -10,7 +10,7 @@ let _hideEndListener = null;
 const seenEventIds = new Set();
 const SEEN_MAX = 200;
 
-// ─── Map statique type → clés fieldData ──────────────────────────────────────────────────────
+// ─── Map statique type → clés fieldData ────────────────────────────────────────────────────────────────────
 const TYPE_FIELD_KEYS = {
   follow:    { template: 'msgFollow',    sound: 'soundFollow'    },
   sub:       { template: 'msgSub',       sound: 'soundSub'       },
@@ -22,7 +22,7 @@ const TYPE_FIELD_KEYS = {
   hypetrain: { template: 'msgHypeTrain', sound: 'soundHypeTrain' }
 };
 
-// ─── Map statique type → icône + label (évite recréation à chaque alerte) ────────────────────
+// ─── Map statique type → icône + label (avoid recréation à chaque alerte) ────────────────────────────────────────────
 const ALERT_TYPES_META = {
   follow:    { iconKey: 'iconFollow',    textKey: 'textFollow',    iconDefault: '\u2764\ufe0f', textDefault: 'NOUVEAU FOLLOW'         },
   sub:       { iconKey: 'iconSub',       textKey: 'textSub',       iconDefault: '\u2b50',       textDefault: 'NOUVELLE SUB'           },
@@ -34,10 +34,10 @@ const ALERT_TYPES_META = {
   hypetrain: { iconKey: 'iconHypeTrain', textKey: 'textHypeTrain', iconDefault: '\ud83d\ude82', textDefault: 'HYPE TRAIN \ud83d\udd25' }
 };
 
-// ─── Types d'alertes prioritaires (passent devant les follows dans la file) ──────────────────
+// ─── Types d'alertes prioritaires (passent devant les follows dans la file) ────────────────────────────────────────────
 const HIGH_PRIORITY_TYPES = new Set(['raid', 'hypetrain']);
 
-// ─── DOM refs ─────────────────────────────────────────────────────────────────────────────────
+// ─── DOM refs ─────────────────────────────────────────────────────────────────────────────────────────
 const alertEl       = document.getElementById('alert');
 const iconEl        = document.getElementById('icon');
 const typeEl        = document.getElementById('type');
@@ -46,13 +46,13 @@ const templateMsgEl = document.getElementById('templateMsg');
 const messageEl     = document.getElementById('message');
 const progressEl    = document.getElementById('progressBar');
 
-// ─── Helpers template ─────────────────────────────────────────────────────────────────────────
+// ─── Helpers template ─────────────────────────────────────────────────────────────────────────────────────
 function setTemplateMsg(text) {
   if (!templateMsgEl) return;
   templateMsgEl.textContent = text || '';
 }
 
-// ─── Helpers bulle message viewer ─────────────────────────────────────────────────────────────
+// ─── Helpers bulle message viewer ─────────────────────────────────────────────────────────────────────────────────
 function showBubble(html, isHtml) {
   if (!messageEl) return;
   if (messageEl._hideListener) {
@@ -82,14 +82,12 @@ function hideBubble() {
   messageEl.addEventListener('animationend', messageEl._hideListener, { once: true });
 }
 
-// ─── StreamElements load ──────────────────────────────────────────────────────────────────────
+// ─── StreamElements load ───────────────────────────────────────────────────────────────────────────────────
 window.addEventListener('onWidgetLoad', function (obj) {
   fieldData = obj.detail.fieldData;
   applySettings();
   setTimeout(() => {
     isLoading = false;
-    // AMÉLIORATION : Preview mode — ?preview=follow|sub|raid|... dans l'URL
-    // Permet de tester chaque type d'alerte sans StreamElements (dev local / SE preview)
     const urlParams = new URLSearchParams(window.location.search);
     const previewType = urlParams.get('preview');
     if (previewType && ALERT_TYPES_META[previewType]) {
@@ -109,11 +107,8 @@ window.addEventListener('onWidgetLoad', function (obj) {
   }, 500);
 });
 
-// AMÉLIORATION : onSessionUpdate — mise à jour des settings en direct depuis SE
 window.addEventListener('onSessionUpdate', function (obj) {
   if (obj && obj.detail && obj.detail.session) {
-    // Les sessions SE peuvent transporter des fieldData mis à jour
-    // (utile si le streamer change de preset en direct)
     if (obj.detail.session.fieldData) {
       fieldData = { ...fieldData, ...obj.detail.session.fieldData };
       applySettings();
@@ -121,7 +116,7 @@ window.addEventListener('onSessionUpdate', function (obj) {
   }
 });
 
-// ─── Apply CSS variables from fields ─────────────────────────────────────────────────────────
+// ─── Apply CSS variables from fields ─────────────────────────────────────────────────────────────────────────────────
 function applySettings() {
   const root = document.documentElement;
   root.style.setProperty('--widget-width',      (fieldData.widgetWidth   || 660)  + 'px');
@@ -136,12 +131,10 @@ function applySettings() {
   root.style.setProperty('--username-size',     (fieldData.usernameSize  || 49)   + 'px');
   root.style.setProperty('--username-color',     fieldData.usernameColor || '#ffffff');
 
-  // ── Glow icône + texte ────────────────────────────────────────────────────────────────────
   const glowEnabled = parseBool(fieldData.enableGlow !== undefined ? fieldData.enableGlow : true);
   const glowValue   = glowEnabled ? (parseInt(fieldData.glowIntensity, 10) || 20) : 0;
   root.style.setProperty('--glow-intensity', glowValue + 'px');
 
-  // ── Fond coloré animé ─────────────────────────────────────────────────────────────────────
   const glowBgEnabled = parseBool(fieldData.enableGlowBg !== undefined ? fieldData.enableGlowBg : true);
   if (glowBgEnabled) {
     root.style.setProperty('--primary-color-soft', hexToRgba(fieldData.primaryColor || '#00f5ff', 0.25));
@@ -161,7 +154,7 @@ function applySettings() {
   applyThemePreset(fieldData.themePreset || 'custom', glowBgEnabled);
 }
 
-// ─── hexToRgba robuste ────────────────────────────────────────────────────────────────────────
+// ─── hexToRgba robuste ────────────────────────────────────────────────────────────────────────────────────────────
 function hexToRgba(hex, alpha) {
   if (!hex || typeof hex !== 'string') return `rgba(0,245,255,${alpha})`;
   hex = hex.trim();
@@ -176,7 +169,7 @@ function hexToRgba(hex, alpha) {
   return `rgba(${r},${g},${b},${alpha})`;
 }
 
-// ─── Position du widget ──────────────────────────────────────────────────────────────────────
+// ─── Position du widget ────────────────────────────────────────────────────────────────────────────────────────────
 function applyPosition(pos) {
   const map = {
     'top-left':      ['flex-start', 'flex-start'],
@@ -192,7 +185,7 @@ function applyPosition(pos) {
   document.body.style.justifyContent = justify;
 }
 
-// ─── Presets de thème ────────────────────────────────────────────────────────────────────────
+// ─── Presets de thème ────────────────────────────────────────────────────────────────────────────────────────────
 const THEME_PRESETS = {
   'neon-cyan':     { primary: '#00f5ff', typeColor: '#00f5ff', usernameColor: '#ffffff' },
   'gold':          { primary: '#ffd700', typeColor: '#ffd700', usernameColor: '#fff8dc' },
@@ -214,11 +207,11 @@ function applyThemePreset(preset, glowBgEnabled) {
   root.style.setProperty('--username-color', theme.usernameColor);
 }
 
-// ─── Animations entrée / sortie ──────────────────────────────────────────────────────────────
+// ─── Animations entrée / sortie ──────────────────────────────────────────────────────────────────────────────────────
 function getAnimInClass()  { return 'anim-in-'  + (fieldData.animIn  || 'popIn');  }
 function getAnimOutClass() { return 'anim-out-' + (fieldData.animOut || 'popOut'); }
 
-// ─── Couleur de particule selon le type d'alerte ─────────────────────────────────────────────
+// ─── Couleur de particule selon le type d'alerte ───────────────────────────────────────────────────────────────────
 const PARTICLE_COLORS = {
   follow:    ['#ff6b8a', '#ff2ec4'],
   sub:       ['#ffd700', '#ffaa00'],
@@ -230,7 +223,7 @@ const PARTICLE_COLORS = {
   hypetrain: ['#ffd700', '#ff6600']
 };
 
-// ─── Particules ───────────────────────────────────────────────────────────────────────────────
+// ─── Particules ─────────────────────────────────────────────────────────────────────────────────────────────────────
 function createParticles(alertType, container) {
   container.innerHTML = '';
   if (!parseBool(fieldData.showParticles)) return;
@@ -258,7 +251,7 @@ function createParticles(alertType, container) {
   }
 }
 
-// ─── Sons ─────────────────────────────────────────────────────────────────────────────────────
+// ─── Sons ───────────────────────────────────────────────────────────────────────────────────────────────────────────────
 function playSound(type) {
   const keys = TYPE_FIELD_KEYS[type];
   const url  = keys ? fieldData[keys.sound] : '';
@@ -274,7 +267,7 @@ function playSound(type) {
   });
 }
 
-// ─── Barre de progression ────────────────────────────────────────────────────────────────────
+// ─── Barre de progression ────────────────────────────────────────────────────────────────────────────────────
 function startProgressBar(duration) {
   if (!progressEl) return;
   if (!parseBool(fieldData.showProgressBar)) { progressEl.classList.remove('active'); return; }
@@ -285,14 +278,13 @@ function startProgressBar(duration) {
   progressEl.classList.add('active');
 }
 
-// AMÉLIORATION : stopProgressBar — arrête proprement la barre (ex : alerte sautée)
 function stopProgressBar() {
   if (!progressEl) return;
   progressEl.classList.remove('active');
   progressEl.style.display = 'none';
 }
 
-// ─── Emotes Twitch ────────────────────────────────────────────────────────────────────────────
+// ─── Emotes Twitch ────────────────────────────────────────────────────────────────────────────────────────────────────
 function renderEmotes(text, emotes) {
   if (!emotes || !emotes.length || !text) return null;
   const dict = {};
@@ -308,7 +300,7 @@ function renderEmotes(text, emotes) {
   });
 }
 
-// ─── Résolution des templates ─────────────────────────────────────────────────────────────────
+// ─── Résolution des templates ────────────────────────────────────────────────────────────────────────────────────────
 function resolveTemplate(template, vars) {
   if (!template) return '';
   return template
@@ -320,7 +312,7 @@ function resolveTemplate(template, vars) {
     .replace(/\{recipient\}/gi, vars.recipient || '');
 }
 
-// ─── Parse booléen robuste ────────────────────────────────────────────────────────────────────
+// ─── Parse booléen robuste ──────────────────────────────────────────────────────────────────────────────────────────
 function parseBool(val) {
   if (typeof val === 'boolean') return val;
   if (typeof val === 'string') {
@@ -332,12 +324,10 @@ function parseBool(val) {
 
 const VIEWER_MSG_TYPES = ['sub', 'resub', 'donation', 'cheer'];
 
-// ─── File d'attente avec priorité ────────────────────────────────────────────────────────────
-// AMÉLIORATION : les raids et hypetrain passent devant les follows dans la file
+// ─── File d'attente avec priorité ────────────────────────────────────────────────────────────────────────────────────
 function enqueueAlert(type, username, message, amount, emotes) {
   const item = { type, username, message, amount, emotes: emotes || [] };
   if (HIGH_PRIORITY_TYPES.has(type)) {
-    // Insérer juste avant le premier élément non-prioritaire
     const insertAt = alertQueue.findIndex(i => !HIGH_PRIORITY_TYPES.has(i.type));
     if (insertAt === -1) alertQueue.push(item);
     else alertQueue.splice(insertAt, 0, item);
@@ -354,7 +344,22 @@ function processQueue() {
   _playAlert(item.type, item.username, item.message, item.amount, item.emotes || []);
 }
 
-// ─── Lecture d'une alerte ─────────────────────────────────────────────────────────────────────
+// ─── Scale icône — piloté entièrement par JS ─────────────────────────────────────────────────────────────────────────
+//
+// Principe : aucune règle CSS statique ne pilote transform sur .icon.
+// À l'entrée : on set scale(1.15) via iconEl.style.transform.
+// Au déclenchement de la sortie : on reset à scale(1) AVANT d'ajouter
+// la classe anim-out-, évitant tout snap visible au dernier frame.
+// Après la sortie complète : on vide iconEl.style.transform = ''.
+//
+function setIconScale(scale) {
+  if (iconEl) iconEl.style.transform = `scale(${scale})`;
+}
+function resetIconScale() {
+  if (iconEl) iconEl.style.transform = '';
+}
+
+// ─── Lecture d'une alerte ───────────────────────────────────────────────────────────────────────────────────────────
 function _playAlert(type, username, message, amount, emotes) {
   setTemplateMsg('');
   if (messageEl) {
@@ -406,6 +411,9 @@ function _playAlert(type, username, message, amount, emotes) {
     .join(' ');
   void alertEl.offsetWidth;
 
+  // — Scale icône à 1.15 dès l'entrée
+  setIconScale(1.15);
+
   alertEl.classList.add(getAnimInClass());
 
   const particlesContainer = document.getElementById('particles');
@@ -425,6 +433,11 @@ function _playAlert(type, username, message, amount, emotes) {
   hideTimer = setTimeout(() => {
     hideBubble();
     stopProgressBar();
+
+    // — Reset icône à scale(1) AVANT d'ajouter anim-out-
+    //   évite tout snap visible au dernier frame
+    setIconScale(1);
+
     alertEl.classList.remove(getAnimInClass());
     void alertEl.offsetWidth;
     alertEl.classList.add(getAnimOutClass());
@@ -438,6 +451,7 @@ function _playAlert(type, username, message, amount, emotes) {
         alertEl.removeEventListener('animationend', _hideEndListener);
         _hideEndListener = null;
         alertEl.classList.remove(getAnimOutClass());
+        resetIconScale();
         processQueue();
       }
     }, animOutDur + 200);
@@ -447,18 +461,19 @@ function _playAlert(type, username, message, amount, emotes) {
       _fallbackTimer = null;
       _hideEndListener = null;
       alertEl.classList.remove(getAnimOutClass());
+      resetIconScale();
       processQueue();
     };
     alertEl.addEventListener('animationend', _hideEndListener, { once: true });
   }, duration);
 }
 
-// ─── API publique ─────────────────────────────────────────────────────────────────────────────
+// ─── API publique ─────────────────────────────────────────────────────────────────────────────────────────────────
 function showAlert(type, username, message, amount, emotes) {
   enqueueAlert(type, username, message || '', amount || '', emotes || []);
 }
 
-// ─── Détection gift sub ───────────────────────────────────────────────────────────────────────
+// ─── Détection gift sub ────────────────────────────────────────────────────────────────────────────────────────────
 function isGiftSub(data) {
   return !!(
     data.isCommunityGift ||
@@ -469,7 +484,7 @@ function isGiftSub(data) {
   );
 }
 
-// ─── StreamElements Events ────────────────────────────────────────────────────────────────────
+// ─── StreamElements Events ────────────────────────────────────────────────────────────────────────────────────────
 window.addEventListener('onEventReceived', function (obj) {
   if (!obj.detail || !obj.detail.event) return;
   if (isLoading) return;
@@ -535,7 +550,7 @@ window.addEventListener('onEventReceived', function (obj) {
   }
 });
 
-// ─── Fonctions de test console ────────────────────────────────────────────────────────────────
+// ─── Fonctions de test console ───────────────────────────────────────────────────────────────────────────────────────────
 window.testAlert = function(type = 'follow', name = 'TestUser') {
   const testData = {
     follow:    { msg: '',                                    amount: '' },
@@ -557,8 +572,6 @@ window.testQueue = function() {
   });
 };
 
-// AMÉLIORATION : skipAlert() — sauter l'alerte en cours et passer à la suivante
-// Usage console : skipAlert()
 window.skipAlert = function() {
   if (!isPlaying) return;
   if (hideTimer)      { clearTimeout(hideTimer);      hideTimer      = null; }
@@ -576,13 +589,12 @@ window.skipAlert = function() {
     .split(' ')
     .filter(c => !c.startsWith('anim-in-') && !c.startsWith('anim-out-'))
     .join(' ');
+  resetIconScale();
   isPlaying = false;
   processQueue();
   console.log('[widget-glass] Alerte saut\u00e9e.');
 };
 
-// AMÉLIORATION : clearQueue() — vider toute la file d'attente
-// Usage console : clearQueue()
 window.clearQueue = function() {
   alertQueue.length = 0;
   console.log('[widget-glass] File vid\u00e9e.');
