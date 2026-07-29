@@ -1,4 +1,4 @@
-// ─── State ─────────────────────────────────────────────────────────────────────────────────
+// ─── State ────────────────────────────────────────────────────────────────────────────────────────
 let fieldData = {};
 let alertQueue = [];
 let isPlaying = false;
@@ -11,16 +11,15 @@ let _hideEndListener = null;
 const seenEventIds = new Set();
 const SEEN_MAX = 200;
 
-// ─── DOM refs ──────────────────────────────────────────────────────────────────────────
+// ─── DOM refs ────────────────────────────────────────────────────────────────────────────────────
 const alertEl    = document.getElementById('alert');
 const iconEl     = document.getElementById('icon');
 const typeEl     = document.getElementById('type');
 const usernameEl = document.getElementById('username');
 const messageEl  = document.getElementById('message');
-const amountEl   = document.getElementById('amount');
 const progressEl = document.getElementById('progressBar');
 
-// ─── StreamElements load ─────────────────────────────────────────────────────────────────
+// ─── StreamElements load ───────────────────────────────────────────────────────────────────────
 window.addEventListener('onWidgetLoad', function (obj) {
   fieldData = obj.detail.fieldData;
   applySettings();
@@ -36,28 +35,24 @@ function applySettings() {
   const opacity = parseFloat(fieldData.glassOpacity) || 0.45;
   root.style.setProperty('--glass-bg', `rgba(20,20,35,${opacity})`);
   root.style.setProperty('--primary-color',      fieldData.primaryColor  || '#00f5ff');
-  root.style.setProperty('--accent-color',       fieldData.accentColor   || '#ff2ec4');
   root.style.setProperty('--icon-size',         (fieldData.iconSize      || 56)   + 'px');
   root.style.setProperty('--type-size',         (fieldData.typeSize      || 15.5) + 'px');
   root.style.setProperty('--type-color',         fieldData.typeColor     || fieldData.primaryColor || '#00f5ff');
   root.style.setProperty('--username-size',     (fieldData.usernameSize  || 49)   + 'px');
   root.style.setProperty('--username-color',     fieldData.usernameColor || '#ffffff');
-  root.style.setProperty('--message-size',      (fieldData.messageSize   || 23)   + 'px');
-  root.style.setProperty('--amount-size',       (fieldData.amountSize    || 35)   + 'px');
   root.style.setProperty('--glow-intensity',    (fieldData.glowIntensity || 20)   + 'px');
   const dur = Math.min(60000, Math.max(1000, parseInt(fieldData.duration, 10) || 7000));
   root.style.setProperty('--duration', dur + 'ms');
   root.style.setProperty('--anim-duration-in',  (parseInt(fieldData.animDurationIn,  10) || 600)  + 'ms');
   root.style.setProperty('--anim-duration-out', (parseInt(fieldData.animDurationOut, 10) || 500)  + 'ms');
   root.style.setProperty('--primary-color-soft', hexToRgba(fieldData.primaryColor || '#00f5ff', 0.25));
-  root.style.setProperty('--accent-color-soft',  hexToRgba(fieldData.accentColor  || '#ff2ec4', 0.18));
   root.style.setProperty('--progress-color-1',   fieldData.progressBarColor1 || fieldData.primaryColor || '#00f5ff');
-  root.style.setProperty('--progress-color-2',   fieldData.progressBarColor2 || fieldData.accentColor  || '#ff2ec4');
+  root.style.setProperty('--progress-color-2',   fieldData.progressBarColor2 || fieldData.primaryColor || '#00f5ff');
   applyPosition(fieldData.widgetPosition || 'center');
   applyThemePreset(fieldData.themePreset || 'custom');
 }
 
-// ─── hexToRgba robuste ───────────────────────────────────────────────────────────────────────
+// ─── hexToRgba robuste ──────────────────────────────────────────────────────────────────────────────────
 function hexToRgba(hex, alpha) {
   if (!hex || typeof hex !== 'string') return `rgba(0,245,255,${alpha})`;
   hex = hex.trim();
@@ -72,7 +67,7 @@ function hexToRgba(hex, alpha) {
   return `rgba(${r},${g},${b},${alpha})`;
 }
 
-// ─── Position du widget ──────────────────────────────────────────────────────────────────────
+// ─── Position du widget ───────────────────────────────────────────────────────────────────────────────────
 function applyPosition(pos) {
   const map = {
     'top-left':      ['flex-start', 'flex-start'],
@@ -88,13 +83,13 @@ function applyPosition(pos) {
   document.body.style.justifyContent = justify;
 }
 
-// ─── Presets de thème ──────────────────────────────────────────────────────────────────────────
+// ─── Presets de thème ──────────────────────────────────────────────────────────────────────────────────────
 const THEME_PRESETS = {
-  'neon-cyan':     { primary: '#00f5ff', accent: '#ff2ec4', typeColor: '#00f5ff', usernameColor: '#ffffff' },
-  'gold':          { primary: '#ffd700', accent: '#ff8c00', typeColor: '#ffd700', usernameColor: '#fff8dc' },
-  'purple-storm':  { primary: '#b44fff', accent: '#ff4fa3', typeColor: '#b44fff', usernameColor: '#f0e0ff' },
-  'minimal-white': { primary: '#ffffff', accent: '#cccccc', typeColor: '#cccccc', usernameColor: '#ffffff' },
-  'green-matrix':  { primary: '#00ff88', accent: '#00ccff', typeColor: '#00ff88', usernameColor: '#ccffe8' },
+  'neon-cyan':     { primary: '#00f5ff', typeColor: '#00f5ff', usernameColor: '#ffffff' },
+  'gold':          { primary: '#ffd700', typeColor: '#ffd700', usernameColor: '#fff8dc' },
+  'purple-storm':  { primary: '#b44fff', typeColor: '#b44fff', usernameColor: '#f0e0ff' },
+  'minimal-white': { primary: '#ffffff', typeColor: '#cccccc', usernameColor: '#ffffff' },
+  'green-matrix':  { primary: '#00ff88', typeColor: '#00ff88', usernameColor: '#ccffe8' },
   'custom': null
 };
 
@@ -103,18 +98,16 @@ function applyThemePreset(preset) {
   if (!theme) return;
   const root = document.documentElement;
   root.style.setProperty('--primary-color',      theme.primary);
-  root.style.setProperty('--accent-color',       theme.accent);
   root.style.setProperty('--primary-color-soft', hexToRgba(theme.primary, 0.25));
-  root.style.setProperty('--accent-color-soft',  hexToRgba(theme.accent,  0.18));
   root.style.setProperty('--type-color',     theme.typeColor);
   root.style.setProperty('--username-color', theme.usernameColor);
 }
 
-// ─── Animations entrée / sortie ──────────────────────────────────────────────────────────────────
+// ─── Animations entrée / sortie ──────────────────────────────────────────────────────────────────────────────────
 function getAnimInClass()  { return 'anim-in-'  + (fieldData.animIn  || 'popIn');  }
 function getAnimOutClass() { return 'anim-out-' + (fieldData.animOut || 'popOut'); }
 
-// ─── Couleur de particule selon le type d'alerte ──────────────────────────────────────────────
+// ─── Couleur de particule selon le type d'alerte ────────────────────────────────────────────────
 const PARTICLE_COLORS = {
   follow:    ['#ff6b8a', '#ff2ec4'],
   sub:       ['#ffd700', '#ffaa00'],
@@ -126,13 +119,13 @@ const PARTICLE_COLORS = {
   hypetrain: ['#ffd700', '#ff6600']
 };
 
-// ─── Particules ─────────────────────────────────────────────────────────────────────────────
+// ─── Particules ────────────────────────────────────────────────────────────────────────────────────────────
 function createParticles(alertType) {
   const container = document.getElementById('particles');
   container.innerHTML = '';
   if (!fieldData.showParticles) return;
   const count  = parseInt(fieldData.particleCount, 10) || 55;
-  const colors = PARTICLE_COLORS[alertType] || [fieldData.primaryColor || '#00f5ff', fieldData.accentColor || '#ff2ec4'];
+  const colors = PARTICLE_COLORS[alertType] || [fieldData.primaryColor || '#00f5ff', fieldData.primaryColor || '#00f5ff'];
   for (let i = 0; i < count; i++) {
     const p    = document.createElement('div');
     const size = (Math.random() * 5 + 3) + 'px';
@@ -153,7 +146,7 @@ function createParticles(alertType) {
   }
 }
 
-// ─── Sons ────────────────────────────────────────────────────────────────────────────────────
+// ─── Sons ──────────────────────────────────────────────────────────────────────────────────────────────────
 function playSound(type) {
   const key = 'sound' + type.charAt(0).toUpperCase() + type.slice(1);
   const url = fieldData[key];
@@ -165,7 +158,7 @@ function playSound(type) {
   });
 }
 
-// ─── Barre de progression ───────────────────────────────────────────────────────────────────
+// ─── Barre de progression ───────────────────────────────────────────────────────────────────────────
 function startProgressBar(duration) {
   if (!progressEl) return;
   if (!fieldData.showProgressBar) { progressEl.classList.remove('active'); return; }
@@ -176,7 +169,7 @@ function startProgressBar(duration) {
   progressEl.classList.add('active');
 }
 
-// ─── Emotes Twitch dans le message ─────────────────────────────────────────────────────────────
+// ─── Emotes Twitch dans le message ─────────────────────────────────────────────────────────────────────
 function renderEmotes(text, emotes) {
   if (!emotes || !emotes.length || !text) return null;
   const dict = {};
@@ -192,7 +185,7 @@ function renderEmotes(text, emotes) {
   );
 }
 
-// ─── Résolution des templates de messages ───────────────────────────────────────────────────────
+// ─── Résolution des templates de messages ───────────────────────────────────────────────────────────────────
 function resolveTemplate(template, vars) {
   if (!template) return '';
   return template
@@ -204,19 +197,16 @@ function resolveTemplate(template, vars) {
     .replace(/\{recipient\}/gi, vars.recipient || '');
 }
 
-// ─── Masquage conditionnel du message viewer ──────────────────────────────────────────────────────
-// showViewerMessage = checkbox qui masque UNIQUEMENT le message tapé par le viewer
-// (data.message de l'event Twitch). Les templates personnalisés (msgSub, msgFollow…)
-// sont TOUJOURS affichés, indépendamment de cette checkbox.
+// ─── Masquage conditionnel du message viewer ────────────────────────────────────────────────────────────
 function shouldShowViewerMessage(type) {
   const concerned = ['sub', 'resub', 'donation', 'cheer'];
   if (concerned.includes(type)) return fieldData.showViewerMessage !== false;
   return true;
 }
 
-// ─── File d'attente ─────────────────────────────────────────────────────────────────────────────
-function enqueueAlert(type, username, message, amount, emotes) {
-  alertQueue.push({ type, username, message, amount, emotes: emotes || [] });
+// ─── File d'attente ─────────────────────────────────────────────────────────────────────────────────────────────────
+function enqueueAlert(type, username, message, amount) {
+  alertQueue.push({ type, username, message, amount });
   if (!isPlaying) processQueue();
 }
 
@@ -224,26 +214,25 @@ function processQueue() {
   if (alertQueue.length === 0) { isPlaying = false; return; }
   isPlaying = true;
   const item = alertQueue.shift();
-  _playAlert(item.type, item.username, item.message, item.amount, item.emotes);
+  _playAlert(item.type, item.username, item.message, item.amount, item.emotes || []);
 }
 
-// ─── Lecture d'une alerte ───────────────────────────────────────────────────────────────────────
+// ─── Lecture d'une alerte ──────────────────────────────────────────────────────────────────────────────────────────
 function _playAlert(type, username, message, amount, emotes) {
   // Reset complet avant chaque alerte
   messageEl.textContent   = '';
   messageEl.innerHTML     = '';
   messageEl.style.display = '';
-  amountEl.textContent    = '';
 
   const types = {
     follow:    { icon: fieldData.iconFollow    || '\u2764\ufe0f',  text: fieldData.textFollow    || 'NOUVEAU FOLLOW'  },
-    sub:       { icon: fieldData.iconSub       || '\u2b50',  text: fieldData.textSub       || 'NOUVELLE SUB'    },
+    sub:       { icon: fieldData.iconSub       || '\u2b50',        text: fieldData.textSub       || 'NOUVELLE SUB'    },
     resub:     { icon: fieldData.iconResub     || '\ud83d\udd25', text: fieldData.textResub     || 'RESUBSCRIPTION'  },
     giftsub:   { icon: fieldData.iconGiftSub   || '\ud83c\udf81', text: fieldData.textGiftSub   || 'GIFT SUB'        },
     donation:  { icon: fieldData.iconDonation  || '\ud83d\udc8e', text: fieldData.textDonation  || 'DONATION'        },
     raid:      { icon: fieldData.iconRaid      || '\u2694\ufe0f',  text: fieldData.textRaid      || 'RAID INCOMING'   },
     cheer:     { icon: fieldData.iconCheer     || '\ud83c\udf89', text: fieldData.textCheer     || 'BITS'            },
-    hypetrain: { icon: fieldData.iconHypeTrain || '\ud83d\ude82', text: fieldData.textHypeTrain || 'HYPE TRAIN \ud83d\udd25'  }
+    hypetrain: { icon: fieldData.iconHypeTrain || '\ud83d\ude82', text: fieldData.textHypeTrain || 'HYPE TRAIN \ud83d\udd25' }
   };
 
   const t = types[type] || types.follow;
@@ -251,7 +240,6 @@ function _playAlert(type, username, message, amount, emotes) {
   typeEl.textContent     = t.text;
   usernameEl.textContent = username;
   usernameEl.title       = username || '';
-  amountEl.textContent   = amount || '';
 
   const templateKey = 'msg' + type.charAt(0).toUpperCase() + type.slice(1);
   const template    = fieldData[templateKey];
@@ -270,24 +258,16 @@ function _playAlert(type, username, message, amount, emotes) {
     vars.months = amount;
   }
 
-  // ── Priorité d'affichage du message ──────────────────────────────────────────────────
-  // 1. Template perso défini dans le field  → TOUJOURS affiché
-  // 2. Message viewer (tapé sur Twitch)     → affiché seulement si showViewerMessage
-  // 3. Rien                                → on masque le slot
   if (hasTemplate) {
-    // Template personnalisé : toujours visible, showViewerMessage ne le touche pas
     messageEl.textContent = resolveTemplate(template, vars);
   } else if (shouldShowViewerMessage(type)) {
-    // Pas de template : on affiche le message brut du viewer si la checkbox est cochée
     const emoteHtml = renderEmotes(message, emotes);
     if (emoteHtml !== null) messageEl.innerHTML  = emoteHtml;
     else                    messageEl.textContent = message || '';
-    // Si le viewer n'a rien tapé, on masque le slot vide
     if (!messageEl.textContent.trim() && !messageEl.querySelector('img')) {
       messageEl.style.display = 'none';
     }
   } else {
-    // showViewerMessage décoché et pas de template : slot masqué
     messageEl.style.display = 'none';
   }
 
@@ -339,12 +319,12 @@ function _playAlert(type, username, message, amount, emotes) {
   }, duration);
 }
 
-// ─── API publique ──────────────────────────────────────────────────────────────────────────────────
+// ─── API publique ─────────────────────────────────────────────────────────────────────────────────────────────────────────
 function showAlert(type, username, message = '', amount = '', emotes = []) {
   enqueueAlert(type, username, message, amount, emotes);
 }
 
-// ─── Détection gift sub ──────────────────────────────────────────────────────────────────────────
+// ─── Détection gift sub ──────────────────────────────────────────────────────────────────────────────────────────────
 function isGiftSub(data) {
   return !!(
     data.isCommunityGift ||
@@ -355,7 +335,7 @@ function isGiftSub(data) {
   );
 }
 
-// ─── StreamElements Events ───────────────────────────────────────────────────────────────────────
+// ─── StreamElements Events ───────────────────────────────────────────────────────────────────────────────────
 window.addEventListener('onEventReceived', function (obj) {
   if (!obj.detail || !obj.detail.event) return;
   if (isLoading) return;
@@ -419,17 +399,17 @@ window.addEventListener('onEventReceived', function (obj) {
   }
 });
 
-// ─── Fonctions de test console ────────────────────────────────────────────────────────────────────────
+// ─── Fonctions de test console ────────────────────────────────────────────────────────────────────────────────────────
 window.testAlert = function(type = 'follow', name = 'TestUser') {
   const testData = {
-    follow:    { msg: '',                        amount: '' },
-    sub:       { msg: 'Super stream !',          amount: '' },
+    follow:    { msg: '',                         amount: '' },
+    sub:       { msg: 'Super stream !',           amount: '' },
     resub:     { msg: 'Fidèle depuis le début !', amount: '3' },
-    giftsub:   { msg: 'DestUser',                amount: '5' },
-    donation:  { msg: 'Merci !',                 amount: '10 €' },
-    raid:      { msg: '',                        amount: '42' },
-    cheer:     { msg: 'Hype !',                  amount: '500 bits' },
-    hypetrain: { msg: 'Niveau 2',                amount: '2' }
+    giftsub:   { msg: 'DestUser',                 amount: '5' },
+    donation:  { msg: 'Merci !',                  amount: '10 €' },
+    raid:      { msg: '',                         amount: '42' },
+    cheer:     { msg: 'Hype !',                   amount: '500 bits' },
+    hypetrain: { msg: 'Niveau 2',                 amount: '2' }
   };
   const d = testData[type] || testData.follow;
   showAlert(type, name, d.msg, d.amount);

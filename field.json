@@ -106,12 +106,6 @@
     "value": "#00f5ff",
     "group": "🎨 Apparence"
   },
-  "accentColor": {
-    "type": "colorpicker",
-    "label": "Couleur d'accent",
-    "value": "#ff2ec4",
-    "group": "🎨 Apparence"
-  },
   "borderRadius": {
     "type": "slider",
     "label": "Arrondi des coins (px)",
@@ -207,7 +201,7 @@
   },
   "usernameSize": {
     "type": "slider",
-    "label": "👤 Pseudo — nom du viewer (px)",
+    "label": "👤 Pseudo — taille (px) — s'applique aussi au message",
     "value": 49,
     "min": 24,
     "max": 80,
@@ -216,26 +210,8 @@
   },
   "usernameColor": {
     "type": "colorpicker",
-    "label": "👤 Pseudo — couleur",
+    "label": "👤 Pseudo — couleur (s'applique aussi au message)",
     "value": "#ffffff",
-    "group": "🔤 Typographie"
-  },
-  "messageSize": {
-    "type": "slider",
-    "label": "💬 Message — texte du viewer (px)",
-    "value": 23,
-    "min": 14,
-    "max": 40,
-    "step": 1,
-    "group": "🔤 Typographie"
-  },
-  "amountSize": {
-    "type": "slider",
-    "label": "💰 Montant — € / bits / nb viewers raid (px)",
-    "value": 35,
-    "min": 18,
-    "max": 60,
-    "step": 1,
     "group": "🔤 Typographie"
   },
   "showFollow": {
