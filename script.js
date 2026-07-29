@@ -135,7 +135,7 @@ const PARTICLE_COLORS = {
 function createParticles(alertType) {
   const container = document.getElementById('particles');
   container.innerHTML = '';
-  if (!fieldData.showParticles) return;
+  if (!parseBool(fieldData.showParticles)) return;
   const count  = parseInt(fieldData.particleCount, 10) || 55;
   const colors = PARTICLE_COLORS[alertType] || [fieldData.primaryColor || '#00f5ff', fieldData.primaryColor || '#00f5ff'];
   for (let i = 0; i < count; i++) {
@@ -164,7 +164,6 @@ function playSound(type) {
   const url  = keys ? fieldData[keys.sound] : '';
   if (!url || url.trim() === '') return;
   const audio = new Audio(url);
-  // soundVolume est en % (0-100) — on divise par 100 pour l'API Web Audio (0.0-1.0)
   const rawVol = parseFloat(fieldData.soundVolume);
   const vol    = Number.isFinite(rawVol)
     ? Math.min(1, Math.max(0, rawVol > 1 ? rawVol / 100 : rawVol))
@@ -178,7 +177,7 @@ function playSound(type) {
 // ─── Barre de progression ───────────────────────────────────────────────────────────────────────────
 function startProgressBar(duration) {
   if (!progressEl) return;
-  if (!fieldData.showProgressBar) { progressEl.classList.remove('active'); return; }
+  if (!parseBool(fieldData.showProgressBar)) { progressEl.classList.remove('active'); return; }
   progressEl.style.display = 'block';
   progressEl.classList.remove('active');
   void progressEl.offsetWidth;
@@ -214,12 +213,15 @@ function resolveTemplate(template, vars) {
     .replace(/\{recipient\}/gi, vars.recipient || '');
 }
 
-// ─── Masquage conditionnel du message viewer ────────────────────────────────────────────────────────────
-function shouldShowViewerMessage(type) {
-  const concerned = ['sub', 'resub', 'donation', 'cheer'];
-  if (concerned.includes(type)) return fieldData.showViewerMessage !== false;
-  return true;
+// ─── Parse booléen robuste (gère true/false booléen ET string "true"/"false") ─────────────────
+function parseBool(val) {
+  if (typeof val === 'boolean') return val;
+  if (typeof val === 'string')  return val.trim().toLowerCase() !== 'false';
+  return !!val;
 }
+
+// ─── Types concernés par l'option "afficher message viewer" ─────────────────────────────────
+const VIEWER_MSG_TYPES = ['sub', 'resub', 'donation', 'cheer'];
 
 // ─── File d'attente ─────────────────────────────────────────────────────────────────────────────────────────────────
 function enqueueAlert(type, username, message, amount, emotes) {
@@ -261,37 +263,50 @@ function _playAlert(type, username, message, amount, emotes) {
   const template    = fieldData[keys.template] || '';
   const hasTemplate = template.trim() !== '';
 
+  // Indique si le streamer veut voir les messages tapés par les viewers
+  const showViewerMsg = VIEWER_MSG_TYPES.includes(type) && parseBool(fieldData.showViewerMessage);
+  const viewerMessage = (message || '').trim();
+
   const vars = {
-    username:  username || '',
-    amount:    amount   || '',
-    message:   type === 'giftsub' ? '' : (message || ''),
+    username:  username     || '',
+    amount:    amount       || '',
+    message:   type === 'giftsub' ? '' : viewerMessage,
     months:    type === 'resub'   ? (amount || '') : '',
-    count:     amount   || '',
-    recipient: type === 'giftsub' ? (message || '') : ''
+    count:     amount       || '',
+    recipient: type === 'giftsub' ? viewerMessage : ''
   };
 
-  if (hasTemplate) {
+  if (type === 'giftsub') {
+    // Gift sub : toujours afficher le template (contient {recipient})
+    if (hasTemplate) {
+      const resolved = resolveTemplate(template, vars);
+      messageEl.textContent = resolved.trim() || '';
+      if (!resolved.trim()) messageEl.style.display = 'none';
+    } else {
+      const recipient = viewerMessage;
+      if (recipient) messageEl.textContent = recipient;
+      else           messageEl.style.display = 'none';
+    }
+  } else if (hasTemplate) {
+    // Template personnalisé : résoudre les balises
+    // Si le viewer a tapé un message ET la checkbox est cochée, on l'ajoute après le template
     const resolved = resolveTemplate(template, vars);
-    if (resolved.trim()) {
-      messageEl.textContent = resolved;
+    let finalText = resolved.trim();
+    if (showViewerMsg && viewerMessage && !template.includes('{message}')) {
+      finalText = finalText ? finalText + ' — ' + viewerMessage : viewerMessage;
+    }
+    if (finalText) {
+      messageEl.textContent = finalText;
     } else {
       messageEl.style.display = 'none';
     }
-  } else if (type === 'giftsub') {
-    const recipient = message || '';
-    if (recipient) {
-      messageEl.textContent = recipient;
-    } else {
-      messageEl.style.display = 'none';
-    }
-  } else if (shouldShowViewerMessage(type)) {
-    const emoteHtml = renderEmotes(message, emotes);
-    if (emoteHtml !== null) messageEl.innerHTML  = emoteHtml;
-    else                    messageEl.textContent = message || '';
-    if (!messageEl.textContent.trim() && !messageEl.querySelector('img')) {
-      messageEl.style.display = 'none';
-    }
+  } else if (showViewerMsg && viewerMessage) {
+    // Pas de template : afficher le message brut du viewer avec emotes
+    const emoteHtml = renderEmotes(viewerMessage, emotes);
+    if (emoteHtml !== null) messageEl.innerHTML   = emoteHtml;
+    else                    messageEl.textContent = viewerMessage;
   } else {
+    // Pas de message viewer à afficher
     messageEl.style.display = 'none';
   }
 
@@ -380,14 +395,14 @@ window.addEventListener('onEventReceived', function (obj) {
   seenEventIds.add(eventId);
   setTimeout(() => seenEventIds.delete(eventId), 10000);
 
-  if (listener === 'follower-latest' && fieldData.showFollow) {
+  if (listener === 'follower-latest' && parseBool(fieldData.showFollow)) {
     showAlert('follow', data.name, data.message || '', '', emotes);
   }
 
   if (listener === 'subscriber-latest' && !isGiftSub(data)) {
-    if (data.amount > 1 && fieldData.showResub) {
-      showAlert('resub', data.name, `x${data.amount} mois`, `${data.amount}`, emotes);
-    } else if (fieldData.showSub) {
+    if (data.amount > 1 && parseBool(fieldData.showResub)) {
+      showAlert('resub', data.name, data.message || '', `${data.amount}`, emotes);
+    } else if (parseBool(fieldData.showSub)) {
       showAlert('sub', data.name, data.message || '', '', emotes);
     }
   }
@@ -396,7 +411,7 @@ window.addEventListener('onEventReceived', function (obj) {
     (listener === 'subscriber-gifted-latest' ||
      listener === 'community-gift-purchase-latest' ||
      (listener === 'subscriber-latest' && isGiftSub(data)))
-    && fieldData.showGiftSub
+    && parseBool(fieldData.showGiftSub)
   ) {
     const qty       = data.amount || data.quantity || data.count || 1;
     const giftedStr = typeof data.gifted === 'string' ? data.gifted : '';
@@ -405,21 +420,21 @@ window.addEventListener('onEventReceived', function (obj) {
     showAlert('giftsub', gifter, recipient, String(qty), []);
   }
 
-  if (listener === 'tip-latest' && fieldData.showDonation) {
+  if (listener === 'tip-latest' && parseBool(fieldData.showDonation)) {
     showAlert('donation', data.name, data.message || '', data.amount + ' €', emotes);
   }
 
-  if (listener === 'raid-latest' && fieldData.showRaid) {
+  if (listener === 'raid-latest' && parseBool(fieldData.showRaid)) {
     showAlert('raid', data.name, data.message || '', String(data.amount || ''), []);
   }
 
-  if (listener === 'cheer-latest' && fieldData.showCheer) {
+  if (listener === 'cheer-latest' && parseBool(fieldData.showCheer)) {
     showAlert('cheer', data.name, data.message || '', String(data.amount || ''), emotes);
   }
 
-  if ((listener === 'hype-train-start' || listener === 'hype-train-end') && fieldData.showHypeTrain) {
+  if ((listener === 'hype-train-start' || listener === 'hype-train-end') && parseBool(fieldData.showHypeTrain)) {
     const level  = data.level || data.current || '';
-    const suffix = listener === 'hype-train-end' ? 'TERMINÉ !' : `Niveau ${level}`;
+    const suffix = listener === 'hype-train-end' ? 'TERMIN\u00c9 !' : `Niveau ${level}`;
     showAlert('hypetrain', 'HYPE TRAIN', suffix, String(level), []);
   }
 });
@@ -429,9 +444,9 @@ window.testAlert = function(type = 'follow', name = 'TestUser') {
   const testData = {
     follow:    { msg: '',                         amount: '' },
     sub:       { msg: 'Super stream !',           amount: '' },
-    resub:     { msg: 'Fidèle depuis le début !', amount: '3' },
+    resub:     { msg: 'Fid\u00e8le depuis le d\u00e9but !', amount: '3' },
     giftsub:   { msg: 'DestUser',                 amount: '5' },
-    donation:  { msg: 'Merci !',                  amount: '10 €' },
+    donation:  { msg: 'Merci !',                  amount: '10 \u20ac' },
     raid:      { msg: '',                         amount: '42' },
     cheer:     { msg: 'Hype !',                   amount: '500' },
     hypetrain: { msg: 'Niveau 2',                 amount: '2' }
