@@ -22,6 +22,18 @@ const TYPE_FIELD_KEYS = {
   hypetrain: { template: 'msgHypeTrain', sound: 'soundHypeTrain' }
 };
 
+// ─── Map statique type → icône + label (évite recréation à chaque alerte) ────────────────────
+const ALERT_TYPES_META = {
+  follow:    { iconKey: 'iconFollow',    textKey: 'textFollow',    iconDefault: '\u2764\ufe0f', textDefault: 'NOUVEAU FOLLOW'       },
+  sub:       { iconKey: 'iconSub',       textKey: 'textSub',       iconDefault: '\u2b50',       textDefault: 'NOUVELLE SUB'         },
+  resub:     { iconKey: 'iconResub',     textKey: 'textResub',     iconDefault: '\ud83d\udd25', textDefault: 'RESUBSCRIPTION'       },
+  giftsub:   { iconKey: 'iconGiftSub',   textKey: 'textGiftSub',   iconDefault: '\ud83c\udf81', textDefault: 'GIFT SUB'             },
+  donation:  { iconKey: 'iconDonation',  textKey: 'textDonation',  iconDefault: '\ud83d\udc8e', textDefault: 'DONATION'             },
+  raid:      { iconKey: 'iconRaid',      textKey: 'textRaid',      iconDefault: '\u2694\ufe0f', textDefault: 'RAID INCOMING'        },
+  cheer:     { iconKey: 'iconCheer',     textKey: 'textCheer',     iconDefault: '\ud83c\udf89', textDefault: 'BITS'                 },
+  hypetrain: { iconKey: 'iconHypeTrain', textKey: 'textHypeTrain', iconDefault: '\ud83d\ude82', textDefault: 'HYPE TRAIN \ud83d\udd25' }
+};
+
 // ─── DOM refs ─────────────────────────────────────────────────────────────────────────────────
 const alertEl       = document.getElementById('alert');
 const iconEl        = document.getElementById('icon');
@@ -37,9 +49,14 @@ function setTemplateMsg(text) {
   templateMsgEl.textContent = text || '';
 }
 
-// ─── Helpers bulle message viewer ──────────────────────────────────────────────────────────────────
+// ─── Helpers bulle message viewer ────────────────────────────────────────────────────────────
 function showBubble(html, isHtml) {
   if (!messageEl) return;
+  // Nettoyer l'éventuel listener 'hiding' en attente avant de réafficher
+  if (messageEl._hideListener) {
+    messageEl.removeEventListener('animationend', messageEl._hideListener);
+    messageEl._hideListener = null;
+  }
   messageEl.classList.remove('hiding');
   if (isHtml) messageEl.innerHTML   = html;
   else        messageEl.textContent = html;
@@ -49,12 +66,19 @@ function showBubble(html, isHtml) {
 function hideBubble() {
   if (!messageEl) return;
   if (!messageEl.classList.contains('visible')) return;
+  // FIX: retirer l'ancien listener avant d'en ajouter un nouveau → évite l'accumulation
+  if (messageEl._hideListener) {
+    messageEl.removeEventListener('animationend', messageEl._hideListener);
+    messageEl._hideListener = null;
+  }
   messageEl.classList.add('hiding');
-  messageEl.addEventListener('animationend', () => {
+  messageEl._hideListener = function onBubbleHideEnd() {
     messageEl.classList.remove('visible', 'hiding');
     messageEl.textContent = '';
     messageEl.innerHTML   = '';
-  }, { once: true });
+    messageEl._hideListener = null;
+  };
+  messageEl.addEventListener('animationend', messageEl._hideListener, { once: true });
 }
 
 // ─── StreamElements load ──────────────────────────────────────────────────────────────────────
@@ -80,14 +104,11 @@ function applySettings() {
   root.style.setProperty('--username-color',     fieldData.usernameColor || '#ffffff');
 
   // ── Glow icône + texte (✨ Activer le glow) ──────────────────────────────────────────
-  // Contrôle --glow-intensity → drop-shadow(.icon) + text-shadow(.type)
   const glowEnabled = parseBool(fieldData.enableGlow !== undefined ? fieldData.enableGlow : true);
   const glowValue   = glowEnabled ? (parseInt(fieldData.glowIntensity, 10) || 20) : 0;
   root.style.setProperty('--glow-intensity', glowValue + 'px');
 
   // ── Fond coloré animé (🌟 Effet de fond coloré animé) ──────────────────────────────
-  // Contrôle --primary-color-soft / --accent-color-soft
-  // utilisées par ::before (dégradé liquidFlow en fond du widget)
   const glowBgEnabled = parseBool(fieldData.enableGlowBg !== undefined ? fieldData.enableGlowBg : true);
   if (glowBgEnabled) {
     root.style.setProperty('--primary-color-soft', hexToRgba(fieldData.primaryColor || '#00f5ff', 0.25));
@@ -177,8 +198,7 @@ const PARTICLE_COLORS = {
 };
 
 // ─── Particules ───────────────────────────────────────────────────────────────────────────────
-function createParticles(alertType) {
-  const container = document.getElementById('particles');
+function createParticles(alertType, container) {
   container.innerHTML = '';
   if (!parseBool(fieldData.showParticles)) return;
   const count  = parseInt(fieldData.particleCount, 10) || 55;
@@ -232,7 +252,7 @@ function startProgressBar(duration) {
   progressEl.classList.add('active');
 }
 
-// ─── Emotes Twitch ────────────────────────────────────────────────────────────────────────────────
+// ─── Emotes Twitch ────────────────────────────────────────────────────────────────────────────
 function renderEmotes(text, emotes) {
   if (!emotes || !emotes.length || !text) return null;
   const dict = {};
@@ -241,11 +261,12 @@ function renderEmotes(text, emotes) {
   });
   if (!Object.keys(dict).length) return null;
   const safe = text.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
-  return safe.replace(/\b(\S+)\b/g, match =>
-    dict[match]
-      ? `<img src="${dict[match]}" alt="${match}" title="${match}" style="height:1.2em;vertical-align:middle;display:inline;" loading="lazy">`
-      : match
-  );
+  // FIX: échapper les noms d'emotes dans alt/title pour éviter XSS
+  return safe.replace(/\b(\S+)\b/g, match => {
+    if (!dict[match]) return match;
+    const escapedName = match.replace(/"/g, '&quot;').replace(/>/g, '&gt;');
+    return `<img src="${dict[match]}" alt="${escapedName}" title="${escapedName}" style="height:1.2em;vertical-align:middle;display:inline;" loading="lazy">`;
+  });
 }
 
 // ─── Résolution des templates ─────────────────────────────────────────────────────────────────
@@ -261,9 +282,13 @@ function resolveTemplate(template, vars) {
 }
 
 // ─── Parse booléen robuste ────────────────────────────────────────────────────────────────────
+// FIX: "0" est désormais traité comme false (cohérent avec les valeurs falsy)
 function parseBool(val) {
   if (typeof val === 'boolean') return val;
-  if (typeof val === 'string')  return val.trim().toLowerCase() !== 'false';
+  if (typeof val === 'string') {
+    const v = val.trim().toLowerCase();
+    return v !== 'false' && v !== '0' && v !== '';
+  }
   return !!val;
 }
 
@@ -286,25 +311,20 @@ function processQueue() {
 function _playAlert(type, username, message, amount, emotes) {
   setTemplateMsg('');
   if (messageEl) {
+    // Nettoyer le listener hiding éventuel avant de réinitialiser
+    if (messageEl._hideListener) {
+      messageEl.removeEventListener('animationend', messageEl._hideListener);
+      messageEl._hideListener = null;
+    }
     messageEl.classList.remove('visible', 'hiding');
     messageEl.textContent = '';
     messageEl.innerHTML   = '';
   }
 
-  const types = {
-    follow:    { icon: fieldData.iconFollow    || '\u2764\ufe0f',  text: fieldData.textFollow    || 'NOUVEAU FOLLOW'  },
-    sub:       { icon: fieldData.iconSub       || '\u2b50',        text: fieldData.textSub       || 'NOUVELLE SUB'    },
-    resub:     { icon: fieldData.iconResub     || '\ud83d\udd25',  text: fieldData.textResub     || 'RESUBSCRIPTION'  },
-    giftsub:   { icon: fieldData.iconGiftSub   || '\ud83c\udf81',  text: fieldData.textGiftSub   || 'GIFT SUB'        },
-    donation:  { icon: fieldData.iconDonation  || '\ud83d\udc8e',  text: fieldData.textDonation  || 'DONATION'        },
-    raid:      { icon: fieldData.iconRaid      || '\u2694\ufe0f',  text: fieldData.textRaid      || 'RAID INCOMING'   },
-    cheer:     { icon: fieldData.iconCheer     || '\ud83c\udf89',  text: fieldData.textCheer     || 'BITS'            },
-    hypetrain: { icon: fieldData.iconHypeTrain || '\ud83d\ude82',  text: fieldData.textHypeTrain || 'HYPE TRAIN \ud83d\udd25' }
-  };
-
-  const t = types[type] || types.follow;
-  iconEl.textContent     = t.icon;
-  typeEl.textContent     = t.text;
+  // Utilisation de ALERT_TYPES_META (constante globale) au lieu de recréer l'objet à chaque appel
+  const meta = ALERT_TYPES_META[type] || ALERT_TYPES_META.follow;
+  iconEl.textContent     = fieldData[meta.iconKey] || meta.iconDefault;
+  typeEl.textContent     = fieldData[meta.textKey] || meta.textDefault;
   usernameEl.textContent = username;
   usernameEl.title       = username || '';
 
@@ -342,7 +362,10 @@ function _playAlert(type, username, message, amount, emotes) {
   void alertEl.offsetWidth;
 
   alertEl.classList.add(getAnimInClass());
-  createParticles(type);
+
+  // Utilise le container DOM déjà présent (évite un getElementById de plus)
+  const particlesContainer = document.getElementById('particles');
+  createParticles(type, particlesContainer);
   playSound(type);
 
   const duration = Math.min(60000, Math.max(1000, parseInt(fieldData.duration, 10) || 7000));
@@ -362,21 +385,24 @@ function _playAlert(type, username, message, amount, emotes) {
     void alertEl.offsetWidth;
     alertEl.classList.add(getAnimOutClass());
 
-    const particlesEl = document.getElementById('particles');
-    if (particlesEl) particlesEl.innerHTML = '';
+    if (particlesContainer) particlesContainer.innerHTML = '';
 
     const animOutDur = parseInt(fieldData.animDurationOut, 10) || 500;
 
+    // FIX: le fallback ne déclenche processQueue() que si animationend n'a pas encore tiré
     _fallbackTimer = setTimeout(() => {
       if (_hideEndListener) {
+        // animationend n'a pas encore tiré → on prend le relais
         alertEl.removeEventListener('animationend', _hideEndListener);
         _hideEndListener = null;
+        alertEl.classList.remove(getAnimOutClass());
+        processQueue();
       }
-      alertEl.classList.remove(getAnimOutClass());
-      processQueue();
+      // Sinon animationend a déjà appelé processQueue() → rien à faire
     }, animOutDur + 200);
 
     _hideEndListener = function onHideEnd() {
+      // FIX: annuler le fallback dès que l'animationend tire
       clearTimeout(_fallbackTimer);
       _fallbackTimer = null;
       _hideEndListener = null;
@@ -414,7 +440,9 @@ window.addEventListener('onEventReceived', function (obj) {
 
   console.log('[widget-glass] event =>', listener, JSON.stringify(data).slice(0, 300));
 
-  const eventId = `${listener}_${data.name}_${data._id || data.createdAt || Date.now()}`;
+  // FIX: ne pas utiliser Date.now() comme clé (non-déterministe → dédupe inefficace)
+  // On utilise une combinaison stable : listener + name + _id ou createdAt ou amount
+  const eventId = `${listener}_${data.name}_${data._id || data.createdAt || data.amount || ''}`;
   if (seenEventIds.has(eventId)) return;
 
   if (seenEventIds.size >= SEEN_MAX) {
@@ -450,7 +478,9 @@ window.addEventListener('onEventReceived', function (obj) {
   }
 
   if (listener === 'tip-latest' && parseBool(fieldData.showDonation)) {
-    showAlert('donation', data.name, data.message || '', data.amount + ' €', emotes);
+    // FIX: utilise la devise retournée par StreamElements si disponible (évite d'hardcoder €)
+    const currency = data.currency || fieldData.donationCurrency || '\u20ac';
+    showAlert('donation', data.name, data.message || '', `${data.amount} ${currency}`, emotes);
   }
 
   if (listener === 'raid-latest' && parseBool(fieldData.showRaid)) {
@@ -463,7 +493,7 @@ window.addEventListener('onEventReceived', function (obj) {
 
   if ((listener === 'hype-train-start' || listener === 'hype-train-end') && parseBool(fieldData.showHypeTrain)) {
     const level  = data.level || data.current || '';
-    const suffix = listener === 'hype-train-end' ? 'TERMINÉ !' : `Niveau ${level}`;
+    const suffix = listener === 'hype-train-end' ? 'TERMIN\u00c9 !' : `Niveau ${level}`;
     showAlert('hypetrain', 'HYPE TRAIN', suffix, String(level), []);
   }
 });
@@ -473,9 +503,9 @@ window.testAlert = function(type = 'follow', name = 'TestUser') {
   const testData = {
     follow:    { msg: '',                         amount: '' },
     sub:       { msg: 'Super stream !',           amount: '' },
-    resub:     { msg: 'Fidèle depuis le début !', amount: '3' },
+    resub:     { msg: 'Fid\u00e8le depuis le d\u00e9but !', amount: '3' },
     giftsub:   { msg: 'DestUser',                 amount: '5' },
-    donation:  { msg: 'Merci !',                  amount: '10 €' },
+    donation:  { msg: 'Merci !',                  amount: '10 \u20ac' },
     raid:      { msg: '',                         amount: '42' },
     cheer:     { msg: 'Hype !',                   amount: '500' },
     hypetrain: { msg: 'Niveau 2',                 amount: '2' }
