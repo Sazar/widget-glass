@@ -232,7 +232,6 @@ function processQueue() {
 
 // ─── Lecture d'une alerte ──────────────────────────────────────────────────────────────────────────────────────────
 function _playAlert(type, username, message, amount, emotes) {
-  // Reset complet avant chaque alerte
   messageEl.textContent   = '';
   messageEl.innerHTML     = '';
   messageEl.style.display = '';
@@ -254,15 +253,10 @@ function _playAlert(type, username, message, amount, emotes) {
   usernameEl.textContent = username;
   usernameEl.title       = username || '';
 
-  // Clé de template via map statique — évite les bugs de casse
   const keys        = TYPE_FIELD_KEYS[type] || {};
   const template    = fieldData[keys.template] || '';
   const hasTemplate = template.trim() !== '';
 
-  // Pour giftsub :
-  //   username  = le gifter  (ex: "Swerkx")
-  //   message   = le recipient (ex: "DestUser") — passé depuis le handler
-  //   amount    = la quantité  (ex: "5")
   const vars = {
     username:  username || '',
     amount:    amount   || '',
@@ -280,7 +274,6 @@ function _playAlert(type, username, message, amount, emotes) {
       messageEl.style.display = 'none';
     }
   } else if (type === 'giftsub') {
-    // Pas de template : affiche le recipient directement si présent
     const recipient = message || '';
     if (recipient) {
       messageEl.textContent = recipient;
@@ -401,8 +394,7 @@ window.addEventListener('onEventReceived', function (obj) {
      (listener === 'subscriber-latest' && isGiftSub(data)))
     && fieldData.showGiftSub
   ) {
-    const qty = data.amount || data.quantity || data.count || 1;
-    // Ne prendre data.gifted QUE si c'est bien une string (pas un booléen)
+    const qty       = data.amount || data.quantity || data.count || 1;
     const giftedStr = typeof data.gifted === 'string' ? data.gifted : '';
     const recipient = data.recipientDisplayName || data.recipient || giftedStr || '';
     const gifter    = data.name || data.sender   || data.gifter  || 'Anonyme';
@@ -418,7 +410,9 @@ window.addEventListener('onEventReceived', function (obj) {
   }
 
   if (listener === 'cheer-latest' && fieldData.showCheer) {
-    showAlert('cheer', data.name, data.message || '', data.amount + ' bits', emotes);
+    // amount = le nombre brut (ex: 500) — le mot "bits" est dans le template : {username} envoie {amount} bits !
+    // Ne pas concaténer ' bits' ici sinon doublon avec le template
+    showAlert('cheer', data.name, data.message || '', String(data.amount || ''), emotes);
   }
 
   if ((listener === 'hype-train-start' || listener === 'hype-train-end') && fieldData.showHypeTrain) {
@@ -437,7 +431,7 @@ window.testAlert = function(type = 'follow', name = 'TestUser') {
     giftsub:   { msg: 'DestUser',                 amount: '5' },
     donation:  { msg: 'Merci !',                  amount: '10 €' },
     raid:      { msg: '',                         amount: '42' },
-    cheer:     { msg: 'Hype !',                   amount: '500 bits' },
+    cheer:     { msg: 'Hype !',                   amount: '500' },
     hypetrain: { msg: 'Niveau 2',                 amount: '2' }
   };
   const d = testData[type] || testData.follow;
