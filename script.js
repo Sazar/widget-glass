@@ -12,14 +12,14 @@ const SEEN_MAX = 200;
 
 // ─── Map statique type → clés fieldData ─────────────────────────────────────────────────────────
 const TYPE_FIELD_KEYS = {
-  follow:    { template: 'msgFollow',    sound: 'soundFollow',    volume: 'soundVolumeFollow'    },
-  sub:       { template: 'msgSub',       sound: 'soundSub',       volume: 'soundVolumeSub'       },
-  resub:     { template: 'msgResub',     sound: 'soundResub',     volume: 'soundVolumeResub'     },
-  giftsub:   { template: 'msgGiftSub',   sound: 'soundGiftSub',   volume: 'soundVolumeGiftSub'   },
-  donation:  { template: 'msgDonation',  sound: 'soundDonation',  volume: 'soundVolumeDonation'  },
-  raid:      { template: 'msgRaid',      sound: 'soundRaid',      volume: 'soundVolumeRaid'      },
-  cheer:     { template: 'msgCheer',     sound: 'soundCheer',     volume: 'soundVolumeCheer'     },
-  hypetrain: { template: 'msgHypeTrain', sound: 'soundHypeTrain', volume: 'soundVolumeHypeTrain' }
+  follow:    { template: 'msgFollow',    sound: 'soundFollow',    volume: 'soundVolumeFollow',    showMsg: null                },
+  sub:       { template: 'msgSub',       sound: 'soundSub',       volume: 'soundVolumeSub',       showMsg: 'showSubMessage'     },
+  resub:     { template: 'msgResub',     sound: 'soundResub',     volume: 'soundVolumeResub',     showMsg: 'showResubMessage'   },
+  giftsub:   { template: 'msgGiftSub',   sound: 'soundGiftSub',   volume: 'soundVolumeGiftSub',   showMsg: null                },
+  donation:  { template: 'msgDonation',  sound: 'soundDonation',  volume: 'soundVolumeDonation',  showMsg: 'showDonationMessage'},
+  raid:      { template: 'msgRaid',      sound: 'soundRaid',      volume: 'soundVolumeRaid',      showMsg: null                },
+  cheer:     { template: 'msgCheer',     sound: 'soundCheer',     volume: 'soundVolumeCheer',     showMsg: 'showCheerMessage'   },
+  hypetrain: { template: 'msgHypeTrain', sound: 'soundHypeTrain', volume: 'soundVolumeHypeTrain', showMsg: null                }
 };
 
 // ─── Map statique type → icône + label ──────────────────────────────────────────────────────────
@@ -253,12 +253,10 @@ function createParticles(alertType, container) {
 }
 
 // ─── Sons ────────────────────────────────────────────────────────────────────────────────────────
-// FIX #3 : validation du format audio avant de créer l'objet Audio
 function playSound(type) {
   const keys = TYPE_FIELD_KEYS[type];
   const url  = keys ? (fieldData[keys.sound] || '').trim() : '';
   if (!url) return;
-  // Accepte uniquement les extensions audio connues ou les URLs de données
   if (!/\.(mp3|ogg|wav|aac|m4a|flac|webm)(\?.*)?$/i.test(url) && !/^data:audio\//i.test(url)) {
     dbg(`Son "${type}" : format non supporté ou URL invalide (${url})`);
     return;
@@ -276,8 +274,6 @@ function playSound(type) {
 }
 
 // ─── Barre de progression ────────────────────────────────────────────────────────────────────────
-// FIX #5 : utiliser removeProperty au lieu de style.display = 'none'
-// pour éviter le conflit entre style inline et la classe CSS .active
 function startProgressBar(duration) {
   if (!progressEl) return;
   if (!parseBool(fieldData.showProgressBar)) {
@@ -285,10 +281,9 @@ function startProgressBar(duration) {
     progressEl.style.removeProperty('display');
     return;
   }
-  // Retirer le style inline avant de jouer sur les classes
   progressEl.style.removeProperty('display');
   progressEl.classList.remove('active');
-  void progressEl.offsetWidth; // force reflow pour relancer l'animation
+  void progressEl.offsetWidth;
   document.documentElement.style.setProperty('--duration', duration + 'ms');
   progressEl.classList.add('active');
 }
@@ -296,12 +291,10 @@ function startProgressBar(duration) {
 function stopProgressBar() {
   if (!progressEl) return;
   progressEl.classList.remove('active');
-  // FIX #5 suite : on retire le style inline pour laisser le CSS gérer display
   progressEl.style.removeProperty('display');
 }
 
 // ─── Emotes ──────────────────────────────────────────────────────────────────────────────────────
-// \b remplacé par split sur espaces pour matcher les emotes avec tirets/caractères spéciaux
 function renderEmotes(text, emotes) {
   if (!emotes || !emotes.length || !text) return null;
   const dict = {};
@@ -316,7 +309,6 @@ function renderEmotes(text, emotes) {
       hasEmote = true;
       const safe    = word.replace(/"/g, '&quot;').replace(/>/g, '&gt;');
       const imgSrc  = dict[word].replace(/"/g, '&quot;');
-      // FIX #2 : onerror sur chaque image d'emote → fallback texte brut
       return `<img src="${imgSrc}" alt="${safe}" title="${safe}" style="height:1.2em;vertical-align:middle;display:inline;" loading="lazy" onerror="this.replaceWith(document.createTextNode('${safe}'))">`;
     }
     return word.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
@@ -345,8 +337,6 @@ function parseBool(val) {
   }
   return !!val;
 }
-
-const VIEWER_MSG_TYPES = ['sub', 'resub', 'donation', 'cheer'];
 
 // ─── File d'attente avec priorité ────────────────────────────────────────────────────────────────
 function enqueueAlert(type, username, message, amount, emotes) {
@@ -378,8 +368,6 @@ function resetIconScale() {
 
 // ─── Lecture d'une alerte ────────────────────────────────────────────────────────────────────────
 function _playAlert(type, username, message, amount, emotes) {
-  // FIX #1 : stopper proprement la barre de progression d'une éventuelle
-  // alerte précédente avant d'en démarrer une nouvelle (ex: skipAlert rapide)
   stopProgressBar();
 
   setTemplateMsg('');
@@ -402,7 +390,13 @@ function _playAlert(type, username, message, amount, emotes) {
   const keys     = TYPE_FIELD_KEYS[type] || {};
   const template = fieldData[keys.template] || '';
 
-  const showViewerMsg = VIEWER_MSG_TYPES.includes(type) && parseBool(fieldData.showViewerMessage);
+  // Lecture de la clé spécifique au type (showSubMessage, showDonationMessage, etc.)
+  // Si la clé n'existe pas pour ce type (follow, raid…), on ne montre jamais la bulle
+  const showMsgKey    = keys.showMsg;
+  const showViewerMsg = showMsgKey
+    ? parseBool(fieldData[showMsgKey] !== undefined ? fieldData[showMsgKey] : true)
+    : false;
+
   const viewerMessage = (message || '').trim();
 
   const vars = {
@@ -432,9 +426,6 @@ function _playAlert(type, username, message, amount, emotes) {
     .join(' ');
   void alertEl.offsetWidth;
 
-  // FIX #4 : réinitialiser le scale AVANT d'appliquer setIconScale
-  // pour éviter qu'un scale résiduel reste si l'animation précédente
-  // ne s'est pas terminée normalement (ex: prefers-reduced-motion)
   resetIconScale();
   setIconScale(1.15);
 
@@ -521,7 +512,6 @@ window.addEventListener('onEventReceived', function (obj) {
   if (listener === 'follower-latest' && parseBool(fieldData.showFollow))
     showAlert('follow', data.name, data.message || '', '', emotes);
 
-  // Resub mois-1 : vérifie isResub ou cumulativeMonths en plus de amount > 1
   if (listener === 'subscriber-latest' && !isGiftSub(data)) {
     const months  = parseInt(data.amount, 10) || parseInt(data.months, 10) || 0;
     const isResub = !!(data.isResub || data.streak || months > 1 || (months === 1 && data.cumulativeMonths > 1));
