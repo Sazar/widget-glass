@@ -70,7 +70,7 @@ function applySettings() {
   const root = document.documentElement;
   root.style.setProperty('--widget-width',      (fieldData.widgetWidth   || 660)  + 'px');
   root.style.setProperty('--border-radius',     (fieldData.borderRadius  || 28)   + 'px');
-  root.style.setProperty('--blur-intensity',    (fieldData.blurIntensity || 28)   + 'px');
+  root.style.setProperty('--blur-intensity',    (fieldData.blurIntensity || 0) + 'px');
   const opacity = parseFloat(fieldData.glassOpacity) || 0.45;
   root.style.setProperty('--glass-bg', `rgba(20,20,35,${opacity})`);
   root.style.setProperty('--primary-color',      fieldData.primaryColor  || '#00f5ff');
@@ -79,7 +79,12 @@ function applySettings() {
   root.style.setProperty('--type-color',         fieldData.typeColor     || fieldData.primaryColor || '#00f5ff');
   root.style.setProperty('--username-size',     (fieldData.usernameSize  || 49)   + 'px');
   root.style.setProperty('--username-color',     fieldData.usernameColor || '#ffffff');
-  root.style.setProperty('--glow-intensity',    (fieldData.glowIntensity || 20)   + 'px');
+
+  // ── Glow : désactivé par la checkbox enableGlow → force 0px ──────────────────────────
+  const glowEnabled = parseBool(fieldData.enableGlow !== undefined ? fieldData.enableGlow : true);
+  const glowValue   = glowEnabled ? (parseInt(fieldData.glowIntensity, 10) || 20) : 0;
+  root.style.setProperty('--glow-intensity', glowValue + 'px');
+
   const dur = Math.min(60000, Math.max(1000, parseInt(fieldData.duration, 10) || 7000));
   root.style.setProperty('--duration', dur + 'ms');
   root.style.setProperty('--anim-duration-in',  (parseInt(fieldData.animDurationIn,  10) || 600)  + 'ms');
