@@ -43,7 +43,7 @@ body {
 [class*="anim-in-"],
 [class*="anim-out-"] { display: block; }
 
-/* ── Message viewer ──────────────────────────────────────────────────────── */
+/* ── Message viewer — texte libre sous le widget, sans fond ni bordure ──── */
 .viewer-message-bubble {
   display: none;
   width: var(--widget-width, 660px);
@@ -77,7 +77,7 @@ body {
   to   { opacity: 0; transform: translateY(4px); }
 }
 
-/* ── Variables ───────────────────────────────────────────────────────────── */
+/* ── Variables de durée + glow initial à 0 ───────────────────────────────── */
 :root {
   --anim-duration-in:  600ms;
   --anim-duration-out: 500ms;
@@ -271,7 +271,7 @@ body {
   50%       { opacity: 0.75; }
 }
 
-/* ── Barre de progression ───────────────────────────────────────────────── */
+/* ── Barre de progression ──────────────────────────────────────────────── */
 .progress-bar {
   display: none;
   position: absolute;
@@ -311,6 +311,11 @@ body {
 }
 
 /* ── Icône emoji ────────────────────────────────────────────────────────── */
+/*
+  Le scale de l'icône est entièrement piloté par JS (iconEl.style.transform).
+  Aucune règle CSS statique sur transform ici — évite tout snap au dernier
+  frame quand les classes anim-in-/anim-out- sont retirées.
+*/
 .icon {
   font-size: var(--icon-size, 56px);
   line-height: 1;
@@ -341,7 +346,7 @@ body {
   margin-bottom: 10px;
 }
 
-/* ── Username + template ────────────────────────────────────────────────── */
+/* ── Ligne pseudo + template ─────────────────────────────────────────────── */
 .username-row {
   display: block;
   text-align: center;
@@ -369,168 +374,26 @@ body {
 
 .template-msg:empty { display: none; }
 
-/* ── Particules ─────────────────────────────────────────────────────────── */
+/* ── Particules ──────────────────────────────────────────────────────────── */
 .particles {
   position: absolute;
   top: 0; left: 0; right: 0; bottom: 0;
   pointer-events: none;
   overflow: hidden;
   border-radius: var(--border-radius, 28px);
-  z-index: 1;
 }
 
 @keyframes floatParticle {
-  0%   { transform: translateY(0); opacity: var(--particle-opacity, 0.7); }
-  85%  { transform: translateY(var(--travel-y, -280px)); opacity: 0; }
-  100% { transform: translateY(0); opacity: 0; }
-}
-
-/* ══════════════════════════════════════════════════════════════════════════ */
-/* EFFET 1 — SHOCKWAVE                                                       */
-/* Onde de choc circulaire qui explose depuis le centre à l'entrée           */
-/* ══════════════════════════════════════════════════════════════════════════ */
-.shockwave {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  width: 60px;
-  height: 60px;
-  border-radius: 50%;
-  transform: translate(-50%, -50%) scale(0);
-  pointer-events: none;
-  z-index: 20;
-  opacity: 0;
-}
-
-.shockwave.active {
-  border: 3px solid var(--primary-color, #00f5ff);
-  box-shadow: 0 0 12px var(--primary-color, #00f5ff),
-              inset 0 0 12px var(--primary-color, #00f5ff);
-  animation: kf-shockwave 0.7s var(--ease-out-expo) forwards;
-}
-
-.shockwave.active.wave2 {
-  animation-delay: 0.15s;
-  opacity: 0;
-}
-
-.shockwave.active.wave3 {
-  animation-delay: 0.3s;
-  opacity: 0;
-}
-
-@keyframes kf-shockwave {
-  0%   { transform: translate(-50%, -50%) scale(0);   opacity: 0.9; }
-  60%  { opacity: 0.4; }
-  100% { transform: translate(-50%, -50%) scale(6);   opacity: 0; }
-}
-
-/* ══════════════════════════════════════════════════════════════════════════ */
-/* EFFET 2 — SCANLINES                                                       */
-/* Lignes de scan horizontales style CRT/glitch                             */
-/* ══════════════════════════════════════════════════════════════════════════ */
-.scanlines {
-  position: absolute;
-  inset: 0;
-  pointer-events: none;
-  border-radius: var(--border-radius, 28px);
-  overflow: hidden;
-  z-index: 5;
-  opacity: 0;
-}
-
-.scanlines.active {
-  animation: kf-scanlines-opacity 2s ease forwards;
-}
-
-.scanlines.active::before {
-  content: '';
-  position: absolute;
-  inset: 0;
-  background: repeating-linear-gradient(
-    to bottom,
-    transparent 0px,
-    transparent 3px,
-    rgba(0, 0, 0, 0.18) 3px,
-    rgba(0, 0, 0, 0.18) 4px
-  );
-}
-
-.scanlines.active::after {
-  content: '';
-  position: absolute;
-  left: 0;
-  right: 0;
-  height: 40%;
-  background: linear-gradient(
-    to bottom,
-    transparent,
-    rgba(var(--primary-rgb, 0,245,255), 0.07),
-    transparent
-  );
-  animation: kf-scanline-sweep 1.4s cubic-bezier(0.4, 0, 0.2, 1) forwards;
-}
-
-@keyframes kf-scanlines-opacity {
-  0%   { opacity: 1; }
-  70%  { opacity: 1; }
-  100% { opacity: 0; }
-}
-
-@keyframes kf-scanline-sweep {
-  from { top: -40%; }
-  to   { top: 100%; }
-}
-
-/* ══════════════════════════════════════════════════════════════════════════ */
-/* EFFET 3 — CONFETTI BURST                                                  */
-/* Confettis tombants pour sub, donation, raid, hypetrain                   */
-/* ══════════════════════════════════════════════════════════════════════════ */
-.confetti {
-  position: absolute;
-  top: 0; left: 0; right: 0; bottom: 0;
-  pointer-events: none;
-  overflow: hidden;
-  border-radius: var(--border-radius, 28px);
-  z-index: 2;
-}
-
-@keyframes kf-confetti-fall {
   0%   {
-    transform: translateY(var(--cf-start-y, -20px)) translateX(0) rotate(var(--cf-rot-start, 0deg)) scale(1);
-    opacity: 1;
+    transform: translateY(0);
+    opacity: var(--particle-opacity, 0.7);
   }
-  80%  {
-    transform: translateY(var(--cf-end-y, 140px)) translateX(var(--cf-drift, 20px)) rotate(var(--cf-rot-end, 360deg)) scale(0.8);
-    opacity: 0.8;
-  }
-  100% {
-    transform: translateY(calc(var(--cf-end-y, 140px) + 20px)) translateX(var(--cf-drift, 20px)) rotate(var(--cf-rot-end, 360deg)) scale(0.5);
+  85%  {
+    transform: translateY(var(--travel-y, -280px));
     opacity: 0;
   }
-}
-
-/* ══════════════════════════════════════════════════════════════════════════ */
-/* EFFET 4 — PULSE RINGS                                                     */
-/* Anneaux lumineux qui irradient depuis l'icône                            */
-/* ══════════════════════════════════════════════════════════════════════════ */
-.pulse-rings {
-  position: absolute;
-  top: 50%;
-  left: calc(44px + var(--icon-size, 56px) / 2);
-  width: 0;
-  height: 0;
-  pointer-events: none;
-  z-index: 3;
-}
-
-@keyframes kf-pulse-ring {
-  0%   {
-    transform: translate(-50%, -50%) scale(0);
-    opacity: var(--ring-max-opacity, 0.7);
-  }
   100% {
-    transform: translate(-50%, -50%) scale(var(--ring-scale, 4));
+    transform: translateY(0);
     opacity: 0;
   }
 }
@@ -540,7 +403,7 @@ body {
   .alert { background: rgba(10, 10, 20, 0.88); }
 }
 
-/* ── prefers-reduced-motion ─────────────────────────────────────────────── */
+/* ── prefers-reduced-motion ───────────────────────────────────────────────── */
 @media (prefers-reduced-motion: reduce) {
   [class*="anim-in-"] {
     animation: kf-fadeIn var(--anim-duration-in) ease forwards !important;
@@ -552,7 +415,7 @@ body {
   .alert::after {
     animation: none !important;
   }
-  .particles, .scanlines, .confetti, .shockwave, .pulse-rings {
+  .particles {
     display: none !important;
   }
   .viewer-message-bubble.visible {
