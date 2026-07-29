@@ -119,7 +119,7 @@
     "type": "slider",
     "label": "Intensité du flou (px)",
     "value": 28,
-    "min": 10,
+    "min": 0,
     "max": 50,
     "step": 2,
     "group": "🎨 Apparence"
