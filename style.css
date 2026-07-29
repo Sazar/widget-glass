@@ -12,17 +12,17 @@ body {
   overflow: hidden;
   height: 100vh;
   display: flex;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
+  gap: 14px;
   padding: 20px;
 }
 
 /* ── Widget principal ─────────────────────────────────────────────────────── */
 .alert {
   display: none;
-  /* Largeur fixe — ne rétrécit jamais */
   width: var(--widget-width, 660px);
-  /* Hauteur libre : grandit vers le bas si le texte est long */
   height: auto;
   background: var(--glass-bg, rgba(20, 20, 35, 0.45));
   backdrop-filter: blur(var(--blur-intensity, 28px));
@@ -42,6 +42,50 @@ body {
 
 [class*="anim-in-"],
 [class*="anim-out-"] { display: block; }
+
+/* ── Bulle message viewer (sous le widget) ──────────────────────────────── */
+.viewer-message-bubble {
+  display: none;
+  width: var(--widget-width, 660px);
+  background: rgba(20, 20, 35, 0.55);
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+  border-radius: calc(var(--border-radius, 28px) * 0.65);
+  padding: 14px 28px;
+  font-family: 'Space Grotesk', 'Inter', sans-serif;
+  font-size: clamp(15px, 2vw, 20px);
+  font-weight: 500;
+  color: rgba(255, 255, 255, 0.88);
+  text-align: center;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: 0 6px 24px rgba(0, 0, 0, 0.4);
+  line-height: 1.4;
+  word-break: break-word;
+  animation-fill-mode: both;
+}
+
+.viewer-message-bubble.visible {
+  display: block;
+  animation: bubbleFadeIn 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.viewer-message-bubble.hiding {
+  animation: bubbleFadeOut 0.25s ease forwards;
+}
+
+@keyframes bubbleFadeIn {
+  from { opacity: 0; transform: translateY(-8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes bubbleFadeOut {
+  from { opacity: 1; transform: translateY(0); }
+  to   { opacity: 0; transform: translateY(6px); }
+}
+
+@supports not (backdrop-filter: blur(1px)) {
+  .viewer-message-bubble { background: rgba(10, 10, 20, 0.82); }
+}
 
 /* ── Variables de durée ──────────────────────────────────────────────────── */
 :root {
@@ -307,49 +351,25 @@ body {
   margin-bottom: 10px;
 }
 
-/* ── Ligne pseudo + message ─────────────────────────────────────────────────
-   Principe : .username-row est un bloc de texte normal (display:block).
-   .username et .message sont en display:inline — ils coulent côte à côte
-   sur la même ligne exactement comme deux mots dans une phrase.
-   Si la phrase est trop longue elle revient à la ligne naturellement,
-   MAIS jamais entre la fin du pseudo et le début du message.
-   Le seul séparateur est l'espace naturel entre les deux inline.
-────────────────────────────────────────────────────────────────────────── */
+/* ── Pseudo ──────────────────────────────────────────────────────────────── */
 .username-row {
   display: block;
   text-align: center;
   width: 100%;
-  /* line-height cohérent avec la taille de police */
   line-height: 1.2;
 }
 
-.username,
-.message {
+.username {
   font-family: 'Space Grotesk', 'Inter', sans-serif;
   font-size: var(--username-size, 49px);
   font-weight: 700;
   line-height: 1.2;
   color: var(--username-color, #ffffff);
-  /* inline : coulent sur la même ligne comme du texte */
   display: inline;
-  /* Le texte wrape normalement sur plusieurs lignes si besoin,
-     mais JAMAIS entre .username et .message (ils sont inline contigus) */
   white-space: normal;
   overflow-wrap: break-word;
   word-break: break-word;
   vertical-align: baseline;
-}
-
-/* Espace automatique entre pseudo et message quand les deux sont présents */
-.username:not(:empty) + .message:not(:empty)::before {
-  content: '\00A0';
-}
-
-/* Quand message masqué, on supprime l'espace fantôme */
-.message[style*="display: none"]::before,
-.message[style*="display:none"]::before,
-.message:empty::before {
-  content: none;
 }
 
 /* ── Particules ──────────────────────────────────────────────────────────── */
