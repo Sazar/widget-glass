@@ -43,23 +43,17 @@ body {
 [class*="anim-in-"],
 [class*="anim-out-"] { display: block; }
 
-/* ── Bulle message viewer (sous le widget) ──────────────────────────────── */
+/* ── Message viewer — texte libre sous le widget, sans fond ni bordure ──── */
 .viewer-message-bubble {
   display: none;
   width: var(--widget-width, 660px);
-  background: rgba(20, 20, 35, 0.55);
-  backdrop-filter: blur(18px);
-  -webkit-backdrop-filter: blur(18px);
-  border-radius: calc(var(--border-radius, 28px) * 0.65);
-  padding: 14px 28px;
   font-family: 'Space Grotesk', 'Inter', sans-serif;
-  font-size: clamp(15px, 2vw, 20px);
+  font-size: clamp(16px, 2.2vw, 22px);
   font-weight: 500;
-  color: rgba(255, 255, 255, 0.88);
+  color: rgba(255, 255, 255, 0.9);
   text-align: center;
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  box-shadow: 0 6px 24px rgba(0, 0, 0, 0.4);
-  line-height: 1.4;
+  text-shadow: 0 1px 8px rgba(0, 0, 0, 0.6);
+  line-height: 1.45;
   word-break: break-word;
   animation-fill-mode: both;
 }
@@ -74,17 +68,13 @@ body {
 }
 
 @keyframes bubbleFadeIn {
-  from { opacity: 0; transform: translateY(-8px); }
+  from { opacity: 0; transform: translateY(-6px); }
   to   { opacity: 1; transform: translateY(0); }
 }
 
 @keyframes bubbleFadeOut {
   from { opacity: 1; transform: translateY(0); }
-  to   { opacity: 0; transform: translateY(6px); }
-}
-
-@supports not (backdrop-filter: blur(1px)) {
-  .viewer-message-bubble { background: rgba(10, 10, 20, 0.82); }
+  to   { opacity: 0; transform: translateY(4px); }
 }
 
 /* ── Variables de durée ──────────────────────────────────────────────────── */
