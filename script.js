@@ -7,7 +7,6 @@ let _fallbackTimer = null;
 let isLoading = true;
 let _hideEndListener = null;
 
-// Set borné (max 200 entrées) pour éviter la fuite mémoire sur stream long
 const seenEventIds = new Set();
 const SEEN_MAX = 200;
 
@@ -32,13 +31,13 @@ const templateMsgEl = document.getElementById('templateMsg');
 const messageEl     = document.getElementById('message');
 const progressEl    = document.getElementById('progressBar');
 
-// ─── Helpers template (dans le widget) ───────────────────────────────────────────────────────
+// ─── Helpers template ─────────────────────────────────────────────────────────────────────────
 function setTemplateMsg(text) {
   if (!templateMsgEl) return;
   templateMsgEl.textContent = text || '';
 }
 
-// ─── Helpers bulle message viewer (en dessous du widget) ─────────────────────────────────────
+// ─── Helpers bulle message viewer ──────────────────────────────────────────────────────────────────
 function showBubble(html, isHtml) {
   if (!messageEl) return;
   messageEl.classList.remove('hiding');
@@ -70,7 +69,7 @@ function applySettings() {
   const root = document.documentElement;
   root.style.setProperty('--widget-width',      (fieldData.widgetWidth   || 660)  + 'px');
   root.style.setProperty('--border-radius',     (fieldData.borderRadius  || 28)   + 'px');
-  root.style.setProperty('--blur-intensity',    (fieldData.blurIntensity || 0) + 'px');
+  root.style.setProperty('--blur-intensity',    (fieldData.blurIntensity || 0)    + 'px');
   const opacity = parseFloat(fieldData.glassOpacity) || 0.45;
   root.style.setProperty('--glass-bg', `rgba(20,20,35,${opacity})`);
   root.style.setProperty('--primary-color',      fieldData.primaryColor  || '#00f5ff');
@@ -80,17 +79,17 @@ function applySettings() {
   root.style.setProperty('--username-size',     (fieldData.usernameSize  || 49)   + 'px');
   root.style.setProperty('--username-color',     fieldData.usernameColor || '#ffffff');
 
-  // ── Glow ──────────────────────────────────────────────────────────────────
-  // glowEnabled contrôle TOUS les effets de lumière :
-  //   1. --glow-intensity  → drop-shadow(.icon) + text-shadow(.type)
-  //   2. --primary-color-soft / --accent-color-soft → dégradé ::before (fond coloré animé)
-  // Si false : les deux variables de couleur soft sont forcées à transparent
-  // pour supprimer le glow de fond, même si un preset de thème est actif.
+  // ── Glow icône + texte (✨ Activer le glow) ──────────────────────────────────────────
+  // Contrôle --glow-intensity → drop-shadow(.icon) + text-shadow(.type)
   const glowEnabled = parseBool(fieldData.enableGlow !== undefined ? fieldData.enableGlow : true);
   const glowValue   = glowEnabled ? (parseInt(fieldData.glowIntensity, 10) || 20) : 0;
   root.style.setProperty('--glow-intensity', glowValue + 'px');
 
-  if (glowEnabled) {
+  // ── Fond coloré animé (🌟 Effet de fond coloré animé) ──────────────────────────────
+  // Contrôle --primary-color-soft / --accent-color-soft
+  // utilisées par ::before (dégradé liquidFlow en fond du widget)
+  const glowBgEnabled = parseBool(fieldData.enableGlowBg !== undefined ? fieldData.enableGlowBg : true);
+  if (glowBgEnabled) {
     root.style.setProperty('--primary-color-soft', hexToRgba(fieldData.primaryColor || '#00f5ff', 0.25));
     root.style.setProperty('--accent-color-soft',  'rgba(255,0,204,0.18)');
   } else {
@@ -105,7 +104,7 @@ function applySettings() {
   root.style.setProperty('--progress-color-1',   fieldData.progressBarColor1 || fieldData.primaryColor || '#00f5ff');
   root.style.setProperty('--progress-color-2',   fieldData.progressBarColor2 || fieldData.primaryColor || '#00f5ff');
   applyPosition(fieldData.widgetPosition || 'center');
-  applyThemePreset(fieldData.themePreset || 'custom', glowEnabled);
+  applyThemePreset(fieldData.themePreset || 'custom', glowBgEnabled);
 }
 
 // ─── hexToRgba robuste ────────────────────────────────────────────────────────────────────────
@@ -149,16 +148,12 @@ const THEME_PRESETS = {
   'custom': null
 };
 
-// glowEnabled est passé en paramètre pour que le preset ne ré-écrive pas
-// --primary-color-soft avec une couleur opaque quand le glow est désactivé.
-function applyThemePreset(preset, glowEnabled) {
+function applyThemePreset(preset, glowBgEnabled) {
   const theme = THEME_PRESETS[preset];
   if (!theme) return;
   const root = document.documentElement;
   root.style.setProperty('--primary-color', theme.primary);
-  // On ne touche à --primary-color-soft que si le glow est actif ;
-  // applySettings() l'a déjà forcé à transparent si glowEnabled === false.
-  if (glowEnabled !== false) {
+  if (glowBgEnabled !== false) {
     root.style.setProperty('--primary-color-soft', hexToRgba(theme.primary, 0.25));
   }
   root.style.setProperty('--type-color',     theme.typeColor);
@@ -237,7 +232,7 @@ function startProgressBar(duration) {
   progressEl.classList.add('active');
 }
 
-// ─── Emotes Twitch dans le message ───────────────────────────────────────────────────────────
+// ─── Emotes Twitch ────────────────────────────────────────────────────────────────────────────────
 function renderEmotes(text, emotes) {
   if (!emotes || !emotes.length || !text) return null;
   const dict = {};
@@ -272,7 +267,6 @@ function parseBool(val) {
   return !!val;
 }
 
-// ─── Types concernés par l'option "afficher message viewer" ──────────────────────────────────
 const VIEWER_MSG_TYPES = ['sub', 'resub', 'donation', 'cheer'];
 
 // ─── File d'attente ───────────────────────────────────────────────────────────────────────────

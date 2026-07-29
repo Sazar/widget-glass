@@ -135,7 +135,7 @@
   },
   "enableGlow": {
     "type": "checkbox",
-    "label": "✨ Activer le glow",
+    "label": "✨ Activer le glow (icône + texte)",
     "value": true,
     "group": "🎨 Apparence"
   },
@@ -148,27 +148,48 @@
     "step": 2,
     "group": "🎨 Apparence"
   },
-  "showProgressBar": {
+  "enableGlowBg": {
     "type": "checkbox",
-    "label": "Barre de progression",
+    "label": "🌟 Effet de fond coloré animé",
     "value": true,
     "group": "🎨 Apparence"
   },
-  "progressBarColor1": {
-    "type": "colorpicker",
-    "label": "Barre — Couleur gauche",
-    "value": "#00f5ff",
+  "iconSize": {
+    "type": "slider",
+    "label": "Taille icône (px)",
+    "value": 56,
+    "min": 24,
+    "max": 100,
+    "step": 2,
     "group": "🎨 Apparence"
   },
-  "progressBarColor2": {
+  "typeSize": {
+    "type": "slider",
+    "label": "Taille label type (px)",
+    "value": 15.5,
+    "min": 10,
+    "max": 28,
+    "step": 0.5,
+    "group": "🎨 Apparence"
+  },
+  "usernameSize": {
+    "type": "slider",
+    "label": "Taille nom (px)",
+    "value": 49,
+    "min": 24,
+    "max": 80,
+    "step": 1,
+    "group": "🎨 Apparence"
+  },
+  "usernameColor": {
     "type": "colorpicker",
-    "label": "Barre — Couleur droite",
-    "value": "#ff2ec4",
+    "label": "Couleur du nom",
+    "value": "#ffffff",
     "group": "🎨 Apparence"
   },
   "showParticles": {
     "type": "checkbox",
-    "label": "Particules",
+    "label": "✨ Particules",
     "value": true,
     "group": "🎨 Apparence"
   },
@@ -177,302 +198,281 @@
     "label": "Nombre de particules",
     "value": 55,
     "min": 10,
-    "max": 100,
+    "max": 120,
     "step": 5,
     "group": "🎨 Apparence"
   },
-  "iconSize": {
-    "type": "slider",
-    "label": "🔸 Icône — taille emoji (px)",
-    "value": 56,
-    "min": 24,
-    "max": 90,
-    "step": 2,
-    "group": "🔤 Typographie"
+  "showProgressBar": {
+    "type": "checkbox",
+    "label": "⏳ Barre de progression",
+    "value": true,
+    "group": "🎨 Apparence"
   },
-  "typeSize": {
-    "type": "slider",
-    "label": "🏷️ Type d'alerte — ex: NOUVEAU FOLLOW (px)",
-    "value": 15.5,
-    "min": 10,
-    "max": 60,
-    "step": 0.5,
-    "group": "🔤 Typographie"
-  },
-  "typeColor": {
+  "progressBarColor1": {
     "type": "colorpicker",
-    "label": "🏷️ Type d'alerte — couleur",
+    "label": "Barre — couleur 1",
     "value": "#00f5ff",
-    "group": "🔤 Typographie"
+    "group": "🎨 Apparence"
   },
-  "usernameSize": {
-    "type": "slider",
-    "label": "👤 Pseudo — taille (px) — s'applique aussi au message",
-    "value": 49,
-    "min": 24,
-    "max": 80,
-    "step": 1,
-    "group": "🔤 Typographie"
-  },
-  "usernameColor": {
+  "progressBarColor2": {
     "type": "colorpicker",
-    "label": "👤 Pseudo — couleur (s'applique aussi au message)",
-    "value": "#ffffff",
-    "group": "🔤 Typographie"
+    "label": "Barre — couleur 2",
+    "value": "#ff2ec4",
+    "group": "🎨 Apparence"
   },
   "showFollow": {
     "type": "checkbox",
-    "label": "Follow",
+    "label": "❤️ Follow",
     "value": true,
-    "group": "📡 Événements actifs"
-  },
-  "showSub": {
-    "type": "checkbox",
-    "label": "Sub",
-    "value": true,
-    "group": "📡 Événements actifs"
-  },
-  "showResub": {
-    "type": "checkbox",
-    "label": "Resub",
-    "value": true,
-    "group": "📡 Événements actifs"
-  },
-  "showGiftSub": {
-    "type": "checkbox",
-    "label": "Gift Sub",
-    "value": true,
-    "group": "📡 Événements actifs"
-  },
-  "showDonation": {
-    "type": "checkbox",
-    "label": "Donation / Tips",
-    "value": true,
-    "group": "📡 Événements actifs"
-  },
-  "showRaid": {
-    "type": "checkbox",
-    "label": "Raid",
-    "value": true,
-    "group": "📡 Événements actifs"
-  },
-  "showCheer": {
-    "type": "checkbox",
-    "label": "Cheer / Bits",
-    "value": true,
-    "group": "📡 Événements actifs"
-  },
-  "showHypeTrain": {
-    "type": "checkbox",
-    "label": "Hype Train",
-    "value": true,
-    "group": "📡 Événements actifs"
-  },
-  "showViewerMessage": {
-    "type": "checkbox",
-    "label": "💬 Afficher les messages des viewers (Subs, Tips, Bits)",
-    "value": true,
-    "group": "📡 Événements actifs"
+    "group": "🔔 Événements"
   },
   "iconFollow": {
     "type": "text",
     "label": "Icône Follow",
     "value": "❤️",
-    "group": "🏷️ Icônes & Textes"
+    "group": "🔔 Événements"
   },
   "textFollow": {
     "type": "text",
-    "label": "Texte Follow",
+    "label": "Label Follow",
     "value": "NOUVEAU FOLLOW",
-    "group": "🏷️ Icônes & Textes"
+    "group": "🔔 Événements"
+  },
+  "msgFollow": {
+    "type": "text",
+    "label": "Template Follow",
+    "value": "vient de follow !",
+    "group": "🔔 Événements"
+  },
+  "soundFollow": {
+    "type": "text",
+    "label": "Son Follow (URL)",
+    "value": "",
+    "group": "🔔 Événements"
+  },
+  "showSub": {
+    "type": "checkbox",
+    "label": "⭐ Sub",
+    "value": true,
+    "group": "🔔 Événements"
   },
   "iconSub": {
     "type": "text",
     "label": "Icône Sub",
     "value": "⭐",
-    "group": "🏷️ Icônes & Textes"
+    "group": "🔔 Événements"
   },
   "textSub": {
     "type": "text",
-    "label": "Texte Sub",
+    "label": "Label Sub",
     "value": "NOUVELLE SUB",
-    "group": "🏷️ Icônes & Textes"
+    "group": "🔔 Événements"
+  },
+  "msgSub": {
+    "type": "text",
+    "label": "Template Sub",
+    "value": "vient de s'abonner !",
+    "group": "🔔 Événements"
+  },
+  "soundSub": {
+    "type": "text",
+    "label": "Son Sub (URL)",
+    "value": "",
+    "group": "🔔 Événements"
+  },
+  "showResub": {
+    "type": "checkbox",
+    "label": "🔥 Resub",
+    "value": true,
+    "group": "🔔 Événements"
   },
   "iconResub": {
     "type": "text",
     "label": "Icône Resub",
     "value": "🔥",
-    "group": "🏷️ Icônes & Textes"
+    "group": "🔔 Événements"
   },
   "textResub": {
     "type": "text",
-    "label": "Texte Resub",
+    "label": "Label Resub",
     "value": "RESUBSCRIPTION",
-    "group": "🏷️ Icônes & Textes"
+    "group": "🔔 Événements"
+  },
+  "msgResub": {
+    "type": "text",
+    "label": "Template Resub",
+    "value": "resub x{months} mois !",
+    "group": "🔔 Événements"
+  },
+  "soundResub": {
+    "type": "text",
+    "label": "Son Resub (URL)",
+    "value": "",
+    "group": "🔔 Événements"
+  },
+  "showGiftSub": {
+    "type": "checkbox",
+    "label": "🎁 Gift Sub",
+    "value": true,
+    "group": "🔔 Événements"
   },
   "iconGiftSub": {
     "type": "text",
     "label": "Icône Gift Sub",
     "value": "🎁",
-    "group": "🏷️ Icônes & Textes"
+    "group": "🔔 Événements"
   },
   "textGiftSub": {
     "type": "text",
-    "label": "Texte Gift Sub",
+    "label": "Label Gift Sub",
     "value": "GIFT SUB",
-    "group": "🏷️ Icônes & Textes"
+    "group": "🔔 Événements"
+  },
+  "msgGiftSub": {
+    "type": "text",
+    "label": "Template Gift Sub",
+    "value": "offre {count} sub(s) !",
+    "group": "🔔 Événements"
+  },
+  "soundGiftSub": {
+    "type": "text",
+    "label": "Son Gift Sub (URL)",
+    "value": "",
+    "group": "🔔 Événements"
+  },
+  "showDonation": {
+    "type": "checkbox",
+    "label": "💎 Donation",
+    "value": true,
+    "group": "🔔 Événements"
   },
   "iconDonation": {
     "type": "text",
     "label": "Icône Donation",
     "value": "💎",
-    "group": "🏷️ Icônes & Textes"
+    "group": "🔔 Événements"
   },
   "textDonation": {
     "type": "text",
-    "label": "Texte Donation",
+    "label": "Label Donation",
     "value": "DONATION",
-    "group": "🏷️ Icônes & Textes"
+    "group": "🔔 Événements"
+  },
+  "msgDonation": {
+    "type": "text",
+    "label": "Template Donation",
+    "value": "a donné {amount} !",
+    "group": "🔔 Événements"
+  },
+  "soundDonation": {
+    "type": "text",
+    "label": "Son Donation (URL)",
+    "value": "",
+    "group": "🔔 Événements"
+  },
+  "showRaid": {
+    "type": "checkbox",
+    "label": "⚔️ Raid",
+    "value": true,
+    "group": "🔔 Événements"
   },
   "iconRaid": {
     "type": "text",
     "label": "Icône Raid",
     "value": "⚔️",
-    "group": "🏷️ Icônes & Textes"
+    "group": "🔔 Événements"
   },
   "textRaid": {
     "type": "text",
-    "label": "Texte Raid",
+    "label": "Label Raid",
     "value": "RAID INCOMING",
-    "group": "🏷️ Icônes & Textes"
+    "group": "🔔 Événements"
+  },
+  "msgRaid": {
+    "type": "text",
+    "label": "Template Raid",
+    "value": "débarque avec {amount} viewers !",
+    "group": "🔔 Événements"
+  },
+  "soundRaid": {
+    "type": "text",
+    "label": "Son Raid (URL)",
+    "value": "",
+    "group": "🔔 Événements"
+  },
+  "showCheer": {
+    "type": "checkbox",
+    "label": "🎉 Cheer (Bits)",
+    "value": true,
+    "group": "🔔 Événements"
   },
   "iconCheer": {
     "type": "text",
     "label": "Icône Cheer",
     "value": "🎉",
-    "group": "🏷️ Icônes & Textes"
+    "group": "🔔 Événements"
   },
   "textCheer": {
     "type": "text",
-    "label": "Texte Cheer",
+    "label": "Label Cheer",
     "value": "BITS",
-    "group": "🏷️ Icônes & Textes"
+    "group": "🔔 Événements"
+  },
+  "msgCheer": {
+    "type": "text",
+    "label": "Template Cheer",
+    "value": "a envoyé {amount} bits !",
+    "group": "🔔 Événements"
+  },
+  "soundCheer": {
+    "type": "text",
+    "label": "Son Cheer (URL)",
+    "value": "",
+    "group": "🔔 Événements"
+  },
+  "showHypeTrain": {
+    "type": "checkbox",
+    "label": "🚂 Hype Train",
+    "value": true,
+    "group": "🔔 Événements"
   },
   "iconHypeTrain": {
     "type": "text",
     "label": "Icône Hype Train",
     "value": "🚂",
-    "group": "🏷️ Icônes & Textes"
+    "group": "🔔 Événements"
   },
   "textHypeTrain": {
     "type": "text",
-    "label": "Texte Hype Train",
+    "label": "Label Hype Train",
     "value": "HYPE TRAIN 🔥",
-    "group": "🏷️ Icônes & Textes"
-  },
-  "msgFollow": {
-    "type": "text",
-    "label": "Message Follow",
-    "value": "{username} vient de follow ! ❤️",
-    "group": "💬 Messages personnalisés"
-  },
-  "msgSub": {
-    "type": "text",
-    "label": "Message Sub",
-    "value": "{username} vient de s'abonner ! ⭐",
-    "group": "💬 Messages personnalisés"
-  },
-  "msgResub": {
-    "type": "text",
-    "label": "Message Resub",
-    "value": "{username} se réabonne pour {months} mois ! 🔥",
-    "group": "💬 Messages personnalisés"
-  },
-  "msgGiftSub": {
-    "type": "text",
-    "label": "Message Gift Sub",
-    "value": "{username} offre {count} sub(s) à {recipient} ! 🎁",
-    "group": "💬 Messages personnalisés"
-  },
-  "msgDonation": {
-    "type": "text",
-    "label": "Message Donation",
-    "value": "{username} a donné {amount} ! 💎",
-    "group": "💬 Messages personnalisés"
-  },
-  "msgRaid": {
-    "type": "text",
-    "label": "Message Raid",
-    "value": "{username} raid avec {amount} viewers ! ⚔️",
-    "group": "💬 Messages personnalisés"
-  },
-  "msgCheer": {
-    "type": "text",
-    "label": "Message Cheer",
-    "value": "{username} envoie {amount} bits ! 🎉",
-    "group": "💬 Messages personnalisés"
+    "group": "🔔 Événements"
   },
   "msgHypeTrain": {
     "type": "text",
-    "label": "Message Hype Train",
-    "value": "HYPE TRAIN en cours ! 🚂",
-    "group": "💬 Messages personnalisés"
-  },
-  "soundVolume": {
-    "type": "slider",
-    "label": "🔊 Volume (%)",
-    "value": 70,
-    "min": 0,
-    "max": 100,
-    "step": 5,
-    "group": "🔊 Sons"
-  },
-  "soundFollow": {
-    "type": "text",
-    "label": "Son Follow (URL MP3)",
-    "value": "",
-    "group": "🔊 Sons"
-  },
-  "soundSub": {
-    "type": "text",
-    "label": "Son Sub (URL MP3)",
-    "value": "",
-    "group": "🔊 Sons"
-  },
-  "soundResub": {
-    "type": "text",
-    "label": "Son Resub (URL MP3)",
-    "value": "",
-    "group": "🔊 Sons"
-  },
-  "soundGiftSub": {
-    "type": "text",
-    "label": "Son Gift Sub (URL MP3)",
-    "value": "",
-    "group": "🔊 Sons"
-  },
-  "soundDonation": {
-    "type": "text",
-    "label": "Son Donation (URL MP3)",
-    "value": "",
-    "group": "🔊 Sons"
-  },
-  "soundRaid": {
-    "type": "text",
-    "label": "Son Raid (URL MP3)",
-    "value": "",
-    "group": "🔊 Sons"
-  },
-  "soundCheer": {
-    "type": "text",
-    "label": "Son Cheer (URL MP3)",
-    "value": "",
-    "group": "🔊 Sons"
+    "label": "Template Hype Train",
+    "value": "Niveau {count} !",
+    "group": "🔔 Événements"
   },
   "soundHypeTrain": {
     "type": "text",
-    "label": "Son Hype Train (URL MP3)",
+    "label": "Son Hype Train (URL)",
     "value": "",
+    "group": "🔔 Événements"
+  },
+  "showViewerMessage": {
+    "type": "checkbox",
+    "label": "💬 Message viewer",
+    "value": true,
+    "group": "💬 Messages"
+  },
+  "soundVolume": {
+    "type": "slider",
+    "label": "Volume sons (0–1)",
+    "value": 0.7,
+    "min": 0,
+    "max": 1,
+    "step": 0.05,
     "group": "🔊 Sons"
   }
 }
