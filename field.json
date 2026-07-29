@@ -420,11 +420,11 @@
   },
   "soundVolume": {
     "type": "slider",
-    "label": "Volume",
-    "value": 0.7,
+    "label": "🔊 Volume (%)",
+    "value": 70,
     "min": 0,
-    "max": 1,
-    "step": 0.05,
+    "max": 100,
+    "step": 5,
     "group": "🔊 Sons"
   },
   "soundFollow": {

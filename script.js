@@ -12,7 +12,6 @@ const seenEventIds = new Set();
 const SEEN_MAX = 200;
 
 // ─── Map statique type → clés fieldData ───────────────────────────────────────────────────────────────────
-// Évite les bugs de casse dynamique (ex: 'giftsub' → 'msgGiftsub' au lieu de 'msgGiftSub')
 const TYPE_FIELD_KEYS = {
   follow:    { template: 'msgFollow',    sound: 'soundFollow'    },
   sub:       { template: 'msgSub',       sound: 'soundSub'       },
@@ -165,7 +164,12 @@ function playSound(type) {
   const url  = keys ? fieldData[keys.sound] : '';
   if (!url || url.trim() === '') return;
   const audio = new Audio(url);
-  audio.volume = Math.min(1, Math.max(0, parseFloat(fieldData.soundVolume) || 0.7));
+  // soundVolume est en % (0-100) — on divise par 100 pour l'API Web Audio (0.0-1.0)
+  const rawVol = parseFloat(fieldData.soundVolume);
+  const vol    = Number.isFinite(rawVol)
+    ? Math.min(1, Math.max(0, rawVol > 1 ? rawVol / 100 : rawVol))
+    : 0.7;
+  audio.volume = vol;
   audio.play().catch(err => {
     console.warn(`[widget-glass] Son "${type}" inaccessible (${url}):`, err.message);
   });
@@ -410,8 +414,6 @@ window.addEventListener('onEventReceived', function (obj) {
   }
 
   if (listener === 'cheer-latest' && fieldData.showCheer) {
-    // amount = le nombre brut (ex: 500) — le mot "bits" est dans le template : {username} envoie {amount} bits !
-    // Ne pas concaténer ' bits' ici sinon doublon avec le template
     showAlert('cheer', data.name, data.message || '', String(data.amount || ''), emotes);
   }
 
