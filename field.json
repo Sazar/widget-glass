@@ -86,6 +86,12 @@
     "step": 50,
     "group": "⚙️ Général"
   },
+  "debugMode": {
+    "type": "checkbox",
+    "label": "🐛 Mode debug (logs console)",
+    "value": false,
+    "group": "⚙️ Général"
+  },
   "themePreset": {
     "type": "dropdown",
     "label": "Preset de thème",
@@ -240,14 +246,23 @@
   },
   "msgFollow": {
     "type": "text",
-    "label": "Template Follow",
+    "label": "Template Follow · ex : vient de follow ! ❤️",
     "value": "vient de follow !",
     "group": "🔔 Événements"
   },
   "soundFollow": {
     "type": "text",
-    "label": "Son Follow (URL)",
+    "label": "Son Follow (URL mp3/ogg/wav)",
     "value": "",
+    "group": "🔔 Événements"
+  },
+  "soundVolumeFollow": {
+    "type": "slider",
+    "label": "↳ Volume Follow (0–100)",
+    "value": 70,
+    "min": 0,
+    "max": 100,
+    "step": 5,
     "group": "🔔 Événements"
   },
   "showSub": {
@@ -270,14 +285,23 @@
   },
   "msgSub": {
     "type": "text",
-    "label": "Template Sub",
+    "label": "Template Sub · ex : vient de s'abonner !",
     "value": "vient de s'abonner !",
     "group": "🔔 Événements"
   },
   "soundSub": {
     "type": "text",
-    "label": "Son Sub (URL)",
+    "label": "Son Sub (URL mp3/ogg/wav)",
     "value": "",
+    "group": "🔔 Événements"
+  },
+  "soundVolumeSub": {
+    "type": "slider",
+    "label": "↳ Volume Sub (0–100)",
+    "value": 80,
+    "min": 0,
+    "max": 100,
+    "step": 5,
     "group": "🔔 Événements"
   },
   "showResub": {
@@ -300,14 +324,23 @@
   },
   "msgResub": {
     "type": "text",
-    "label": "Template Resub",
+    "label": "Template Resub · ex : resub x{months} mois !",
     "value": "resub x{months} mois !",
     "group": "🔔 Événements"
   },
   "soundResub": {
     "type": "text",
-    "label": "Son Resub (URL)",
+    "label": "Son Resub (URL mp3/ogg/wav)",
     "value": "",
+    "group": "🔔 Événements"
+  },
+  "soundVolumeResub": {
+    "type": "slider",
+    "label": "↳ Volume Resub (0–100)",
+    "value": 80,
+    "min": 0,
+    "max": 100,
+    "step": 5,
     "group": "🔔 Événements"
   },
   "showGiftSub": {
@@ -330,14 +363,23 @@
   },
   "msgGiftSub": {
     "type": "text",
-    "label": "Template Gift Sub",
+    "label": "Template Gift Sub · ex : offre {count} sub(s) !",
     "value": "offre {count} sub(s) !",
     "group": "🔔 Événements"
   },
   "soundGiftSub": {
     "type": "text",
-    "label": "Son Gift Sub (URL)",
+    "label": "Son Gift Sub (URL mp3/ogg/wav)",
     "value": "",
+    "group": "🔔 Événements"
+  },
+  "soundVolumeGiftSub": {
+    "type": "slider",
+    "label": "↳ Volume Gift Sub (0–100)",
+    "value": 80,
+    "min": 0,
+    "max": 100,
+    "step": 5,
     "group": "🔔 Événements"
   },
   "showDonation": {
@@ -360,14 +402,23 @@
   },
   "msgDonation": {
     "type": "text",
-    "label": "Template Donation",
+    "label": "Template Donation · ex : a donné {amount} !",
     "value": "a donné {amount} !",
     "group": "🔔 Événements"
   },
   "soundDonation": {
     "type": "text",
-    "label": "Son Donation (URL)",
+    "label": "Son Donation (URL mp3/ogg/wav)",
     "value": "",
+    "group": "🔔 Événements"
+  },
+  "soundVolumeDonation": {
+    "type": "slider",
+    "label": "↳ Volume Donation (0–100)",
+    "value": 90,
+    "min": 0,
+    "max": 100,
+    "step": 5,
     "group": "🔔 Événements"
   },
   "showRaid": {
@@ -390,14 +441,23 @@
   },
   "msgRaid": {
     "type": "text",
-    "label": "Template Raid",
+    "label": "Template Raid · ex : débarque avec {amount} viewers !",
     "value": "débarque avec {amount} viewers !",
     "group": "🔔 Événements"
   },
   "soundRaid": {
     "type": "text",
-    "label": "Son Raid (URL)",
+    "label": "Son Raid (URL mp3/ogg/wav)",
     "value": "",
+    "group": "🔔 Événements"
+  },
+  "soundVolumeRaid": {
+    "type": "slider",
+    "label": "↳ Volume Raid (0–100)",
+    "value": 85,
+    "min": 0,
+    "max": 100,
+    "step": 5,
     "group": "🔔 Événements"
   },
   "showCheer": {
@@ -420,14 +480,23 @@
   },
   "msgCheer": {
     "type": "text",
-    "label": "Template Cheer",
+    "label": "Template Cheer · ex : a envoyé {amount} bits !",
     "value": "a envoyé {amount} bits !",
     "group": "🔔 Événements"
   },
   "soundCheer": {
     "type": "text",
-    "label": "Son Cheer (URL)",
+    "label": "Son Cheer (URL mp3/ogg/wav)",
     "value": "",
+    "group": "🔔 Événements"
+  },
+  "soundVolumeCheer": {
+    "type": "slider",
+    "label": "↳ Volume Cheer (0–100)",
+    "value": 75,
+    "min": 0,
+    "max": 100,
+    "step": 5,
     "group": "🔔 Événements"
   },
   "showHypeTrain": {
@@ -450,14 +519,23 @@
   },
   "msgHypeTrain": {
     "type": "text",
-    "label": "Template Hype Train",
+    "label": "Template Hype Train · ex : Niveau {count} !",
     "value": "Niveau {count} !",
     "group": "🔔 Événements"
   },
   "soundHypeTrain": {
     "type": "text",
-    "label": "Son Hype Train (URL)",
+    "label": "Son Hype Train (URL mp3/ogg/wav)",
     "value": "",
+    "group": "🔔 Événements"
+  },
+  "soundVolumeHypeTrain": {
+    "type": "slider",
+    "label": "↳ Volume Hype Train (0–100)",
+    "value": 80,
+    "min": 0,
+    "max": 100,
+    "step": 5,
     "group": "🔔 Événements"
   },
   "showViewerMessage": {
@@ -465,14 +543,5 @@
     "label": "💬 Message viewer",
     "value": true,
     "group": "💬 Messages"
-  },
-  "soundVolume": {
-    "type": "slider",
-    "label": "Volume sons (0–1)",
-    "value": 0.7,
-    "min": 0,
-    "max": 1,
-    "step": 0.05,
-    "group": "🔊 Sons"
   }
 }

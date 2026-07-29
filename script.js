@@ -12,14 +12,14 @@ const SEEN_MAX = 200;
 
 // ─── Map statique type → clés fieldData ─────────────────────────────────────────────────────────
 const TYPE_FIELD_KEYS = {
-  follow:    { template: 'msgFollow',    sound: 'soundFollow'    },
-  sub:       { template: 'msgSub',       sound: 'soundSub'       },
-  resub:     { template: 'msgResub',     sound: 'soundResub'     },
-  giftsub:   { template: 'msgGiftSub',   sound: 'soundGiftSub'   },
-  donation:  { template: 'msgDonation',  sound: 'soundDonation'  },
-  raid:      { template: 'msgRaid',      sound: 'soundRaid'      },
-  cheer:     { template: 'msgCheer',     sound: 'soundCheer'     },
-  hypetrain: { template: 'msgHypeTrain', sound: 'soundHypeTrain' }
+  follow:    { template: 'msgFollow',    sound: 'soundFollow',    volume: 'soundVolumeFollow'    },
+  sub:       { template: 'msgSub',       sound: 'soundSub',       volume: 'soundVolumeSub'       },
+  resub:     { template: 'msgResub',     sound: 'soundResub',     volume: 'soundVolumeResub'     },
+  giftsub:   { template: 'msgGiftSub',   sound: 'soundGiftSub',   volume: 'soundVolumeGiftSub'   },
+  donation:  { template: 'msgDonation',  sound: 'soundDonation',  volume: 'soundVolumeDonation'  },
+  raid:      { template: 'msgRaid',      sound: 'soundRaid',      volume: 'soundVolumeRaid'      },
+  cheer:     { template: 'msgCheer',     sound: 'soundCheer',     volume: 'soundVolumeCheer'     },
+  hypetrain: { template: 'msgHypeTrain', sound: 'soundHypeTrain', volume: 'soundVolumeHypeTrain' }
 };
 
 // ─── Map statique type → icône + label ──────────────────────────────────────────────────────────
@@ -45,6 +45,11 @@ const usernameEl    = document.getElementById('username');
 const templateMsgEl = document.getElementById('templateMsg');
 const messageEl     = document.getElementById('message');
 const progressEl    = document.getElementById('progressBar');
+
+// ─── Debug log (activé uniquement si debugMode est true dans fieldData) ─────────────────────────
+function dbg(...args) {
+  if (parseBool(fieldData.debugMode)) console.log('[widget-glass]', ...args);
+}
 
 // ─── Template msg ────────────────────────────────────────────────────────────────────────────────
 function setTemplateMsg(text) {
@@ -248,17 +253,20 @@ function createParticles(alertType, container) {
 }
 
 // ─── Sons ────────────────────────────────────────────────────────────────────────────────────────
+// FIX #1 : volume par type via soundVolume{Type} — fallback sur 0.7 si absent
 function playSound(type) {
   const keys = TYPE_FIELD_KEYS[type];
   const url  = keys ? fieldData[keys.sound] : '';
   if (!url || url.trim() === '') return;
-  const audio  = new Audio(url);
-  const rawVol = parseFloat(fieldData.soundVolume);
+  const audio = new Audio(url);
+  const rawVol = keys && fieldData[keys.volume] !== undefined
+    ? parseFloat(fieldData[keys.volume])
+    : 0.7;
   audio.volume = Number.isFinite(rawVol)
     ? Math.min(1, Math.max(0, rawVol > 1 ? rawVol / 100 : rawVol))
     : 0.7;
   audio.play().catch(err =>
-    console.warn(`[widget-glass] Son "${type}" inaccessible (${url}):`, err.message)
+    dbg(`Son "${type}" inaccessible (${url}):`, err.message)
   );
 }
 
@@ -280,6 +288,8 @@ function stopProgressBar() {
 }
 
 // ─── Emotes ──────────────────────────────────────────────────────────────────────────────────────
+// FIX #4 : remplacement de la regex \b par un split sur espaces
+// \b ne matche pas les emotes avec tirets ou caractères spéciaux
 function renderEmotes(text, emotes) {
   if (!emotes || !emotes.length || !text) return null;
   const dict = {};
@@ -287,12 +297,17 @@ function renderEmotes(text, emotes) {
     if (e.name && e.urls) dict[e.name] = e.urls['x2'] || e.urls['x1'] || Object.values(e.urls)[0];
   });
   if (!Object.keys(dict).length) return null;
-  const safe = text.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
-  return safe.replace(/\b(\S+)\b/g, match => {
-    if (!dict[match]) return match;
-    const n = match.replace(/"/g, '&quot;').replace(/>/g, '&gt;');
-    return `<img src="${dict[match]}" alt="${n}" title="${n}" style="height:1.2em;vertical-align:middle;display:inline;" loading="lazy">`;
+  const words = text.split(/(\s+)/);
+  let hasEmote = false;
+  const parts = words.map(word => {
+    if (dict[word]) {
+      hasEmote = true;
+      const safe = word.replace(/"/g, '&quot;').replace(/>/g, '&gt;');
+      return `<img src="${dict[word]}" alt="${safe}" title="${safe}" style="height:1.2em;vertical-align:middle;display:inline;" loading="lazy">`;
+    }
+    return word.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
   });
+  return hasEmote ? parts.join('') : null;
 }
 
 // ─── Templates ───────────────────────────────────────────────────────────────────────────────────
@@ -340,12 +355,6 @@ function processQueue() {
 }
 
 // ─── Scale icône ─────────────────────────────────────────────────────────────────────────────────
-//
-// RÈGLE : l'icône est mise à scale(1.15) à l'ENTRÉE et ne revient JAMAIS
-// à scale(1) de manière visible. Le reset se fait uniquement APRÈS que
-// le widget a disparu (animationend de sortie ou fallback timer).
-// Cela évite tout saut visuel pendant la sortie.
-//
 function setIconScale(scale) {
   if (iconEl) iconEl.style.transform = `scale(${scale})`;
 }
@@ -399,16 +408,13 @@ function _playAlert(type, username, message, amount, emotes) {
     else                    showBubble(viewerMessage, false);
   }
 
-  // Nettoie les classes d'animation précédentes
   alertEl.className = alertEl.className
     .split(' ')
     .filter(c => !c.startsWith('anim-in-') && !c.startsWith('anim-out-'))
     .join(' ');
   void alertEl.offsetWidth;
 
-  // Icône agrandie à l'entrée — restera à cette taille jusqu'à la FIN de la sortie
   setIconScale(1.15);
-
   alertEl.classList.add(getAnimInClass());
 
   const particlesContainer = document.getElementById('particles');
@@ -429,13 +435,6 @@ function _playAlert(type, username, message, amount, emotes) {
     hideBubble();
     stopProgressBar();
 
-    // ─────────────────────────────────────────────────────────────────────
-    // PAS de setIconScale(1) ici.
-    // L'icône reste à scale(1.15) et disparaît avec le widget.
-    // Le reset se fait UNIQUEMENT dans onHideEnd / fallback, quand
-    // le widget est déjà invisible → zéro saut visuel.
-    // ─────────────────────────────────────────────────────────────────────
-
     alertEl.classList.remove(getAnimInClass());
     void alertEl.offsetWidth;
     alertEl.classList.add(getAnimOutClass());
@@ -449,7 +448,7 @@ function _playAlert(type, username, message, amount, emotes) {
         alertEl.removeEventListener('animationend', _hideEndListener);
         _hideEndListener = null;
         alertEl.classList.remove(getAnimOutClass());
-        resetIconScale(); // reset APRÈS disparition
+        resetIconScale();
         processQueue();
       }
     }, animOutDur + 200);
@@ -459,7 +458,7 @@ function _playAlert(type, username, message, amount, emotes) {
       _fallbackTimer   = null;
       _hideEndListener = null;
       alertEl.classList.remove(getAnimOutClass());
-      resetIconScale(); // reset APRÈS disparition
+      resetIconScale();
       processQueue();
     };
     alertEl.addEventListener('animationend', _hideEndListener, { once: true });
@@ -485,8 +484,9 @@ window.addEventListener('onEventReceived', function (obj) {
   const data     = obj.detail.event;
   const emotes   = data.emotes || [];
 
-  console.log('[widget-glass] event =>', listener, JSON.stringify(data).slice(0, 300));
+  dbg('event =>', listener, JSON.stringify(data).slice(0, 300));
 
+  // FIX #3 : TTL porté à 30s pour couvrir les giftsub en masse
   const eventId = `${listener}_${data.name}_${data._id || data.createdAt || data.amount || ''}`;
   if (seenEventIds.has(eventId)) return;
 
@@ -494,15 +494,18 @@ window.addEventListener('onEventReceived', function (obj) {
     seenEventIds.delete(seenEventIds.values().next().value);
   }
   seenEventIds.add(eventId);
-  setTimeout(() => seenEventIds.delete(eventId), 10000);
+  setTimeout(() => seenEventIds.delete(eventId), 30000);
 
   if (listener === 'follower-latest' && parseBool(fieldData.showFollow))
     showAlert('follow', data.name, data.message || '', '', emotes);
 
+  // FIX #2 : resub mois-1 — on vérifie isResub ou cumulative_months en plus de amount > 1
   if (listener === 'subscriber-latest' && !isGiftSub(data)) {
-    if (data.amount > 1 && parseBool(fieldData.showResub))
-      showAlert('resub', data.name, data.message || '', `${data.amount}`, emotes);
-    else if (parseBool(fieldData.showSub))
+    const months = parseInt(data.amount, 10) || parseInt(data.months, 10) || 0;
+    const isResub = !!(data.isResub || data.streak || months > 1 || (months === 1 && data.cumulativeMonths > 1));
+    if (isResub && parseBool(fieldData.showResub))
+      showAlert('resub', data.name, data.message || '', `${months || data.cumulativeMonths || 1}`, emotes);
+    else if (!isResub && parseBool(fieldData.showSub))
       showAlert('sub', data.name, data.message || '', '', emotes);
   }
 
@@ -578,10 +581,10 @@ window.skipAlert = function() {
   resetIconScale();
   isPlaying = false;
   processQueue();
-  console.log('[widget-glass] Alerte sautée.');
+  dbg('Alerte sautée.');
 };
 
 window.clearQueue = function() {
   alertQueue.length = 0;
-  console.log('[widget-glass] File vidée.');
+  dbg('File vidée.');
 };
