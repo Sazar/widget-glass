@@ -253,12 +253,17 @@ function createParticles(alertType, container) {
 }
 
 // ─── Sons ────────────────────────────────────────────────────────────────────────────────────────
-// FIX #1 : volume par type via soundVolume{Type} — fallback sur 0.7 si absent
+// FIX #3 : validation du format audio avant de créer l'objet Audio
 function playSound(type) {
   const keys = TYPE_FIELD_KEYS[type];
-  const url  = keys ? fieldData[keys.sound] : '';
-  if (!url || url.trim() === '') return;
-  const audio = new Audio(url);
+  const url  = keys ? (fieldData[keys.sound] || '').trim() : '';
+  if (!url) return;
+  // Accepte uniquement les extensions audio connues ou les URLs de données
+  if (!/\.(mp3|ogg|wav|aac|m4a|flac|webm)(\?.*)?$/i.test(url) && !/^data:audio\//i.test(url)) {
+    dbg(`Son "${type}" : format non supporté ou URL invalide (${url})`);
+    return;
+  }
+  const audio  = new Audio(url);
   const rawVol = keys && fieldData[keys.volume] !== undefined
     ? parseFloat(fieldData[keys.volume])
     : 0.7;
@@ -271,12 +276,19 @@ function playSound(type) {
 }
 
 // ─── Barre de progression ────────────────────────────────────────────────────────────────────────
+// FIX #5 : utiliser removeProperty au lieu de style.display = 'none'
+// pour éviter le conflit entre style inline et la classe CSS .active
 function startProgressBar(duration) {
   if (!progressEl) return;
-  if (!parseBool(fieldData.showProgressBar)) { progressEl.classList.remove('active'); return; }
-  progressEl.style.display = 'block';
+  if (!parseBool(fieldData.showProgressBar)) {
+    progressEl.classList.remove('active');
+    progressEl.style.removeProperty('display');
+    return;
+  }
+  // Retirer le style inline avant de jouer sur les classes
+  progressEl.style.removeProperty('display');
   progressEl.classList.remove('active');
-  void progressEl.offsetWidth;
+  void progressEl.offsetWidth; // force reflow pour relancer l'animation
   document.documentElement.style.setProperty('--duration', duration + 'ms');
   progressEl.classList.add('active');
 }
@@ -284,12 +296,12 @@ function startProgressBar(duration) {
 function stopProgressBar() {
   if (!progressEl) return;
   progressEl.classList.remove('active');
-  progressEl.style.display = 'none';
+  // FIX #5 suite : on retire le style inline pour laisser le CSS gérer display
+  progressEl.style.removeProperty('display');
 }
 
 // ─── Emotes ──────────────────────────────────────────────────────────────────────────────────────
-// FIX #4 : remplacement de la regex \b par un split sur espaces
-// \b ne matche pas les emotes avec tirets ou caractères spéciaux
+// \b remplacé par split sur espaces pour matcher les emotes avec tirets/caractères spéciaux
 function renderEmotes(text, emotes) {
   if (!emotes || !emotes.length || !text) return null;
   const dict = {};
@@ -302,8 +314,10 @@ function renderEmotes(text, emotes) {
   const parts = words.map(word => {
     if (dict[word]) {
       hasEmote = true;
-      const safe = word.replace(/"/g, '&quot;').replace(/>/g, '&gt;');
-      return `<img src="${dict[word]}" alt="${safe}" title="${safe}" style="height:1.2em;vertical-align:middle;display:inline;" loading="lazy">`;
+      const safe    = word.replace(/"/g, '&quot;').replace(/>/g, '&gt;');
+      const imgSrc  = dict[word].replace(/"/g, '&quot;');
+      // FIX #2 : onerror sur chaque image d'emote → fallback texte brut
+      return `<img src="${imgSrc}" alt="${safe}" title="${safe}" style="height:1.2em;vertical-align:middle;display:inline;" loading="lazy" onerror="this.replaceWith(document.createTextNode('${safe}'))">`;
     }
     return word.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
   });
@@ -364,6 +378,10 @@ function resetIconScale() {
 
 // ─── Lecture d'une alerte ────────────────────────────────────────────────────────────────────────
 function _playAlert(type, username, message, amount, emotes) {
+  // FIX #1 : stopper proprement la barre de progression d'une éventuelle
+  // alerte précédente avant d'en démarrer une nouvelle (ex: skipAlert rapide)
+  stopProgressBar();
+
   setTemplateMsg('');
   if (messageEl) {
     if (messageEl._hideListener) {
@@ -414,7 +432,12 @@ function _playAlert(type, username, message, amount, emotes) {
     .join(' ');
   void alertEl.offsetWidth;
 
+  // FIX #4 : réinitialiser le scale AVANT d'appliquer setIconScale
+  // pour éviter qu'un scale résiduel reste si l'animation précédente
+  // ne s'est pas terminée normalement (ex: prefers-reduced-motion)
+  resetIconScale();
   setIconScale(1.15);
+
   alertEl.classList.add(getAnimInClass());
 
   const particlesContainer = document.getElementById('particles');
@@ -486,7 +509,6 @@ window.addEventListener('onEventReceived', function (obj) {
 
   dbg('event =>', listener, JSON.stringify(data).slice(0, 300));
 
-  // FIX #3 : TTL porté à 30s pour couvrir les giftsub en masse
   const eventId = `${listener}_${data.name}_${data._id || data.createdAt || data.amount || ''}`;
   if (seenEventIds.has(eventId)) return;
 
@@ -499,9 +521,9 @@ window.addEventListener('onEventReceived', function (obj) {
   if (listener === 'follower-latest' && parseBool(fieldData.showFollow))
     showAlert('follow', data.name, data.message || '', '', emotes);
 
-  // FIX #2 : resub mois-1 — on vérifie isResub ou cumulative_months en plus de amount > 1
+  // Resub mois-1 : vérifie isResub ou cumulativeMonths en plus de amount > 1
   if (listener === 'subscriber-latest' && !isGiftSub(data)) {
-    const months = parseInt(data.amount, 10) || parseInt(data.months, 10) || 0;
+    const months  = parseInt(data.amount, 10) || parseInt(data.months, 10) || 0;
     const isResub = !!(data.isResub || data.streak || months > 1 || (months === 1 && data.cumulativeMonths > 1));
     if (isResub && parseBool(fieldData.showResub))
       showAlert('resub', data.name, data.message || '', `${months || data.cumulativeMonths || 1}`, emotes);

@@ -272,6 +272,11 @@ body {
 }
 
 /* ── Barre de progression ──────────────────────────────────────────────── */
+/*
+  FIX #5 : display géré UNIQUEMENT par la classe .active
+  plus de style.display = 'none' côté JS — on utilise style.removeProperty('display')
+  pour éviter le conflit style inline vs classe CSS
+*/
 .progress-bar {
   display: none;
   position: absolute;
@@ -315,6 +320,8 @@ body {
   Le scale de l'icône est entièrement piloté par JS (iconEl.style.transform).
   Aucune règle CSS statique sur transform ici — évite tout snap au dernier
   frame quand les classes anim-in-/anim-out- sont retirées.
+  FIX #4 : resetIconScale() est appelé en début de _playAlert() pour éviter
+  qu'un scale résiduel reste si prefers-reduced-motion est actif.
 */
 .icon {
   font-size: var(--icon-size, 56px);
