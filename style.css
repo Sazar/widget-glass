@@ -78,17 +78,6 @@ body {
 }
 
 /* ── Variables de durée + glow initial à 0 ───────────────────────────────── */
-/*
-  --glow-intensity est initialisé à 0px ici.
-  Conséquence : sans JavaScript (preview vide, chargement lent),
-  aucun glow n'est visible — comportement sûr par défaut.
-  applySettings() écrase toujours cette valeur selon enableGlow + glowIntensity.
-
-  IMPORTANT : les fallbacks CSS dans drop-shadow() et text-shadow ci-dessous
-  utilisent aussi 0px (et non 20px) pour la même raison.
-  Si --glow-intensity n'est pas encore setté par JS, le fallback CSS
-  ne doit pas afficher de glow non désiré.
-*/
 :root {
   --anim-duration-in:  600ms;
   --anim-duration-out: 500ms;
@@ -322,20 +311,19 @@ body {
 }
 
 /* ── Icône emoji ────────────────────────────────────────────────────────── */
+/*
+  Le scale de l'icône est entièrement piloté par JS (iconEl.style.transform).
+  Aucune règle CSS statique sur transform ici — évite tout snap au dernier
+  frame quand les classes anim-in-/anim-out- sont retirées.
+*/
 .icon {
   font-size: var(--icon-size, 56px);
   line-height: 1;
   filter: drop-shadow(0 0 var(--glow-intensity, 0px) var(--primary-color, #00f5ff));
-  /* Pas de transition sur transform : évite le rétrécissement visible
-     quand anim-in- est retiré et que le scale(1.15) revient à scale(1)
-     au moment du déclenchement de l'animation de sortie. */
   transition: filter 0.3s ease;
   flex-shrink: 0;
+  will-change: transform;
 }
-
-/* Scale de l'icône uniquement pendant l'entrée, sans transition retour */
-[class*="anim-in-"] .icon { transform: scale(1.15); }
-[class*="anim-out-"] .icon { transform: scale(1); }
 
 .info {
   flex: 1;
@@ -415,33 +403,21 @@ body {
   .alert { background: rgba(10, 10, 20, 0.88); }
 }
 
-/* ── AMÉLIORATION : prefers-reduced-motion ───────────────────────────────── */
-/*
-  Respecte le choix système de l'utilisateur (accessibilité).
-  Dans le contexte OBS/StreamElements, cela affecte surtout les previews
-  StreamElements et les tests en navigateur.
-  Les animations d'entrée/sortie passent à un simple fade, les particules
-  et effets de fond sont désactivés.
-*/
+/* ── prefers-reduced-motion ───────────────────────────────────────────────── */
 @media (prefers-reduced-motion: reduce) {
-  /* Remplace toutes les animations entrée par un fadeIn simple */
   [class*="anim-in-"] {
     animation: kf-fadeIn var(--anim-duration-in) ease forwards !important;
   }
-  /* Remplace toutes les animations sortie par un fadeOut simple */
   [class*="anim-out-"] {
     animation: kf-fadeOut var(--anim-duration-out) ease forwards !important;
   }
-  /* Désactive l'animation de fond liquidFlow et highlight */
   .alert::before,
   .alert::after {
     animation: none !important;
   }
-  /* Désactive les particules visuellement (elles restent dans le DOM) */
   .particles {
     display: none !important;
   }
-  /* Désactive les animations de la bulle message */
   .viewer-message-bubble.visible {
     animation: none !important;
     opacity: 1;
@@ -451,7 +427,6 @@ body {
     animation: none !important;
     opacity: 0;
   }
-  /* Désactive la transition de l'icône */
   .icon {
     transition: none !important;
   }
