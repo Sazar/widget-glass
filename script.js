@@ -205,8 +205,8 @@ function shouldShowViewerMessage(type) {
 }
 
 // ─── File d'attente ─────────────────────────────────────────────────────────────────────────────────────────────────
-function enqueueAlert(type, username, message, amount) {
-  alertQueue.push({ type, username, message, amount });
+function enqueueAlert(type, username, message, amount, emotes) {
+  alertQueue.push({ type, username, message, amount, emotes: emotes || [] });
   if (!isPlaying) processQueue();
 }
 
@@ -227,12 +227,12 @@ function _playAlert(type, username, message, amount, emotes) {
   const types = {
     follow:    { icon: fieldData.iconFollow    || '\u2764\ufe0f',  text: fieldData.textFollow    || 'NOUVEAU FOLLOW'  },
     sub:       { icon: fieldData.iconSub       || '\u2b50',        text: fieldData.textSub       || 'NOUVELLE SUB'    },
-    resub:     { icon: fieldData.iconResub     || '\ud83d\udd25', text: fieldData.textResub     || 'RESUBSCRIPTION'  },
-    giftsub:   { icon: fieldData.iconGiftSub   || '\ud83c\udf81', text: fieldData.textGiftSub   || 'GIFT SUB'        },
-    donation:  { icon: fieldData.iconDonation  || '\ud83d\udc8e', text: fieldData.textDonation  || 'DONATION'        },
+    resub:     { icon: fieldData.iconResub     || '\ud83d\udd25',  text: fieldData.textResub     || 'RESUBSCRIPTION'  },
+    giftsub:   { icon: fieldData.iconGiftSub   || '\ud83c\udf81',  text: fieldData.textGiftSub   || 'GIFT SUB'        },
+    donation:  { icon: fieldData.iconDonation  || '\ud83d\udc8e',  text: fieldData.textDonation  || 'DONATION'        },
     raid:      { icon: fieldData.iconRaid      || '\u2694\ufe0f',  text: fieldData.textRaid      || 'RAID INCOMING'   },
-    cheer:     { icon: fieldData.iconCheer     || '\ud83c\udf89', text: fieldData.textCheer     || 'BITS'            },
-    hypetrain: { icon: fieldData.iconHypeTrain || '\ud83d\ude82', text: fieldData.textHypeTrain || 'HYPE TRAIN \ud83d\udd25' }
+    cheer:     { icon: fieldData.iconCheer     || '\ud83c\udf89',  text: fieldData.textCheer     || 'BITS'            },
+    hypetrain: { icon: fieldData.iconHypeTrain || '\ud83d\ude82',  text: fieldData.textHypeTrain || 'HYPE TRAIN \ud83d\udd25' }
   };
 
   const t = types[type] || types.follow;
@@ -245,21 +245,34 @@ function _playAlert(type, username, message, amount, emotes) {
   const template    = fieldData[templateKey];
   const hasTemplate = template && template.trim() !== '';
 
+  // Pour giftsub :
+  //   username  = le gifter (ex: "Swerkx")
+  //   message   = le recipient (ex: "DestUser") — passé depuis le handler
+  //   amount    = la quantité (ex: "5")
   const vars = {
     username:  username || '',
     amount:    amount   || '',
-    message:   message  || '',
-    months:    '',
+    message:   type === 'giftsub' ? '' : (message || ''),
+    months:    type === 'resub'   ? (amount || '') : '',
     count:     amount   || '',
     recipient: type === 'giftsub' ? (message || '') : ''
   };
 
-  if (type === 'resub' && amount) {
-    vars.months = amount;
-  }
-
   if (hasTemplate) {
-    messageEl.textContent = resolveTemplate(template, vars);
+    const resolved = resolveTemplate(template, vars);
+    if (resolved.trim()) {
+      messageEl.textContent = resolved;
+    } else {
+      messageEl.style.display = 'none';
+    }
+  } else if (type === 'giftsub') {
+    // Pas de template : affiche le recipient directement si présent
+    const recipient = message || '';
+    if (recipient) {
+      messageEl.textContent = recipient;
+    } else {
+      messageEl.style.display = 'none';
+    }
   } else if (shouldShowViewerMessage(type)) {
     const emoteHtml = renderEmotes(message, emotes);
     if (emoteHtml !== null) messageEl.innerHTML  = emoteHtml;
@@ -320,8 +333,8 @@ function _playAlert(type, username, message, amount, emotes) {
 }
 
 // ─── API publique ─────────────────────────────────────────────────────────────────────────────────────────────────────────
-function showAlert(type, username, message = '', amount = '', emotes = []) {
-  enqueueAlert(type, username, message, amount, emotes);
+function showAlert(type, username, message, amount, emotes) {
+  enqueueAlert(type, username, message || '', amount || '', emotes || []);
 }
 
 // ─── Détection gift sub ──────────────────────────────────────────────────────────────────────────────────────────────
@@ -374,8 +387,10 @@ window.addEventListener('onEventReceived', function (obj) {
      (listener === 'subscriber-latest' && isGiftSub(data)))
     && fieldData.showGiftSub
   ) {
-    const qty       = data.amount || data.quantity || data.count || 1;
-    const recipient = data.recipientDisplayName || data.recipient || data.gifted || '';
+    const qty = data.amount || data.quantity || data.count || 1;
+    // Ne prendre data.gifted QUE si c'est bien une string (pas un booléen)
+    const giftedStr = typeof data.gifted === 'string' ? data.gifted : '';
+    const recipient = data.recipientDisplayName || data.recipient || giftedStr || '';
     const gifter    = data.name || data.sender   || data.gifter  || 'Anonyme';
     showAlert('giftsub', gifter, recipient, String(qty), []);
   }
