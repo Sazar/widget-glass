@@ -17,10 +17,10 @@ body {
   padding: 20px;
 }
 
-/* ── Widget principal ────────────────────────────────────────────────────── */
+/* ── Widget principal ─────────────────────────────────────────────────────── */
 .alert {
   display: none;
-  /* Largeur fixe définie par le champ widgetWidth — ne rétrécit jamais */
+  /* Largeur fixe — ne rétrécit jamais */
   width: var(--widget-width, 660px);
   /* Hauteur libre : grandit vers le bas si le texte est long */
   height: auto;
@@ -30,7 +30,6 @@ body {
   border-radius: var(--border-radius, 28px);
   padding: 34px 44px;
   position: relative;
-  /* overflow visible pour que le contenu puisse pousser la hauteur */
   overflow: hidden;
   box-shadow:
     0 10px 50px rgba(0, 0, 0, 0.6),
@@ -44,7 +43,7 @@ body {
 [class*="anim-in-"],
 [class*="anim-out-"] { display: block; }
 
-/* ── Variables de durée ─────────────────────────────────────────────────── */
+/* ── Variables de durée ──────────────────────────────────────────────────── */
 :root {
   --anim-duration-in:  600ms;
   --anim-duration-out: 500ms;
@@ -55,9 +54,9 @@ body {
   --progress-color-2: #ff2ec4;
 }
 
-/* ════════════════════════════════════════════════════════════════════════════ */
+/* ══════════════════════════════════════════════════════════════════════════ */
 /* ANIMATIONS D'ENTRÉE                                                       */
-/* ════════════════════════════════════════════════════════════════════════════ */
+/* ══════════════════════════════════════════════════════════════════════════ */
 
 .anim-in-popIn { animation: kf-popIn var(--anim-duration-in) var(--ease-out-expo) forwards; }
 @keyframes kf-popIn {
@@ -129,9 +128,9 @@ body {
   100% { transform: translate(0, 0)    skewX(0deg);   opacity: 1;   clip-path: inset(0%  0 0%  0); }
 }
 
-/* ════════════════════════════════════════════════════════════════════════════ */
+/* ══════════════════════════════════════════════════════════════════════════ */
 /* ANIMATIONS DE SORTIE                                                      */
-/* ════════════════════════════════════════════════════════════════════════════ */
+/* ══════════════════════════════════════════════════════════════════════════ */
 
 .anim-out-popOut { animation: kf-popOut var(--anim-duration-out) var(--ease-in-expo) forwards; }
 @keyframes kf-popOut {
@@ -202,7 +201,7 @@ body {
   100% { transform: translate(0, 0)    skewX(0deg);  opacity: 0;   clip-path: inset(50% 0 50% 0); }
 }
 
-/* ── Pseudo-éléments glass ───────────────────────────────────────────────── */
+/* ── Pseudo-éléments glass ──────────────────────────────────────────────── */
 .alert::before,
 .alert::after {
   content: '';
@@ -238,7 +237,7 @@ body {
   50%       { opacity: 0.75; }
 }
 
-/* ── Barre de progression ────────────────────────────────────────────────── */
+/* ── Barre de progression ──────────────────────────────────────────────── */
 .progress-bar {
   display: none;
   position: absolute;
@@ -270,7 +269,7 @@ body {
 
 .progress-bar.active { display: block; }
 
-/* ── Layout header : icône à gauche, textes centrés ─────────────────────── */
+/* ── Layout header ──────────────────────────────────────────────────────── */
 .alert-header {
   display: flex;
   align-items: center;
@@ -296,22 +295,7 @@ body {
   align-items: center;
 }
 
-/* ── Ligne pseudo + message : toujours sur la même ligne, wrap en hauteur ── */
-.username-row {
-  display: flex;
-  flex-direction: row;
-  align-items: baseline;
-  justify-content: center;
-  gap: 10px;
-  /* PAS de flex-wrap : pseudo et message restent toujours côte à côte */
-  flex-wrap: nowrap;
-  /* La ligne peut dépasser la largeur du widget puis revient à la ligne
-     grâce au overflow-wrap sur les enfants */
-  width: 100%;
-  min-width: 0;
-}
-
-/* ── Textes ──────────────────────────────────────────────────────────────── */
+/* ── Type d'alerte ──────────────────────────────────────────────────────── */
 .type {
   font-size: var(--type-size, 15.5px);
   font-weight: 600;
@@ -319,75 +303,53 @@ body {
   color: var(--type-color, #7cfcff);
   text-transform: uppercase;
   text-shadow: 0 0 10px rgba(0, 245, 255, 0.6);
+  display: block;
+  margin-bottom: 10px;
 }
 
-.username {
-  font-family: 'Space Grotesk', 'Inter', sans-serif;
-  font-size: var(--username-size, 49px);
-  font-weight: 700;
-  line-height: 1.15;
-  margin-top: 14px;
-  margin-bottom: 0;
-  /* Texte court : tient sur une ligne.
-     Texte long : se coupe proprement à la largeur disponible */
-  white-space: normal;
-  overflow-wrap: break-word;
-  word-break: break-word;
-  /* Occupe au max la moitié de la ligne quand le message est présent */
-  flex: 1 1 0;
-  min-width: 0;
-  color: var(--username-color, #ffffff);
-  background: none;
-  -webkit-background-clip: unset;
-  -webkit-text-fill-color: unset;
-  background-clip: unset;
-  cursor: default;
-  text-align: right;
+/* ── Ligne pseudo + message ─────────────────────────────────────────────────
+   Principe : .username-row est un bloc de texte normal (display:block).
+   .username et .message sont en display:inline — ils coulent côte à côte
+   sur la même ligne exactement comme deux mots dans une phrase.
+   Si la phrase est trop longue elle revient à la ligne naturellement,
+   MAIS jamais entre la fin du pseudo et le début du message.
+   Le seul séparateur est l'espace naturel entre les deux inline.
+────────────────────────────────────────────────────────────────────────── */
+.username-row {
+  display: block;
+  text-align: center;
+  width: 100%;
+  /* line-height cohérent avec la taille de police */
+  line-height: 1.2;
 }
 
-/* Le message hérite exactement de la taille et couleur du pseudo */
+.username,
 .message {
   font-family: 'Space Grotesk', 'Inter', sans-serif;
   font-size: var(--username-size, 49px);
   font-weight: 700;
-  line-height: 1.15;
-  margin-top: 14px;
-  margin-bottom: 0;
+  line-height: 1.2;
+  color: var(--username-color, #ffffff);
+  /* inline : coulent sur la même ligne comme du texte */
+  display: inline;
+  /* Le texte wrape normalement sur plusieurs lignes si besoin,
+     mais JAMAIS entre .username et .message (ils sont inline contigus) */
   white-space: normal;
   overflow-wrap: break-word;
   word-break: break-word;
-  flex: 1 1 0;
-  min-width: 0;
-  color: var(--username-color, #ffffff);
-  opacity: 0.92;
-  transition: opacity 0.2s ease;
-  text-align: left;
+  vertical-align: baseline;
 }
 
-/* Quand le message est absent : le pseudo reprend toute la largeur et se centre */
-.message:empty ~ .username,
-.username:only-child {
-  flex: unset;
-  text-align: center;
+/* Espace automatique entre pseudo et message quand les deux sont présents */
+.username:not(:empty) + .message:not(:empty)::before {
+  content: '\00A0';
 }
 
-.username:only-child {
-  text-align: center;
-}
-
-/* Masquage propre quand vide ou caché */
-.message:empty,
-.message[style*="display: none"],
-.message[style*="display:none"] {
-  display: none !important;
-}
-
-/* Quand message masqué, le pseudo reprend toute la ligne centré */
-.username-row:has(.message[style*="display: none"]) .username,
-.username-row:has(.message:empty) .username {
-  flex: unset;
-  text-align: center;
-  width: 100%;
+/* Quand message masqué, on supprime l'espace fantôme */
+.message[style*="display: none"]::before,
+.message[style*="display:none"]::before,
+.message:empty::before {
+  content: none;
 }
 
 /* ── Particules ──────────────────────────────────────────────────────────── */
